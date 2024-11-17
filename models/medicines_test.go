@@ -12,7 +12,10 @@ func TestMedicines(t *testing.T) {
 			Stock: 100,
 		}
 		got := store.EntryMedicine(med)
+		want := store.FindMedicine(med.ID)
 
-
+		if got != want {
+			t.Errorf("medicine not found")
+		}
 	})
 }
