@@ -6,6 +6,8 @@ import (
 )
 
 func main() {
+	store := models.NewMedicineStore()
+
 	med := models.Medicine{
 		ID:    1,
 		Name:  "Paracetamol",
@@ -13,11 +15,11 @@ func main() {
 		Stock: 100,
 	}
 
-	models.EntryMedicine(med)
+	store.EntryMedicine(med)
 
-	found, ok := models.FindMedicine(1)
-	if !ok {
-		fmt.Errorf("no medicine found")
+	found, err := store.FindMedicine(1)
+	if err != nil {
+		fmt.Println(err)
 	}
 
 	fmt.Println("Medicine found:\n", found.Name)
