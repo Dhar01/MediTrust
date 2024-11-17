@@ -53,11 +53,18 @@ func (ms *MedicineStore) UpdateMedicine(id int, updateMed Medicine) error {
 		return errMedicineNotFound
 	}
 
-	ms.medicines[updateMed.ID] = updateMed
+	ms.medicines[id] = updateMed
 	fmt.Println("Medicine entry updated successfully!")
 	return nil
 }
 
-func (ms *MedicineStore) DeleteMedicine(id int) error {
+func (ms *MedicineStore) DeleteMedicine(medID int) error {
+	_, err := ms.FindMedicine(medID)
+	if err != nil {
+		return errMedicineNotFound
+	}
+
+	delete(ms.medicines, medID)
+	fmt.Println("Medicine entry deleted successfully!")
 	return nil
 }
