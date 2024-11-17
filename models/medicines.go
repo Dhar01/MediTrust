@@ -6,8 +6,6 @@ import (
 )
 
 var (
-	medicines = make(map[int]Medicine)
-
 	medicineNotFound = errors.New("Medicine entry not found")
 )
 
@@ -20,28 +18,33 @@ type Medicine struct {
 	Stock        int     `json:"stock"`
 }
 
-/*
-Endpoints plan
+type MedicineStore struct {
+	medicines map[int]Medicine
+}
 
-- POST /medicines
-- GET /medicines
-- PUT /medicines
-- DELETE /medicines/{id}
+func NewMedicineStore() *MedicineStore {
+	return &MedicineStore{
+		medicines: make(map[int]Medicine),
+	}
+}
 
-
-Framework to be used: Gin
-ORM: GORM
-*/
-
-func EntryMedicine(med Medicine) {
-	medicines[med.ID] = med
+func (ms *MedicineStore) EntryMedicine(med Medicine) {
+	ms.medicines[med.ID] = med
 	fmt.Println("Medicine entry creation was successful!")
 }
 
-func FindMedicine(id int) (Medicine, error) {
-	med, ok := medicines[id]
+func (ms *MedicineStore) FindMedicine(id int) (Medicine, error) {
+	med, ok := ms.medicines[id]
 	if !ok {
 		return Medicine{}, medicineNotFound
 	}
 	return med, nil
+}
+
+func (ms *MedicineStore) UpdateMedicine(id int, med Medicine) error {
+	return nil
+}
+
+func (ms *MedicineStore) DeleteMedicine(id int) error {
+	return nil
 }
