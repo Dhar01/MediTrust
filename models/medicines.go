@@ -6,7 +6,8 @@ import (
 )
 
 var (
-	medicineNotFound = errors.New("Medicine entry not found")
+	errMedicineNotFound = errors.New("medicine entry not found")
+	errDuplicateMedicine = errors.New("duplicate medicine ID")
 )
 
 type Medicine struct {
@@ -28,15 +29,20 @@ func NewMedicineStore() *MedicineStore {
 	}
 }
 
-func (ms *MedicineStore) EntryMedicine(med Medicine) {
+func (ms *MedicineStore) EntryMedicine(med Medicine) error {
+	_, err := ms.FindMedicine(med.ID)
+	if err != nil {
+		return errDuplicateMedicine
+	}
 	ms.medicines[med.ID] = med
-	fmt.Println("Medicine entry creation was successful!")
+	fmt.Println("Medicine entry created successfully!")
+	return nil
 }
 
 func (ms *MedicineStore) FindMedicine(id int) (Medicine, error) {
 	med, ok := ms.medicines[id]
 	if !ok {
-		return Medicine{}, medicineNotFound
+		return Medicine{}, errMedicineNotFound
 	}
 	return med, nil
 }
