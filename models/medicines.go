@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	errMedicineNotFound = errors.New("medicine entry not found")
+	errMedicineNotFound  = errors.New("medicine entry not found")
 	errDuplicateMedicine = errors.New("duplicate medicine ID")
 )
 
@@ -47,7 +47,14 @@ func (ms *MedicineStore) FindMedicine(id int) (Medicine, error) {
 	return med, nil
 }
 
-func (ms *MedicineStore) UpdateMedicine(id int, med Medicine) error {
+func (ms *MedicineStore) UpdateMedicine(id int, updateMed Medicine) error {
+	_, err := ms.FindMedicine(updateMed.ID)
+	if err != nil {
+		return errMedicineNotFound
+	}
+
+	ms.medicines[updateMed.ID] = updateMed
+	fmt.Println("Medicine entry updated successfully!")
 	return nil
 }
 
