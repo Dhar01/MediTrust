@@ -1,21 +1,55 @@
 package models
 
-import "testing"
+import (
+	"errors"
+	"testing"
+)
 
-func TestMedicines(t *testing.T) {
-	t.Run("medicine entry found", func(t *testing.T) {
-		store := NewMedicineStore()
-		med := Medicine{
-			ID:    1,
-			Name:  "Paracetamol",
-			Price: 50.0,
-			Stock: 100,
-		}
+func TestEntryMedicine(t *testing.T) {
+	store := NewMedicineStore()
+
+	med := Medicine{
+		ID:           1,
+		Name:         "Paracetamol",
+		Dosage:       "500mg",
+		Manufacturer: "XYZ Pharma",
+		Price:        10.5,
+		Stock:        100,
+	}
+
+	t.Run("add new medicine", func(t *testing.T) {
 		got := store.EntryMedicine(med)
-		want := store.FindMedicine(med.ID)
+		if got != nil {
+			t.Errorf("expected no error, got %v", got)
+		}
+	})
 
-		if got != want {
-			t.Errorf("medicine not found")
+}
+
+func TestFindMedicines(t *testing.T) {
+	store := NewMedicineStore()
+
+	med := Medicine{
+		ID:           1,
+		Name:         "Paracetamol",
+		Dosage:       "500mg",
+		Manufacturer: "XYZ Pharma",
+		Price:        10.5,
+		Stock:        100,
+	}
+
+	store.EntryMedicine(med)
+
+	t.Run("find existing medicine", func(t *testing.T) {
+		got := store.FindMedicine(1)
+		if got != nil {
+			t.Errorf("expected no error, got %v", got)
+		}
+	})
+	t.Run("Find non-existent medicine", func(t *testing.T) {
+		got := store.FindMedicine(4)
+		if !errors.Is(got, errMedicineNotFound) {
+			t.Errorf("expected error %v, got %v", errMedicineNotFound, got)
 		}
 	})
 }
