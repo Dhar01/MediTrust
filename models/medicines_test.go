@@ -52,6 +52,11 @@ func TestMedicines(t *testing.T) {
 		got := store.UpdateMedicine(1, updateMed)
 		expectNoError(t, got)
 	})
+	t.Run("delete medicine", func(t *testing.T) {
+		store.EntryMedicine(med)
+		got := store.DeleteMedicine(med.ID)
+		expectNoError(t, got)
+	})
 }
 
 func expectNoError(t testing.TB, got error) {
