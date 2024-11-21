@@ -37,6 +37,21 @@ func TestMedicines(t *testing.T) {
 			t.Errorf("expected error %v, got %v", errMedicineNotFound, got)
 		}
 	})
+	t.Run("update medicine information", func(t *testing.T) {
+		store.EntryMedicine(med)
+
+		updateMed := Medicine{
+			ID:           1,
+			Name:         "ParaUpdate",
+			Dosage:       "1000mg",
+			Manufacturer: "ABC Pharma",
+			Price:        20,
+			Stock:        150,
+		}
+
+		got := store.UpdateMedicine(1, updateMed)
+		expectNoError(t, got)
+	})
 }
 
 func expectNoError(t testing.TB, got error) {
