@@ -34,22 +34,25 @@ func (ms *MedicineStore) EntryMedicine(med Medicine) error {
 		return errDuplicateMedicine
 	}
 
+	// if _, ok := ms.medicines[med.Name]; ok {
+	// 	return errDuplicateMedicine
+	// }
+
 	ms.medicines[med.ID] = med
 	fmt.Println("Medicine entry created successfully!")
 	return nil
 }
 
 func (ms *MedicineStore) FindMedicine(id int) error {
-	_, ok := ms.medicines[id]
-	if !ok {
+	if _, ok := ms.medicines[id]; !ok {
 		return errMedicineNotFound
 	}
+
 	return nil
 }
 
 func (ms *MedicineStore) UpdateMedicine(id int, updateMed Medicine) error {
-	err := ms.FindMedicine(updateMed.ID)
-	if err != nil {
+	if _, ok := ms.medicines[id]; !ok {
 		return errMedicineNotFound
 	}
 
@@ -59,8 +62,7 @@ func (ms *MedicineStore) UpdateMedicine(id int, updateMed Medicine) error {
 }
 
 func (ms *MedicineStore) DeleteMedicine(medID int) error {
-	err := ms.FindMedicine(medID)
-	if err != nil {
+	if _, ok := ms.medicines[medID]; !ok {
 		return errMedicineNotFound
 	}
 
