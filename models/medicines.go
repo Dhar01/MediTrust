@@ -30,8 +30,7 @@ func NewMedicineStore() *MedicineStore {
 }
 
 func (ms *MedicineStore) EntryMedicine(med Medicine) error {
-	err := ms.FindMedicine(med.ID)
-	if err != nil {
+	if _, ok := ms.medicines[med.ID]; ok {
 		return errDuplicateMedicine
 	}
 

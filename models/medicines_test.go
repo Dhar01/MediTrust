@@ -22,6 +22,11 @@ func TestEntryMedicine(t *testing.T) {
 		if got != nil {
 			t.Errorf("expected no error, got %v", got)
 		}
+
+		// check if the medicine was added
+		if _, ok := store.medicines[med.ID]; !ok {
+			t.Errorf("expected medicine to be added, but it wasn't")
+		}
 	})
 
 }
