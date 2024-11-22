@@ -34,7 +34,7 @@ func NewMedicineStore() *MedicineStore {
 	}
 }
 
-// entry medcine data (Add medicine)
+// entry medicine data (Add medicine)
 func (ms *MedicineStore) EntryMedicine(med Medicine) error {
 	if _, ok := ms.medicines[med.ID]; ok {
 		return errDuplicateMedicine
