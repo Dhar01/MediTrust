@@ -3,7 +3,10 @@ package models
 import (
 	"errors"
 	"fmt"
+	"time"
 )
+
+// PRODUCT MANAGEMENT
 
 var (
 	errMedicineNotFound  = errors.New("medicine entry not found")
@@ -17,6 +20,8 @@ type Medicine struct {
 	Manufacturer string  `json:"manufacturer"`
 	Price        float64 `json:"price"`
 	Stock        int     `json:"stock"`
+	Created_at   time.Time
+	Updated_at   time.Time
 }
 
 type MedicineStore struct {
@@ -29,6 +34,7 @@ func NewMedicineStore() *MedicineStore {
 	}
 }
 
+// entry medcine data (Add medicine)
 func (ms *MedicineStore) EntryMedicine(med Medicine) error {
 	if _, ok := ms.medicines[med.ID]; ok {
 		return errDuplicateMedicine
@@ -43,6 +49,7 @@ func (ms *MedicineStore) EntryMedicine(med Medicine) error {
 	return nil
 }
 
+// search for medicine using Medicine ID (view/find medicine)
 func (ms *MedicineStore) FindMedicine(id int) error {
 	if _, ok := ms.medicines[id]; !ok {
 		return errMedicineNotFound
@@ -51,6 +58,7 @@ func (ms *MedicineStore) FindMedicine(id int) error {
 	return nil
 }
 
+// update medicine data (update medicine)
 func (ms *MedicineStore) UpdateMedicine(id int, updateMed Medicine) error {
 	if _, ok := ms.medicines[id]; !ok {
 		return errMedicineNotFound
@@ -61,6 +69,7 @@ func (ms *MedicineStore) UpdateMedicine(id int, updateMed Medicine) error {
 	return nil
 }
 
+// delete medicine data (delete medicine)
 func (ms *MedicineStore) DeleteMedicine(medID int) error {
 	if _, ok := ms.medicines[medID]; !ok {
 		return errMedicineNotFound
