@@ -1,24 +1,65 @@
 package main
 
 import (
-	models "medicine-app/models"
-	routes "medicine-app/routers"
+	"medicine-app/internal/database"
+	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	_ "github.com/lib/pq"
 )
 
 func main() {
-	route := gin.Default()
-	store := models.NewMedicineStore()
+	r := gin.Default()
 
-	routes.MedicineRoutes(route, store)
+	medicineApp := MedicineApp{
+		Router: r,
+	}
 
-	// r.GET("/ping", func(ctx *gin.Context) {
-	// 	ctx.JSON(200, gin.H{
-	// 		"message": "pong",
-	// 	})
-	// })
+	r.POST("/medicine", medicineApp.CreateMedicine)
+
+	r.Run(":8080")
 
 	// listen and serve on :8080
-	route.Run()
+
 }
+
+type Medicine struct {
+	ID           int    `json:"id"`
+	Name         string `json:"name"`
+	Dosage       string `json:"dosage"`
+	Manufacturer string `json:"manufacturer"`
+	Price        int    `json:"price"`
+	Stock        int    `json:"stock"`
+	Created_at   time.Time
+	Updated_at   time.Time
+}
+
+type MedicineApp struct {
+	DB     *database.Queries
+	Router *gin.Engine
+}
+
+func (medApp MedicineApp) CreateMedicine(ctx *gin.Context) {
+	var newMedicine Medicine
+
+	if err := ctx.ShouldBindJSON(&newMedicine); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := medApp.DB.CreateMedicine(ctx.Request.Context(), database.CreateMedicineParams{
+		Name:         newMedicine.Name,
+		Dosage:       newMedicine.Dosage,
+		Manufacturer: newMedicine.Manufacturer,
+		Price:        int32(newMedicine.Price),
+		Stock:        int32(newMedicine.Stock),
+	}); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+
+	ctx.JSON(http.StatusOK, newMedicine)
+}
+
+// func (medApp MedicineApp) GetMedicine(ctx *gin.Context) {
+// }
