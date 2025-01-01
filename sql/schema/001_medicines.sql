@@ -1,5 +1,5 @@
 -- +goose Up
-CREATE TABLE IF NOT EXISTS medicine (
+CREATE TABLE IF NOT EXISTS medicines (
     id UUID PRIMARY KEY,
     name TEXT NOT NULL,
     dosage TEXT NOT NULL,
@@ -11,4 +11,4 @@ CREATE TABLE IF NOT EXISTS medicine (
 );
 
 -- +goose Down
-DROP TABLE IF EXISTS medicine;
+DROP TABLE IF EXISTS medicines;
