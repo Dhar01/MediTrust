@@ -10,6 +10,8 @@ import (
 	"github.com/google/uuid"
 )
 
+var errNoIdProvided = errors.New("no ID provided")
+
 type Medicine struct {
 	ID           uuid.UUID `json:"id"`
 	Name         string    `json:"name"`
@@ -29,20 +31,44 @@ func (medApp *MedicineApp) CreateMedicine(ctx *gin.Context) {
 		return
 	}
 
-	if err := medApp.DB.CreateMedicine(ctx, database.CreateMedicineParams{
+	medInfo, err := medApp.DB.CreateMedicine(ctx, database.CreateMedicineParams{
 		Name:         newMedicine.Name,
 		Dosage:       newMedicine.Dosage,
 		Manufacturer: newMedicine.Manufacturer,
 		Price:        newMedicine.Price,
 		Stock:        newMedicine.Stock,
-	}); err != nil {
+	})
+
+	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorMsg(err))
 	}
 
-	ctx.JSON(http.StatusOK, newMedicine)
+	ctx.JSON(http.StatusOK, medInfo)
 }
 
 func (medApp *MedicineApp) GetMedicine(ctx *gin.Context) {
+	medID, err := getMedID(ctx)
+
+	if err == errNoIdProvided {
+		medApp.getAllMedicines(ctx)
+	} else if err != nil {
+		ctx.JSON(http.StatusBadRequest, errorMsg(err))
+		return
+	} else {
+		medApp.getSingleMedicine(ctx, medID)
+	}
+}
+
+func (medApp *MedicineApp) getSingleMedicine(ctx *gin.Context, medID uuid.UUID) {
+	medicine, err := medApp.DB.GetMedicine(ctx, medID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorMsg(err))
+	}
+
+	ctx.JSON(http.StatusOK, medicine)
+}
+
+func (medApp *MedicineApp) getAllMedicines(ctx *gin.Context) {
 	medicines, err := medApp.DB.GetMedicines(ctx)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorMsg(err))
@@ -55,7 +81,7 @@ func (medApp *MedicineApp) GetMedicine(ctx *gin.Context) {
 func getMedID(ctx *gin.Context) (uuid.UUID, error) {
 	id := ctx.Param("medicineID")
 	if id == "" {
-		return uuid.Nil, errors.New("no ID provided")
+		return uuid.Nil, errNoIdProvided
 	}
 
 	medID, err := uuid.Parse(id)
