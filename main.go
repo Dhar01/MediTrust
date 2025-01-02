@@ -3,7 +3,7 @@ package main
 import (
 	"database/sql"
 	"log"
-	"medicine-app/handlers"
+	med "medicine-app/handlers"
 	"medicine-app/internal/database"
 	"os"
 
@@ -25,17 +25,18 @@ func main() {
 	}
 	dbQueries := database.New(dbConn)
 
-	r := gin.Default()
+	router := gin.Default()
+	router.SetTrustedProxies(nil)
 
-	medApp := handlers.MedicineApp{
+	medApp := med.MedicineApp{
 		DB:     dbQueries,
-		Router: r,
+		Router: router,
 	}
 
-	r.POST("/medicines", medApp.CreateMedicine)
-	r.GET("/medicines", medApp.GetMedicine)
+	router.POST("/medicines", medApp.CreateMedicine)
+	router.GET("/medicines", medApp.GetMedicine)
 
-	r.Run(":8080")
+	router.Run(":8080")
 
 }
 

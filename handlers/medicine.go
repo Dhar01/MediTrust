@@ -1,4 +1,4 @@
-package handlers
+package medicines
 
 import (
 	"medicine-app/internal/database"
