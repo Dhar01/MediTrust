@@ -14,6 +14,18 @@ VALUES (
 -- name: GetMedicines :many
 SELECT * FROM medicines;
 
+-- name: UpdateMedicine :one
+UPDATE medicines
+SET
+    name = $1,
+    dosage = $2,
+    manufacturer = $3,
+    price = $4,
+    stock = $5,
+    updated_at = NOW()
+WHERE id = $6
+RETURNING *;
+
 -- name: DeleteMedicine :exec
 DELETE FROM medicines
 WHERE id = $1;

@@ -35,7 +35,8 @@ func main() {
 
 	router.POST("/medicines", medApp.CreateMedicine)
 	router.GET("/medicines", medApp.GetMedicine)
-	router.DELETE("/medicines", medApp.DeleteMedicine)
+	router.DELETE("/medicines/:medicineID", medApp.DeleteMedicine)
+	router.PUT("/medicines/:medicineID", medApp.UpdateMedicine)
 
 	router.Run(":8080")
 

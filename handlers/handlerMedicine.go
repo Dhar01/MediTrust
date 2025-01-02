@@ -1,6 +1,7 @@
 package medicines
 
 import (
+	"errors"
 	"medicine-app/internal/database"
 	"net/http"
 	"time"
@@ -14,8 +15,8 @@ type Medicine struct {
 	Name         string    `json:"name"`
 	Dosage       string    `json:"dosage"`
 	Manufacturer string    `json:"manufacturer"`
-	Price        int       `json:"price"`
-	Stock        int       `json:"stock"`
+	Price        int32     `json:"price"`
+	Stock        int32     `json:"stock"`
 	Created_at   time.Time
 	Updated_at   time.Time
 }
@@ -32,8 +33,8 @@ func (medApp *MedicineApp) CreateMedicine(ctx *gin.Context) {
 		Name:         newMedicine.Name,
 		Dosage:       newMedicine.Dosage,
 		Manufacturer: newMedicine.Manufacturer,
-		Price:        int32(newMedicine.Price),
-		Stock:        int32(newMedicine.Stock),
+		Price:        newMedicine.Price,
+		Stock:        newMedicine.Stock,
 	}); err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorMsg(err))
 	}
@@ -51,13 +52,26 @@ func (medApp *MedicineApp) GetMedicine(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, medicines)
 }
 
-func (medApp *MedicineApp) DeleteMedicine(ctx *gin.Context) {
+func getMedID(ctx *gin.Context) (uuid.UUID, error) {
+	id := ctx.Param("medicineID")
+	if id == "" {
+		return uuid.Nil, errors.New("no ID provided")
+	}
 
-	// expect pathValue will contain medicineID
-	id := ctx.Request.PathValue("medicineID")
 	medID, err := uuid.Parse(id)
 	if err != nil {
-		ctx.JSON(http.StatusNotFound, errorMsg(err))
+		return uuid.Nil, err
+	}
+
+	return medID, nil
+}
+
+func (medApp *MedicineApp) DeleteMedicine(ctx *gin.Context) {
+	// expect pathValue will contain medicineID
+	medID, err := getMedID(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, errorMsg(err))
+		return
 	}
 
 	if err := medApp.DB.DeleteMedicine(ctx, medID); err != nil {
@@ -66,4 +80,35 @@ func (medApp *MedicineApp) DeleteMedicine(ctx *gin.Context) {
 	}
 
 	ctx.Status(http.StatusNoContent)
+}
+
+func (medApp *MedicineApp) UpdateMedicine(ctx *gin.Context) {
+	medID, err := getMedID(ctx)
+	if medID == uuid.Nil || err != nil {
+		ctx.JSON(http.StatusBadRequest, errorMsg(err))
+		return
+	}
+
+	var medUpdate Medicine
+
+	if err := ctx.ShouldBindJSON(&medUpdate); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorMsg(err))
+		return
+	}
+
+	medInfo, err := medApp.DB.UpdateMedicine(ctx, database.UpdateMedicineParams{
+		Name:         medUpdate.Name,
+		Dosage:       medUpdate.Dosage,
+		Manufacturer: medUpdate.Manufacturer,
+		Price:        medUpdate.Price,
+		Stock:        medUpdate.Stock,
+		ID:           medID,
+	})
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, errorMsg(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, medInfo)
 }
