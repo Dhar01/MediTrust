@@ -7,6 +7,8 @@ package database
 
 import (
 	"context"
+
+	"github.com/google/uuid"
 )
 
 const createMedicine = `-- name: CreateMedicine :exec
@@ -39,6 +41,16 @@ func (q *Queries) CreateMedicine(ctx context.Context, arg CreateMedicineParams) 
 		arg.Price,
 		arg.Stock,
 	)
+	return err
+}
+
+const deleteMedicine = `-- name: DeleteMedicine :exec
+DELETE FROM medicines
+WHERE id = $1
+`
+
+func (q *Queries) DeleteMedicine(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteMedicine, id)
 	return err
 }
 

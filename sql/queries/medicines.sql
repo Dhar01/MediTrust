@@ -13,3 +13,7 @@ VALUES (
 
 -- name: GetMedicines :many
 SELECT * FROM medicines;
+
+-- name: DeleteMedicine :exec
+DELETE FROM medicines
+WHERE id = $1;
