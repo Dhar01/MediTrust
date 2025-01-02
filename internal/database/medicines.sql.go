@@ -89,3 +89,48 @@ func (q *Queries) GetMedicines(ctx context.Context) ([]Medicine, error) {
 	}
 	return items, nil
 }
+
+const updateMedicine = `-- name: UpdateMedicine :one
+UPDATE medicines
+SET
+    name = $1,
+    dosage = $2,
+    manufacturer = $3,
+    price = $4,
+    stock = $5,
+    updated_at = NOW()
+WHERE id = $6
+RETURNING id, name, dosage, manufacturer, price, stock, created_at, updated_at
+`
+
+type UpdateMedicineParams struct {
+	Name         string
+	Dosage       string
+	Manufacturer string
+	Price        int32
+	Stock        int32
+	ID           uuid.UUID
+}
+
+func (q *Queries) UpdateMedicine(ctx context.Context, arg UpdateMedicineParams) (Medicine, error) {
+	row := q.db.QueryRowContext(ctx, updateMedicine,
+		arg.Name,
+		arg.Dosage,
+		arg.Manufacturer,
+		arg.Price,
+		arg.Stock,
+		arg.ID,
+	)
+	var i Medicine
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Dosage,
+		&i.Manufacturer,
+		&i.Price,
+		&i.Stock,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
