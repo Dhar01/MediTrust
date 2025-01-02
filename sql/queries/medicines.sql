@@ -1,4 +1,4 @@
--- name: CreateMedicine :exec
+-- name: CreateMedicine :one
 INSERT INTO medicines (id, name, dosage, manufacturer, price, stock, created_at, updated_at)
 VALUES (
     gen_random_uuid(),
@@ -9,10 +9,15 @@ VALUES (
     $5,
     NOW(),
     NOW()
-);
+)
+RETURNING *;
 
 -- name: GetMedicines :many
 SELECT * FROM medicines;
+
+-- name: GetMedicine :one
+SELECT * FROM medicines
+WHERE id = $1;
 
 -- name: UpdateMedicine :one
 UPDATE medicines

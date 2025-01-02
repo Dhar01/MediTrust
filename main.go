@@ -33,10 +33,14 @@ func main() {
 		Router: router,
 	}
 
+	// for collection
 	router.POST("/medicines", medApp.CreateMedicine)
 	router.GET("/medicines", medApp.GetMedicine)
+
+	// for single item
 	router.DELETE("/medicines/:medicineID", medApp.DeleteMedicine)
 	router.PUT("/medicines/:medicineID", medApp.UpdateMedicine)
+	router.GET("/medicines/:medicineID", medApp.GetMedicine)
 
 	router.Run(":8080")
 

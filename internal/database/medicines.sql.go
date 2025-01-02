@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
-const createMedicine = `-- name: CreateMedicine :exec
+const createMedicine = `-- name: CreateMedicine :one
 INSERT INTO medicines (id, name, dosage, manufacturer, price, stock, created_at, updated_at)
 VALUES (
     gen_random_uuid(),
@@ -23,6 +23,7 @@ VALUES (
     NOW(),
     NOW()
 )
+RETURNING id, name, dosage, manufacturer, price, stock, created_at, updated_at
 `
 
 type CreateMedicineParams struct {
@@ -33,15 +34,26 @@ type CreateMedicineParams struct {
 	Stock        int32
 }
 
-func (q *Queries) CreateMedicine(ctx context.Context, arg CreateMedicineParams) error {
-	_, err := q.db.ExecContext(ctx, createMedicine,
+func (q *Queries) CreateMedicine(ctx context.Context, arg CreateMedicineParams) (Medicine, error) {
+	row := q.db.QueryRowContext(ctx, createMedicine,
 		arg.Name,
 		arg.Dosage,
 		arg.Manufacturer,
 		arg.Price,
 		arg.Stock,
 	)
-	return err
+	var i Medicine
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Dosage,
+		&i.Manufacturer,
+		&i.Price,
+		&i.Stock,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }
 
 const deleteMedicine = `-- name: DeleteMedicine :exec
@@ -52,6 +64,27 @@ WHERE id = $1
 func (q *Queries) DeleteMedicine(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.ExecContext(ctx, deleteMedicine, id)
 	return err
+}
+
+const getMedicine = `-- name: GetMedicine :one
+SELECT id, name, dosage, manufacturer, price, stock, created_at, updated_at FROM medicines
+WHERE id = $1
+`
+
+func (q *Queries) GetMedicine(ctx context.Context, id uuid.UUID) (Medicine, error) {
+	row := q.db.QueryRowContext(ctx, getMedicine, id)
+	var i Medicine
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Dosage,
+		&i.Manufacturer,
+		&i.Price,
+		&i.Stock,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }
 
 const getMedicines = `-- name: GetMedicines :many
