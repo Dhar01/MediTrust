@@ -20,16 +20,11 @@ type Medicine struct {
 	Updated_at   time.Time
 }
 
-type MedicineApp struct {
-	DB     *database.Queries
-	Router *gin.Engine
-}
-
-func (medApp MedicineApp) CreateMedicine(ctx *gin.Context) {
+func (medApp *MedicineApp) CreateMedicine(ctx *gin.Context) {
 	var newMedicine Medicine
 
 	if err := ctx.ShouldBindJSON(&newMedicine); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, errorMsg(err))
 		return
 	}
 
@@ -40,23 +35,35 @@ func (medApp MedicineApp) CreateMedicine(ctx *gin.Context) {
 		Price:        int32(newMedicine.Price),
 		Stock:        int32(newMedicine.Stock),
 	}); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, errorMsg(err))
 	}
 
 	ctx.JSON(http.StatusOK, newMedicine)
 }
 
-func (medApp MedicineApp) GetMedicine(ctx *gin.Context) {
-
+func (medApp *MedicineApp) GetMedicine(ctx *gin.Context) {
 	medicines, err := medApp.DB.GetMedicines(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorPass(err))
+		ctx.JSON(http.StatusInternalServerError, errorMsg(err))
 		return
 	}
 
 	ctx.JSON(http.StatusOK, medicines)
 }
 
-func errorPass(err error) gin.H {
-	return gin.H{"error": err.Error()}
+func (medApp *MedicineApp) DeleteMedicine(ctx *gin.Context) {
+
+	// expect pathValue will contain medicineID
+	id := ctx.Request.PathValue("medicineID")
+	medID, err := uuid.Parse(id)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, errorMsg(err))
+	}
+
+	if err := medApp.DB.DeleteMedicine(ctx, medID); err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorMsg(err))
+		return
+	}
+
+	ctx.Status(http.StatusNoContent)
 }
