@@ -1,6 +1,7 @@
-package medicines
+package handlers
 
 import (
+	"medicine-app/config"
 	"medicine-app/internal/database"
 
 	"github.com/gin-gonic/gin"
@@ -9,8 +10,5 @@ import (
 type MedicineApp struct {
 	DB     *database.Queries
 	Router *gin.Engine
-}
-
-func errorMsg(err error) gin.H {
-	return gin.H{"error": err.Error()}
+	Config *config.Config
 }
