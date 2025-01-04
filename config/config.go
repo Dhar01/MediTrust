@@ -1,14 +1,17 @@
 package config
 
 import (
+	"database/sql"
 	"log"
+	"medicine-app/internal/database"
 	"os"
 
 	"github.com/joho/godotenv"
 )
 
 type Config struct {
-	DBurl string
+	DB       *database.Queries
+	Platform string
 }
 
 func LoadConfig() *Config {
@@ -16,10 +19,18 @@ func LoadConfig() *Config {
 		log.Fatalf("error loading .env file: %v\n", err)
 	}
 
+	platform := getEnvVar("PLATFORM")
 	dbURL := getEnvVar("DB_URL")
+	dbConn, err := sql.Open("postgres", dbURL)
+	if err != nil {
+		log.Fatalf("can't connect to database: %v\n", err)
+	}
+
+	dbQuries := database.New(dbConn)
 
 	return &Config{
-		DBurl: dbURL,
+		DB:       dbQuries,
+		Platform: platform,
 	}
 }
 

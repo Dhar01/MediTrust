@@ -1,13 +1,6 @@
 package main
 
 import (
-	"database/sql"
-	"log"
-	"medicine-app/config"
-	api "medicine-app/handlers"
-	"medicine-app/internal/database"
-
-	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 )
 
@@ -17,6 +10,8 @@ func main() {
 	// 	DB:     dbQueries,
 	// 	Router: router,
 	// }
+
+	// router := gin.Default()
 
 	// // for collection
 	// router.POST("/medicines", medApp.CreateMedicine)
@@ -31,22 +26,8 @@ func main() {
 	// cfg := config.LoadConfig()
 	// medApp := app.NewMedicineApp(cfg)
 
-}
+	// mux := http.NewServeMux()
 
-func NewMedicineApp(cfg *config.Config) *api.MedicineApp {
-	router := gin.Default()
+	// mux.HandleFunc("/medicines", )
 
-	// database connection
-	dbConn, err := sql.Open("postgres", cfg.DBurl)
-	if err != nil {
-		log.Fatalf("can't connect to database: %v\n", err)
-	}
-
-	dbQueries := database.New(dbConn)
-
-	return &api.MedicineApp{
-		DB:     dbQueries,
-		Router: router,
-		Config: cfg,
-	}
 }
