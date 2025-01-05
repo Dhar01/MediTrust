@@ -1,38 +1,30 @@
 package main
 
 import (
+	"log"
+	"medicine-app/config"
 	ctrl "medicine-app/controllers"
 
 	"github.com/gin-gonic/gin"
-	_ "github.com/lib/pq"
 )
 
 func main() {
+	cfg := config.ConnectDB()
 
-	// cfg := ctrl.Config{
-	// 	Platform: platform,
-	// 	DB:       dbQueries,
-	// }
-
-	// mux := http.NewServeMux()
-	// mux.HandleFunc("/medicines", cfg.CreateMedicineHandler)
-	// mux.HandleFunc("/medicines/:medID", cfg.DeleteMedicine)
-	// port := "8080"
-	// srv := http.Server{
-	// 	Handler: mux,
-	// 	Addr: ":" + port,
-	// }
-	// log.Printf("Serving on port: %v\n", port)
-	// if err := srv.ListenAndServe(); err != nil {
-	// 	log.Printf("%v\n", err.Error())
-	// }
-
-	medCtrl := ctrl.MedicineController{}
+	medCtrl := ctrl.NewMedicineController(cfg.DB)
 
 	router := gin.Default()
+	router.SetTrustedProxies(nil)
 
+	router.GET("/medicines", medCtrl.GetMedicines)
+	router.GET("/medicines/:medID", medCtrl.GetMedicineByID)
+	router.PUT("/medicines/:medID", medCtrl.UpdateMedicine)
 	router.POST("/medicines", medCtrl.CreateMedicineHandler)
+	router.DELETE("/medicines/:medID", medCtrl.DeleteMedicine)
 
-	router.Run("8080")
-	// router.POST("/medicines", cfg.CreateMedicineHandler)
+	port := ":8080"
+
+	if err := router.Run(port); err != nil {
+		log.Fatalf("cant' run in port %s: %v", port, err)
+	}
 }
