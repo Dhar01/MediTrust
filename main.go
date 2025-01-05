@@ -1,49 +1,38 @@
 package main
 
 import (
-	"database/sql"
-	"log"
-	"net/http"
-	"os"
-
 	ctrl "medicine-app/controllers"
-	"medicine-app/internal/database"
 
-	"github.com/joho/godotenv"
+	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 )
 
 func main() {
-	if err := godotenv.Load(); err != nil {
-		log.Fatalf("error loading .env file: %v\n", err)
-	}
 
-	platform := getEnvVariable("PLATFORM")
-	dburl := getEnvVariable("DB_URL")
-	dbConn, err := sql.Open("postgres", dburl)
-	if err != nil {
-		log.Fatalf("can't connect to database: %v\n", err)
-	}
+	// cfg := ctrl.Config{
+	// 	Platform: platform,
+	// 	DB:       dbQueries,
+	// }
 
-	dbQueries := database.New(dbConn)
+	// mux := http.NewServeMux()
+	// mux.HandleFunc("/medicines", cfg.CreateMedicineHandler)
+	// mux.HandleFunc("/medicines/:medID", cfg.DeleteMedicine)
+	// port := "8080"
+	// srv := http.Server{
+	// 	Handler: mux,
+	// 	Addr: ":" + port,
+	// }
+	// log.Printf("Serving on port: %v\n", port)
+	// if err := srv.ListenAndServe(); err != nil {
+	// 	log.Printf("%v\n", err.Error())
+	// }
 
-	cfg := ctrl.Config{
-		Platform: platform,
-		DB:       dbQueries,
-	}
+	medCtrl := ctrl.MedicineController{}
 
-	mux := http.NewServeMux()
+	router := gin.Default()
 
-	mux.HandleFunc("/medicines", cfg.CreateMedicineHandler)
-	mux.HandleFunc("/medicines/:medID", cfg.DeleteMedicine)
+	router.POST("/medicines", medCtrl.CreateMedicineHandler)
 
-}
-
-func getEnvVariable(env string) string {
-	envVar := os.Getenv(env)
-	if envVar == "" {
-		log.Fatalf("%s must be set", env)
-	}
-
-	return envVar
+	router.Run("8080")
+	// router.POST("/medicines", cfg.CreateMedicineHandler)
 }

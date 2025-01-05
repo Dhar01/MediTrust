@@ -21,12 +21,13 @@ type Medicine struct {
 }
 
 type MedicineBody struct {
-	Name         string `json:"name"`
-	Dosage       string `json:"dosage"`
-	Description  string `json:"description"`
-	Manufacturer string `json:"manufacturer"`
-	Price        int32  `json:"price"`
-	Stock        int32  `json:"stock"`
+	ID           uuid.UUID `json:"medID"`
+	Name         string    `json:"name"`
+	Dosage       string    `json:"dosage"`
+	Description  string    `json:"description"`
+	Manufacturer string    `json:"manufacturer"`
+	Price        int32     `json:"price"`
+	Stock        int32     `json:"stock"`
 }
 
 type MedicineID struct {
