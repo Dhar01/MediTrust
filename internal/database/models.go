@@ -5,6 +5,7 @@
 package database
 
 import (
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -14,6 +15,7 @@ type Medicine struct {
 	ID           uuid.UUID
 	Name         string
 	Dosage       string
+	Description  sql.NullString
 	Manufacturer string
 	Price        int32
 	Stock        int32
