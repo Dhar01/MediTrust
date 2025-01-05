@@ -7,13 +7,24 @@ import (
 	"medicine-app/models"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
-type MedicineController struct {
+type medicineController struct {
 	DB *database.Queries
 }
 
-func (mc *MedicineController) CreateMedicineHandler(ctx *gin.Context) {
+func NewMedicineController(db *database.Queries) *medicineController {
+	if db == nil {
+		panic("database can't be nil")
+	}
+
+	return &medicineController{
+		DB: db,
+	}
+}
+
+func (mc *medicineController) CreateMedicineHandler(ctx *gin.Context) {
 	var newMedicine models.MedicineBody
 
 	if err := ctx.ShouldBindJSON(&newMedicine); err != nil {
@@ -37,7 +48,37 @@ func (mc *MedicineController) CreateMedicineHandler(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, medicine)
 }
 
-func (mc *MedicineController) UpdateMedicine(ctx *gin.Context) {
+func (mc *medicineController) GetMedicines(ctx *gin.Context) {
+	medicines, err := mc.DB.GetMedicines(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorMsg(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, medicines)
+}
+
+func (mc *medicineController) GetMedicineByID(ctx *gin.Context) {
+	id, ok := getMedicineID(ctx)
+	if !ok {
+		return
+	}
+
+	medicine, err := mc.DB.GetMedicine(ctx, id)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorMsg(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, medicine)
+}
+
+func (mc *medicineController) UpdateMedicine(ctx *gin.Context) {
+	id, ok := getMedicineID(ctx)
+	if !ok {
+		return
+	}
+
 	var updateMed models.MedicineBody
 
 	if err := ctx.ShouldBindJSON(&updateMed); err != nil {
@@ -46,7 +87,7 @@ func (mc *MedicineController) UpdateMedicine(ctx *gin.Context) {
 	}
 
 	medicine, err := mc.DB.UpdateMedicine(ctx, database.UpdateMedicineParams{
-		ID:           updateMed.ID,
+		ID:           id,
 		Name:         updateMed.Name,
 		Dosage:       updateMed.Dosage,
 		Manufacturer: updateMed.Manufacturer,
@@ -63,18 +104,27 @@ func (mc *MedicineController) UpdateMedicine(ctx *gin.Context) {
 	ctx.JSON(http.StatusAccepted, medicine)
 }
 
-func (mc *MedicineController) DeleteMedicine(ctx *gin.Context) {
-	var medID models.MedicineID
-
-	if err := ctx.ShouldBindJSON(&medID); err != nil {
-		ctx.JSON(http.StatusBadRequest, errorMsg(err))
+func (mc *medicineController) DeleteMedicine(ctx *gin.Context) {
+	id, ok := getMedicineID(ctx)
+	if !ok {
 		return
 	}
 
-	if err := mc.DB.DeleteMedicine(ctx, medID.ID); err != nil {
+	if err := mc.DB.DeleteMedicine(ctx, id); err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorMsg(err))
 		return
 	}
 
 	ctx.Status(http.StatusNoContent)
+}
+
+func getMedicineID(ctx *gin.Context) (uuid.UUID, bool) {
+	medID := ctx.Param("medID")
+	id, err := uuid.Parse(medID)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, errorMsg(err))
+		return uuid.Nil, false
+	}
+
+	return id, true
 }

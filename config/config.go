@@ -7,10 +7,11 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 )
 
 type Config struct {
-	DB       *database.Queries
+	DB *database.Queries
 }
 
 func init() {
@@ -20,10 +21,10 @@ func init() {
 
 	_ = getEnvVariable("PLATFORM")
 
-	connectDB()
+	// connectDB()
 }
 
-func connectDB() *Config {
+func ConnectDB() *Config {
 	dbURL := getEnvVariable("DB_URL")
 	dbConn, err := sql.Open("postgres", dbURL)
 	if err != nil {
