@@ -23,7 +23,7 @@ VALUES (
     NOW(),
     NOW()
 )
-RETURNING id, name, dosage, manufacturer, price, stock, created_at, updated_at
+RETURNING id, name, dosage, description, manufacturer, price, stock, created_at, updated_at
 `
 
 type CreateMedicineParams struct {
@@ -47,6 +47,7 @@ func (q *Queries) CreateMedicine(ctx context.Context, arg CreateMedicineParams) 
 		&i.ID,
 		&i.Name,
 		&i.Dosage,
+		&i.Description,
 		&i.Manufacturer,
 		&i.Price,
 		&i.Stock,
@@ -67,7 +68,7 @@ func (q *Queries) DeleteMedicine(ctx context.Context, id uuid.UUID) error {
 }
 
 const getMedicine = `-- name: GetMedicine :one
-SELECT id, name, dosage, manufacturer, price, stock, created_at, updated_at FROM medicines
+SELECT id, name, dosage, description, manufacturer, price, stock, created_at, updated_at FROM medicines
 WHERE id = $1
 `
 
@@ -78,6 +79,7 @@ func (q *Queries) GetMedicine(ctx context.Context, id uuid.UUID) (Medicine, erro
 		&i.ID,
 		&i.Name,
 		&i.Dosage,
+		&i.Description,
 		&i.Manufacturer,
 		&i.Price,
 		&i.Stock,
@@ -88,7 +90,7 @@ func (q *Queries) GetMedicine(ctx context.Context, id uuid.UUID) (Medicine, erro
 }
 
 const getMedicines = `-- name: GetMedicines :many
-SELECT id, name, dosage, manufacturer, price, stock, created_at, updated_at FROM medicines
+SELECT id, name, dosage, description, manufacturer, price, stock, created_at, updated_at FROM medicines
 `
 
 func (q *Queries) GetMedicines(ctx context.Context) ([]Medicine, error) {
@@ -104,6 +106,7 @@ func (q *Queries) GetMedicines(ctx context.Context) ([]Medicine, error) {
 			&i.ID,
 			&i.Name,
 			&i.Dosage,
+			&i.Description,
 			&i.Manufacturer,
 			&i.Price,
 			&i.Stock,
@@ -133,7 +136,7 @@ SET
     stock = $5,
     updated_at = NOW()
 WHERE id = $6
-RETURNING id, name, dosage, manufacturer, price, stock, created_at, updated_at
+RETURNING id, name, dosage, description, manufacturer, price, stock, created_at, updated_at
 `
 
 type UpdateMedicineParams struct {
@@ -159,6 +162,7 @@ func (q *Queries) UpdateMedicine(ctx context.Context, arg UpdateMedicineParams) 
 		&i.ID,
 		&i.Name,
 		&i.Dosage,
+		&i.Description,
 		&i.Manufacturer,
 		&i.Price,
 		&i.Stock,
