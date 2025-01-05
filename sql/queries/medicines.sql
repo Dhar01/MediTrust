@@ -1,5 +1,5 @@
 -- name: CreateMedicine :one
-INSERT INTO medicines (id, name, dosage, manufacturer, price, stock, created_at, updated_at)
+INSERT INTO medicines (id, name, description, dosage, manufacturer, price, stock, created_at, updated_at)
 VALUES (
     gen_random_uuid(),
     $1,
@@ -7,6 +7,7 @@ VALUES (
     $3,
     $4,
     $5,
+    $6,
     NOW(),
     NOW()
 )
@@ -24,11 +25,12 @@ UPDATE medicines
 SET
     name = $1,
     dosage = $2,
-    manufacturer = $3,
-    price = $4,
-    stock = $5,
+    description = $3,
+    manufacturer = $4,
+    price = $5,
+    stock = $6,
     updated_at = NOW()
-WHERE id = $6
+WHERE id = $7
 RETURNING *;
 
 -- name: DeleteMedicine :exec

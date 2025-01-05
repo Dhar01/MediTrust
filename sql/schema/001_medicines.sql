@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS medicines (
     id UUID PRIMARY KEY,
     name TEXT NOT NULL,
     dosage TEXT NOT NULL,
-    description TEXT,
+    description TEXT NOT NULL,
     manufacturer TEXT NOT NULL,
     price INTEGER NOT NULL,
     stock INTEGER NOT NULL,

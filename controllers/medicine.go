@@ -1,30 +1,27 @@
 package controllers
 
 import (
-	"encoding/json"
+	"net/http"
+
 	"medicine-app/internal/database"
 	"medicine-app/models"
-	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
-type Config struct {
-	DB       *database.Queries
-	Platform string
+type MedicineController struct {
+	DB *database.Queries
 }
 
-func (cfg *Config) CreateMedicineHandler(w http.ResponseWriter, r *http.Request) {
-	methodChecker(w, r, http.MethodPost)
-
+func (mc *MedicineController) CreateMedicineHandler(ctx *gin.Context) {
 	var newMedicine models.MedicineBody
 
-	if err := json.NewDecoder(r.Body).Decode(&newMedicine); err != nil {
-		respondWithError(w, http.StatusBadRequest, "can't decode request", err)
+	if err := ctx.ShouldBindJSON(&newMedicine); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorMsg(err))
 		return
 	}
 
-	defer r.Body.Close()
-
-	medicine, err := cfg.DB.CreateMedicine(r.Context(), database.CreateMedicineParams{
+	medicine, err := mc.DB.CreateMedicine(ctx, database.CreateMedicineParams{
 		Name:         newMedicine.Name,
 		Dosage:       newMedicine.Dosage,
 		Manufacturer: newMedicine.Manufacturer,
@@ -33,39 +30,51 @@ func (cfg *Config) CreateMedicineHandler(w http.ResponseWriter, r *http.Request)
 	})
 
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "can't create medicine", err)
+		ctx.JSON(http.StatusInternalServerError, errorMsg(err))
 		return
 	}
 
-	respondWithJSON(w, http.StatusCreated, models.Medicine{
-		Name:         medicine.Name,
-		Dosage:       medicine.Dosage,
-		Manufacturer: medicine.Manufacturer,
-		Price:        medicine.Price,
-		Stock:        medicine.Stock,
-	})
+	ctx.JSON(http.StatusCreated, medicine)
 }
 
-func (cfg *Config) DeleteMedicine(w http.ResponseWriter, r *http.Request) {
-	methodChecker(w, r, http.MethodDelete)
+func (mc *MedicineController) UpdateMedicine(ctx *gin.Context) {
+	var updateMed models.MedicineBody
 
+	if err := ctx.ShouldBindJSON(&updateMed); err != nil {
+		ctx.IndentedJSON(http.StatusBadRequest, errorMsg(err))
+		return
+	}
+
+	medicine, err := mc.DB.UpdateMedicine(ctx, database.UpdateMedicineParams{
+		ID:           updateMed.ID,
+		Name:         updateMed.Name,
+		Dosage:       updateMed.Dosage,
+		Manufacturer: updateMed.Manufacturer,
+		Description:  updateMed.Description,
+		Price:        updateMed.Price,
+		Stock:        updateMed.Stock,
+	})
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorMsg(err))
+		return
+	}
+
+	ctx.JSON(http.StatusAccepted, medicine)
+}
+
+func (mc *MedicineController) DeleteMedicine(ctx *gin.Context) {
 	var medID models.MedicineID
 
-	if err := json.NewDecoder(r.Body).Decode(&medID); err != nil {
-		respondWithError(w, http.StatusBadRequest, "can't decode request", err)
+	if err := ctx.ShouldBindJSON(&medID); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorMsg(err))
 		return
 	}
 
-	defer r.Body.Close()
-
-	if err := cfg.DB.DeleteMedicine(r.Context(), medID.ID); err != nil {
-		respondWithError(w, http.StatusInternalServerError, "can't delete medicine", err)
+	if err := mc.DB.DeleteMedicine(ctx, medID.ID); err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorMsg(err))
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
-	if _, err := w.Write([]byte("Deleted")); err != nil {
-		respondWithError(w, http.StatusInternalServerError, "write error", err)
-		return
-	}
+	ctx.Status(http.StatusNoContent)
 }
