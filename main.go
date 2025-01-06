@@ -9,9 +9,10 @@ import (
 )
 
 func main() {
-	cfg := config.ConnectDB()
+	cfg := config.NewConfig()
 
 	medCtrl := ctrl.NewMedicineController(cfg.DB)
+	resetCtrl := ctrl.NewController(cfg.DB, cfg.Platform)
 
 	router := gin.Default()
 	router.SetTrustedProxies(nil)
@@ -21,6 +22,8 @@ func main() {
 	router.PUT("/medicines/:medID", medCtrl.UpdateMedicine)
 	router.POST("/medicines", medCtrl.CreateMedicineHandler)
 	router.DELETE("/medicines/:medID", medCtrl.DeleteMedicine)
+
+	router.POST("/reset", resetCtrl.HandlerReset)
 
 	port := ":8080"
 
