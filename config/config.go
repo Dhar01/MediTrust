@@ -11,20 +11,24 @@ import (
 )
 
 type Config struct {
-	DB *database.Queries
+	DB       *database.Queries
+	Platform string
 }
 
-func init() {
+func NewConfig() *Config {
 	if err := godotenv.Load(); err != nil {
 		log.Fatalf("error loading .env file: %v\n", err)
 	}
 
-	_ = getEnvVariable("PLATFORM")
+	platform := getEnvVariable("PLATFORM")
 
-	// connectDB()
+	return &Config{
+		Platform: platform,
+		DB:       connectDB(),
+	}
 }
 
-func ConnectDB() *Config {
+func connectDB() *database.Queries {
 	dbURL := getEnvVariable("DB_URL")
 	dbConn, err := sql.Open("postgres", dbURL)
 	if err != nil {
@@ -35,11 +39,7 @@ func ConnectDB() *Config {
 		log.Fatalf("Database not reachable: %v", err)
 	}
 
-	db := database.New(dbConn)
-
-	return &Config{
-		DB: db,
-	}
+	return database.New(dbConn)
 }
 
 func getEnvVariable(env string) string {
