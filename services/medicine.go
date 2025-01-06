@@ -36,16 +36,6 @@ func (ms *medicineService) CreateMedicine(ctx context.Context, newMed models.Med
 		return models.Medicine{}, err
 	}
 
-	// return models.Medicine{
-	// 	ID:           medicine.ID,
-	// 	Name:         medicine.Name,
-	// 	Description:  medicine.Description,
-	// 	Manufacturer: medicine.Manufacturer,
-	// 	Dosage:       medicine.Dosage,
-	// 	Price:        medicine.Price,
-	// 	Stock:        medicine.Stock,
-	// }, nil
-
 	return toMedicineDomain(medicine), nil
 }
 
@@ -78,17 +68,6 @@ func (ms *medicineService) GetMedicineByID(ctx context.Context, medID uuid.UUID)
 		return models.Medicine{}, err
 	}
 
-	// return models.Medicine{
-	// 	ID:           medicine.ID,
-	// 	Name:         medicine.Name,
-	// 	Description:  medicine.Description,
-	// 	Manufacturer: medicine.Manufacturer,
-	// 	Dosage:       medicine.Dosage,
-	// 	Price:        medicine.Price,
-	// 	Stock:        medicine.Stock,
-	// 	Updated_at:   medicine.UpdatedAt,
-	// }, nil
-
 	return toMedicineDomain(medicine), nil
 }
 
@@ -107,17 +86,6 @@ func (ms *medicineService) UpdateMedicine(ctx context.Context, medID uuid.UUID, 
 		return models.Medicine{}, err
 	}
 
-	// return models.Medicine{
-	// 	ID:           medicine.ID,
-	// 	Name:         medicine.Name,
-	// 	Description:  medicine.Description,
-	// 	Manufacturer: medicine.Manufacturer,
-	// 	Dosage:       medicine.Dosage,
-	// 	Price:        medicine.Price,
-	// 	Stock:        medicine.Stock,
-	// 	Updated_at:   medicine.UpdatedAt,
-	// }, nil
-
 	return toMedicineDomain(medicine), nil
 
 }
@@ -131,6 +99,5 @@ func toMedicineDomain(dbMed database.Medicine) models.Medicine {
 		Price:        dbMed.Price,
 		Stock:        dbMed.Stock,
 		Updated_at:   dbMed.UpdatedAt,
-		Created_at:   dbMed.CreatedAt,
 	}
 }
