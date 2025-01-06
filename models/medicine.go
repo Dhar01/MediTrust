@@ -21,20 +21,6 @@ type Medicine struct {
 	Updated_at   time.Time `json:"updated_at"`
 }
 
-type MedicineBody struct {
-	ID           uuid.UUID `json:"medID"`
-	Name         string    `json:"name"`
-	Dosage       string    `json:"dosage"`
-	Description  string    `json:"description"`
-	Manufacturer string    `json:"manufacturer"`
-	Price        int32     `json:"price"`
-	Stock        int32     `json:"stock"`
-}
-
-type MedicineID struct {
-	ID uuid.UUID `json:"medID"`
-}
-
 type MedicineService interface {
 	CreateMedicine(ctx context.Context, medicine Medicine) (Medicine, error)
 	DeleteMedicine(ctx context.Context, medID uuid.UUID) error
