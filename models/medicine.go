@@ -1,6 +1,7 @@
 package models
 
 import (
+	"context"
 	"time"
 
 	"github.com/google/uuid"
@@ -16,8 +17,8 @@ type Medicine struct {
 	Manufacturer string    `json:"manufacturer"`
 	Price        int32     `json:"price"`
 	Stock        int32     `json:"stock"`
-	Created_at   time.Time
-	Updated_at   time.Time
+	Created_at   time.Time `json:"created_at"`
+	Updated_at   time.Time `json:"updated_at"`
 }
 
 type MedicineBody struct {
@@ -34,10 +35,10 @@ type MedicineID struct {
 	ID uuid.UUID `json:"medID"`
 }
 
-// type MedicineService interface {
-// 	CreateMedicine(medicine Medicine) (Medicine, error)
-// 	DeleteMedicine(medID uuid.UUID) error
-// 	UpdateMedicine(medID uuid.UUID) (Medicine, error)
-// 	GetMedicines() ([]Medicine, error)
-// 	GetMedicineByID(medID uuid.UUID) (Medicine, error)
-// }
+type MedicineService interface {
+	CreateMedicine(ctx context.Context, medicine Medicine) (Medicine, error)
+	DeleteMedicine(ctx context.Context, medID uuid.UUID) error
+	UpdateMedicine(ctx context.Context, medID uuid.UUID, med Medicine) (Medicine, error)
+	GetMedicines(ctx context.Context) ([]Medicine, error)
+	GetMedicineByID(ctx context.Context, medID uuid.UUID) (Medicine, error)
+}
