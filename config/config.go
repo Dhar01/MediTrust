@@ -34,6 +34,7 @@ func connectDB() *database.Queries {
 	if err != nil {
 		log.Fatalf("can't connect to database: %v", err)
 	}
+	// defer dbConn.Close()
 
 	if err := dbConn.Ping(); err != nil {
 		log.Fatalf("Database not reachable: %v", err)
