@@ -5,10 +5,21 @@
 package database
 
 import (
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
 )
+
+type AdminRole struct {
+	UserID         uuid.UUID
+	Role           string
+	CanManageUsers bool
+	CanManageOrder bool
+	CanManageStore bool
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+}
 
 type Medicine struct {
 	ID           uuid.UUID
@@ -20,4 +31,25 @@ type Medicine struct {
 	Stock        int32
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
+}
+
+type User struct {
+	ID        uuid.UUID
+	FirstName string
+	LastName  string
+	Email     string
+	Age       int32
+	Phone     string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+type UserAddress struct {
+	UserID        uuid.UUID
+	Country       string
+	City          string
+	StreetAddress string
+	PostalCode    sql.NullInt32
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
 }
