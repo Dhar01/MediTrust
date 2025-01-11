@@ -10,5 +10,9 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMP NOT NULL
 );
 
+CREATE UNIQUE INDEX idx_users_email ON users(email);
+
+CREATE UNIQUE INDEX idx_users_phone ON users(phone);
+
 -- +goose Down
 DROP TABLE IF EXISTS users;
