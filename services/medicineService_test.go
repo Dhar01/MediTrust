@@ -1,33 +1,33 @@
 package service
 
-// type mockDB struct {
-// 	deleteMedicineCalled bool
-// 	deleteMedicineError  error
-// 	deleteMedicineID     uuid.UUID
+// type MockDB struct {
+// 	mock.Mock
 // }
 
-// func (m *mockDB) DeleteMedicine(ctx context.Context, id uuid.UUID) error {
-// 	m.deleteMedicineCalled = true
-// 	m.deleteMedicineID = id
-// 	return m.deleteMedicineError
+// func (m *MockDB) CreateMedicine(ctx context.Context, params database.CreateMedicineParams) (database.Medicine, error) {
+// 	args := m.Called(ctx, params)
+// 	return args.Get(0).(database.Medicine), args.Error(1)
 // }
 
-// func TestDeleteMedicine(t *testing.T) {
-// 	t.Run("successful deletion", func(t *testing.T) {
-// 		mDB := &mockDB{}
-// 		service := &medicineService{
-// 			DB: mDB,
-// 		}
-// 		testID := uuid.New()
-// 		err := service.DeleteMedicine(context.Background(), testID)
-// 		if err != nil {
-// 			t.Errorf("expected no error, got %v", err)
-// 		}
-// 		if !mDB.deleteMedicineCalled {
-// 			t.Error("DeleteMedicine was not called")
-// 		}
-// 		if mDB.deleteMedicineID != testID {
-// 			t.Errorf("wrong ID was deleted, got %v, want %v", mDB.deleteMedicineID, testID)
-// 		}
-// 	})
+// func TestCreateMedicine(t *testing.T) {
+// 	mockDB := new(MockDB)
+// 	medService := NewMedicineService(*mockDB)
+// 	mockDB.On("CreateMedicine", mock.Anything, database.CreateMedicineParams{
+// 		Name:         "Aspirin",
+// 		Dosage:       "500mg",
+// 		Description:  "Pain Relief",
+// 		Manufacturer: "PharmaCorp",
+// 		Price:        100,
+// 		Stock:        50,
+// 	}).Return(database.Medicine{
+// 		ID:           uuid.New(),
+// 		Name:         "Aspirin",
+// 		Dosage:       "500mg",
+// 		Description:  "Pain Relief",
+// 		Manufacturer: "PharmaCorp",
+// 		Price:        100,
+// 		Stock:        50,
+// 		CreatedAt:    time.Now(),
+// 		UpdatedAt:    time.Now(),
+// 	}, nil)
 // }

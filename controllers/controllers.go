@@ -8,13 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// func methodChecker(w http.ResponseWriter, r *http.Request, allowedMethod string) {
-// 	if r.Method != allowedMethod {
-// 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-// 		return
-// 	}
-// }
-
 var dev = "dev"
 
 type controller struct {
