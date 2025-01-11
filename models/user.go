@@ -8,15 +8,14 @@ import (
 )
 
 type User struct {
-	ID             uuid.UUID `json:"id"`
-	Name           Name      `json:"name"`
-	Email          string    `json:"email"`
-	Age            int32     `json:"age"`
-	Phone          string    `json:"phone"`
-	Address        Address   `json:"address"`
-	CreatedAt      time.Time `json:"created_at"`
-	UpdatedAt      time.Time `json:"updated_at"`
-	HashedPassword string
+	ID        uuid.UUID `json:"id"`
+	Name      Name      `json:"first_name"`
+	Email     string    `json:"email"`
+	Age       int32     `json:"age"`
+	Phone     string    `json:"phone"`
+	Address   Address   `json:"address"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type Admin struct {
@@ -42,6 +41,8 @@ type Name struct {
 type UserService interface {
 	CreateUser(ctx context.Context, user User) (User, error)
 	FindUserByID(ctx context.Context, userID uuid.UUID) (User, error)
+	FindUserByEmail(ctx context.Context, email string) (User, error)
+	FindUserByPhone(ctx context.Context, phone string) (User, error)
 	UpdateUser(ctx context.Context, userID uuid.UUID, user User) (User, error)
 	DeleteUser(ctx context.Context, userID uuid.UUID) error
 }
