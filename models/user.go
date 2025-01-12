@@ -27,11 +27,11 @@ type CreateUserDTO struct {
 }
 
 type UpdateUserDTO struct {
-	Name    *Name    `json:"name,omitempty"`
-	Email   *string  `json:"email,omitempty"`
-	Age     *int32   `json:"age,omitempty"`
-	Phone   *string  `json:"phone,omitempty"`
-	Address *Address `json:"address,omitempty"`
+	Name    Name    `json:"name,omitempty"`
+	Email   string  `json:"email,omitempty"`
+	Age     *int32  `json:"age,omitempty"`
+	Phone   string  `json:"phone,omitempty"`
+	Address Address `json:"address,omitempty"`
 }
 
 type Admin struct {
@@ -46,7 +46,7 @@ type Address struct {
 	Country       string `json:"country"`
 	City          string `json:"city"`
 	StreetAddress string `json:"street_address"`
-	PostalCode    int32  `json:"postal_code"`
+	PostalCode    *int32 `json:"postal_code"`
 }
 
 type Name struct {
@@ -61,4 +61,13 @@ type UserService interface {
 	FindUserByPhone(ctx context.Context, phone string) (User, error)
 	UpdateUser(ctx context.Context, userID uuid.UUID, user UpdateUserDTO) (User, error)
 	DeleteUser(ctx context.Context, userID uuid.UUID) error
+}
+
+type UserRepository interface {
+	Create(ctx context.Context, user User) (User, error)
+	Delete(ctx context.Context, userID uuid.UUID) error
+	Update(ctx context.Context, user User) (User, error)
+	FindByID(ctx context.Context, userID uuid.UUID) (User, error)
+	FindByEmail(ctx context.Context, email string) (User, error)
+	FindByPhone(ctx context.Context, phone string) (User, error)
 }
