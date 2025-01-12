@@ -4,6 +4,7 @@ import (
 	"log"
 	"medicine-app/config"
 	ctrl "medicine-app/controllers"
+	repo "medicine-app/repository"
 	service "medicine-app/services"
 
 	"github.com/gin-gonic/gin"
@@ -22,7 +23,9 @@ var (
 func main() {
 	cfg := config.NewConfig()
 
-	medService := service.NewMedicineService(cfg.DB)
+	medRepo := repo.NewMedicineRepository(cfg.DB)
+
+	medService := service.NewMedicineService(medRepo)
 	medCtrl := ctrl.NewMedicineController(medService)
 
 	resetCtrl := ctrl.NewController(cfg.DB, cfg.Platform)

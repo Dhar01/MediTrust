@@ -13,7 +13,7 @@ import (
 
 const createMedicine = `-- name: CreateMedicine :one
 INSERT INTO medicines (
-    id, name, description, dosage, manufacturer, price, stock, created_at, updated_at
+    id, name, dosage, description, manufacturer, price, stock, created_at, updated_at
 ) VALUES (
     gen_random_uuid(),
     $1,
@@ -30,8 +30,8 @@ RETURNING id, name, dosage, description, manufacturer, price, stock, created_at,
 
 type CreateMedicineParams struct {
 	Name         string
-	Description  string
 	Dosage       string
+	Description  string
 	Manufacturer string
 	Price        int32
 	Stock        int32
@@ -40,8 +40,8 @@ type CreateMedicineParams struct {
 func (q *Queries) CreateMedicine(ctx context.Context, arg CreateMedicineParams) (Medicine, error) {
 	row := q.db.QueryRowContext(ctx, createMedicine,
 		arg.Name,
-		arg.Description,
 		arg.Dosage,
+		arg.Description,
 		arg.Manufacturer,
 		arg.Price,
 		arg.Stock,
