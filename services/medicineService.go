@@ -78,12 +78,51 @@ func (ms *medicineService) GetMedicineByID(ctx context.Context, medID uuid.UUID)
 }
 
 func (ms *medicineService) UpdateMedicine(ctx context.Context, medID uuid.UUID, med models.UpdateMedicineDTO) (models.Medicine, error) {
+	var emptyMed models.Medicine
+
+	if *med.Price < 0 {
+		return emptyMed, errPriceNegative
+	}
+
+	if *med.Stock < 0 {
+		return emptyMed, errStockNegative
+	}
+
+	oldMed, err := ms.Repo.FindByID(ctx, medID)
+	if err != nil {
+		return emptyMed, errors.New("cannot find medicine")
+	}
+
+	if med.Name == "" {
+		med.Name = oldMed.Name
+	}
+
+	if med.Description == "" {
+		med.Description = oldMed.Description
+	}
+
+	if med.Dosage == "" {
+		med.Dosage = oldMed.Dosage
+	}
+
+	if med.Manufacturer == "" {
+		med.Manufacturer = oldMed.Manufacturer
+	}
+
+	if med.Price == nil {
+		med.Price = &oldMed.Price
+	}
+
+	if med.Stock == nil {
+		med.Stock = &oldMed.Stock
+	}
+
 	medicine := models.Medicine{
 		ID:           medID,
-		Name:         *med.Name,
-		Description:  *med.Description,
-		Manufacturer: *med.Manufacturer,
-		Dosage:       *med.Dosage,
+		Name:         med.Name,
+		Description:  med.Description,
+		Manufacturer: med.Manufacturer,
+		Dosage:       med.Dosage,
 		Price:        *med.Price,
 		Stock:        *med.Stock,
 	}
