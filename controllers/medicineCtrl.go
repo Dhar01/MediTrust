@@ -20,7 +20,7 @@ func NewMedicineController(service models.MedicineService) *medicineController {
 }
 
 func (mc *medicineController) HandlerCreateMedicine(ctx *gin.Context) {
-	var newMedicine models.Medicine
+	var newMedicine models.CreateMedicineDTO
 
 	if err := ctx.ShouldBindJSON(&newMedicine); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorMsg(err))
@@ -67,7 +67,7 @@ func (mc *medicineController) HandlerUpdateMedicine(ctx *gin.Context) {
 		return
 	}
 
-	var updateMed models.Medicine
+	var updateMed models.UpdateMedicineDTO
 
 	if err := ctx.ShouldBindJSON(&updateMed); err != nil {
 		ctx.IndentedJSON(http.StatusBadRequest, errorMsg(err))

@@ -19,7 +19,7 @@ func NewUserController(service models.UserService) *userController {
 }
 
 func (uc *userController) HandlerCreateUser(ctx *gin.Context) {
-	var newUser models.User
+	var newUser models.CreateUserDTO
 
 	if err := ctx.ShouldBindJSON(&newUser); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorMsg(err))
@@ -56,7 +56,7 @@ func (uc *userController) HandlerUpdateUser(ctx *gin.Context) {
 		return
 	}
 
-	var updateUser models.User
+	var updateUser models.UpdateUserDTO
 
 	if err := ctx.ShouldBindJSON(&updateUser); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorMsg(err))
