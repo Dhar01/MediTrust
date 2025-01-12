@@ -30,7 +30,8 @@ func main() {
 
 	resetCtrl := ctrl.NewController(cfg.DB, cfg.Platform)
 
-	userService := service.NewUserService(cfg.DB)
+	userRepo := repo.NewUserRepository(cfg.DB)
+	userService := service.NewUserService(userRepo)
 	userCtrl := ctrl.NewUserController(userService)
 
 	router := gin.Default()
