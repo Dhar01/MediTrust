@@ -18,6 +18,22 @@ type User struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+type CreateUserDTO struct {
+	Name    Name    `json:"name" binding:"required"`
+	Email   string  `json:"email" binding:"required"`
+	Age     int32   `json:"age" binding:"required"`
+	Phone   string  `json:"phone" binding:"required"`
+	Address Address `json:"address" binding:"required"`
+}
+
+type UpdateUserDTO struct {
+	Name    *Name    `json:"name,omitempty"`
+	Email   *string  `json:"email,omitempty"`
+	Age     *int32   `json:"age,omitempty"`
+	Phone   *string  `json:"phone,omitempty"`
+	Address *Address `json:"address,omitempty"`
+}
+
 type Admin struct {
 	User
 	Role            string
@@ -39,10 +55,10 @@ type Name struct {
 }
 
 type UserService interface {
-	CreateUser(ctx context.Context, user User) (User, error)
+	CreateUser(ctx context.Context, user CreateUserDTO) (User, error)
 	FindUserByID(ctx context.Context, userID uuid.UUID) (User, error)
 	FindUserByEmail(ctx context.Context, email string) (User, error)
 	FindUserByPhone(ctx context.Context, phone string) (User, error)
-	UpdateUser(ctx context.Context, userID uuid.UUID, user User) (User, error)
+	UpdateUser(ctx context.Context, userID uuid.UUID, user UpdateUserDTO) (User, error)
 	DeleteUser(ctx context.Context, userID uuid.UUID) error
 }
