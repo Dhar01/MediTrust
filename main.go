@@ -9,6 +9,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var (
+	apiBase = "/api/v1"
+
+	medicineBase     = apiBase + "/medicines"
+	medicineBaseByID = medicineBase + "/:medID"
+
+	usersBase    = apiBase + "/users"
+	userBaseByID = usersBase + "/:userID"
+)
+
 func main() {
 	cfg := config.NewConfig()
 
@@ -20,22 +30,21 @@ func main() {
 	userService := service.NewUserService(cfg.DB)
 	userCtrl := ctrl.NewUserController(userService)
 
-
 	router := gin.Default()
 	router.SetTrustedProxies(nil)
 
 	// medicines
-	router.GET("/medicines", medCtrl.HandlerGetMedicines)
-	router.GET("/medicines/:medID", medCtrl.HandlerGetMedicineByID)
-	router.PUT("/medicines/:medID", medCtrl.HandlerUpdateMedicine)
-	router.POST("/medicines", medCtrl.HandlerCreateMedicine)
-	router.DELETE("/medicines/:medID", medCtrl.HandlerDeleteMedicine)
+	router.GET(medicineBase, medCtrl.HandlerGetMedicines)
+	router.GET(medicineBaseByID, medCtrl.HandlerGetMedicineByID)
+	router.PUT(medicineBaseByID, medCtrl.HandlerUpdateMedicine)
+	router.POST(medicineBase, medCtrl.HandlerCreateMedicine)
+	router.DELETE(medicineBaseByID, medCtrl.HandlerDeleteMedicine)
 
 	// users
-	router.GET("/users/:userID", userCtrl.HandlerGetUserByID)
-	router.PUT("/users/:userID", userCtrl.HandlerUpdateUser)
-	router.POST("/users", userCtrl.HandlerCreateUser)
-	router.DELETE("/users/:userID", userCtrl.HandlerDeleteUser)
+	router.GET(userBaseByID, userCtrl.HandlerGetUserByID)
+	router.PUT(userBaseByID, userCtrl.HandlerUpdateUser)
+	router.POST(usersBase, userCtrl.HandlerCreateUser)
+	router.DELETE(userBaseByID, userCtrl.HandlerDeleteUser)
 
 	router.POST("/reset", resetCtrl.HandlerReset)
 
