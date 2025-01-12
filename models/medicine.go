@@ -21,10 +21,36 @@ type Medicine struct {
 	Updated_at   time.Time `json:"updated_at"`
 }
 
+type CreateMedicineDTO struct {
+	Name         string `json:"name" binding:"required"`
+	Description  string `json:"description" binding:"required"`
+	Dosage       string `json:"dosage" binding:"required"`
+	Manufacturer string `json:"manufacturer" binding:"required"`
+	Price        int32  `json:"price" binding:"required"`
+	Stock        int32  `json:"stock" binding:"required"`
+}
+
+type UpdateMedicineDTO struct {
+	Name         *string `json:"name,omitempty"`
+	Description  *string `json:"description,omitempty"`
+	Dosage       *string `json:"dosage,omitempty"`
+	Manufacturer *string `json:"manufacturer,omitempty"`
+	Price        *int32  `json:"price,omitempty"`
+	Stock        *int32  `json:"stock,omitempty"`
+}
+
 type MedicineService interface {
-	CreateMedicine(ctx context.Context, medicine Medicine) (Medicine, error)
+	CreateMedicine(ctx context.Context, medicine CreateMedicineDTO) (Medicine, error)
 	DeleteMedicine(ctx context.Context, medID uuid.UUID) error
-	UpdateMedicine(ctx context.Context, medID uuid.UUID, med Medicine) (Medicine, error)
+	UpdateMedicine(ctx context.Context, medID uuid.UUID, med UpdateMedicineDTO) (Medicine, error)
 	GetMedicines(ctx context.Context) ([]Medicine, error)
 	GetMedicineByID(ctx context.Context, medID uuid.UUID) (Medicine, error)
+}
+
+type MedicineRepository interface {
+	Create(ctx context.Context, med Medicine) (Medicine, error)
+	Delete(ctx context.Context, id uuid.UUID) error
+	Update(ctx context.Context, med Medicine) (Medicine, error)
+	FindByID(ctx context.Context, id uuid.UUID) (Medicine, error)
+	FindAll(ctx context.Context) ([]Medicine, error)
 }
