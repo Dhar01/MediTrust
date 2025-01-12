@@ -35,6 +35,43 @@ func (uc *userController) HandlerCreateUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, user)
 }
 
+func (uc *userController) HandlerGetUserByID(ctx *gin.Context) {
+	id, ok := getUserID(ctx)
+	if !ok {
+		return
+	}
+
+	user, err := uc.UserService.FindUserByID(ctx, id)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, errorMsg(err))
+		return
+	}
+
+	ctx.JSON(http.StatusFound, user)
+}
+
+func (uc *userController) HandlerUpdateUser(ctx *gin.Context) {
+	id, ok := getUserID(ctx)
+	if !ok {
+		return
+	}
+
+	var updateUser models.User
+
+	if err := ctx.ShouldBindJSON(&updateUser); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorMsg(err))
+		return
+	}
+
+	user, err := uc.UserService.UpdateUser(ctx, id, updateUser)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorMsg(err))
+		return
+	}
+
+	ctx.JSON(http.StatusAccepted, user)
+}
+
 func (uc *userController) HandlerDeleteUser(ctx *gin.Context) {
 	id, ok := getUserID(ctx)
 	if !ok {
@@ -42,7 +79,7 @@ func (uc *userController) HandlerDeleteUser(ctx *gin.Context) {
 	}
 
 	if err := uc.UserService.DeleteUser(ctx, id); err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorMsg(err))
+		ctx.JSON(http.StatusNotFound, errorMsg(err))
 		return
 	}
 

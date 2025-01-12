@@ -19,7 +19,7 @@ func NewMedicineController(service models.MedicineService) *medicineController {
 	}
 }
 
-func (mc *medicineController) HandlerCreateMedicineHandler(ctx *gin.Context) {
+func (mc *medicineController) HandlerCreateMedicine(ctx *gin.Context) {
 	var newMedicine models.Medicine
 
 	if err := ctx.ShouldBindJSON(&newMedicine); err != nil {
