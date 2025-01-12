@@ -9,7 +9,7 @@ import (
 
 type User struct {
 	ID        uuid.UUID `json:"id"`
-	Name      Name      `json:"first_name"`
+	Name      Name      `json:"name"`
 	Email     string    `json:"email"`
 	Age       int32     `json:"age"`
 	Phone     string    `json:"phone"`
