@@ -19,6 +19,7 @@ func NewMedicineRepository(db *database.Queries) models.MedicineRepository {
 }
 
 func (mr *medicineRepository) Create(ctx context.Context, newMed models.Medicine) (models.Medicine, error) {
+
 	medicine, err := mr.DB.CreateMedicine(ctx, database.CreateMedicineParams{
 		Name:         newMed.Name,
 		Dosage:       newMed.Dosage,
@@ -89,6 +90,7 @@ func toMedicineDomain(dbMed database.Medicine) models.Medicine {
 	return models.Medicine{
 		ID:           dbMed.ID,
 		Name:         dbMed.Name,
+		Dosage:       dbMed.Dosage,
 		Description:  dbMed.Description,
 		Manufacturer: dbMed.Manufacturer,
 		Price:        dbMed.Price,

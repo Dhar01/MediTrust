@@ -1,6 +1,6 @@
 -- name: CreateMedicine :one
 INSERT INTO medicines (
-    id, name, description, dosage, manufacturer, price, stock, created_at, updated_at
+    id, name, dosage, description, manufacturer, price, stock, created_at, updated_at
 ) VALUES (
     gen_random_uuid(),
     $1,

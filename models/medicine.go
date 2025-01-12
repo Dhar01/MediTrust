@@ -31,12 +31,12 @@ type CreateMedicineDTO struct {
 }
 
 type UpdateMedicineDTO struct {
-	Name         *string `json:"name,omitempty"`
-	Description  *string `json:"description,omitempty"`
-	Dosage       *string `json:"dosage,omitempty"`
-	Manufacturer *string `json:"manufacturer,omitempty"`
-	Price        *int32  `json:"price,omitempty"`
-	Stock        *int32  `json:"stock,omitempty"`
+	Name         string `json:"name,omitempty"`
+	Description  string `json:"description,omitempty"`
+	Dosage       string `json:"dosage,omitempty"`
+	Manufacturer string `json:"manufacturer,omitempty"`
+	Price        *int32 `json:"price,omitempty"`
+	Stock        *int32 `json:"stock,omitempty"`
 }
 
 type MedicineService interface {
