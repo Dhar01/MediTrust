@@ -2,10 +2,17 @@ package service
 
 import (
 	"context"
-	"medicine-app/internal/database"
+	"errors"
 	"medicine-app/models"
 
 	"github.com/google/uuid"
+)
+
+var (
+	errBelowAge              = errors.New("age is not 18")
+	errEmailPhoneNotProvided = errors.New("email/phone not provided")
+	errNameNotProvided       = errors.New("name not provided")
+	errAddressNotProvided    = errors.New("address not provided")
 )
 
 type userService struct {
@@ -23,7 +30,41 @@ func NewUserService(repo models.UserRepository) models.UserService {
 }
 
 func (us *userService) CreateUser(ctx context.Context, user models.CreateUserDTO) (models.User, error) {
-	return us.Repo.Create(ctx, models.User{})
+	var emptyUser models.User
+
+	if user.Age < 18 {
+		return emptyUser, errBelowAge
+	}
+
+	if user.Email == "" || user.Phone == "" {
+		return emptyUser, errEmailPhoneNotProvided
+	}
+
+	if user.Name.FirstName == "" || user.Name.LastName == "" {
+		return emptyUser, errNameNotProvided
+	}
+
+	if user.Address.Country == "" || user.Address.City == "" || user.Address.StreetAddress == "" {
+		return emptyUser, errAddressNotProvided
+	}
+
+	person := models.User{
+		Name: models.Name{
+			FirstName: user.Name.FirstName,
+			LastName:  user.Name.LastName,
+		},
+		Phone: user.Phone,
+		Email: user.Email,
+		Age:   user.Age,
+		Address: models.Address{
+			Country:       user.Address.Country,
+			City:          user.Address.City,
+			PostalCode:    user.Address.PostalCode,
+			StreetAddress: user.Address.StreetAddress,
+		},
+	}
+
+	return us.Repo.Create(ctx, person)
 }
 
 func (us *userService) FindUserByID(ctx context.Context, userID uuid.UUID) (models.User, error) {
@@ -39,7 +80,71 @@ func (us *userService) FindUserByEmail(ctx context.Context, email string) (model
 }
 
 func (us *userService) UpdateUser(ctx context.Context, userID uuid.UUID, user models.UpdateUserDTO) (models.User, error) {
-	return us.Repo.Update(ctx, models.User{})
+	var emptyUser models.User
+
+	if *user.Age < 18 {
+		return emptyUser, errBelowAge
+	}
+
+	oldInfo, err := us.Repo.FindByID(ctx, userID)
+	if err != nil {
+		return emptyUser, errors.New("user not found")
+	}
+
+	if user.Name.FirstName == "" {
+		user.Name.FirstName = oldInfo.Name.FirstName
+	}
+
+	if user.Name.LastName == "" {
+		user.Name.LastName = oldInfo.Name.LastName
+	}
+
+	if user.Email == "" {
+		user.Email = oldInfo.Email
+	}
+
+	if user.Phone == "" {
+		user.Phone = oldInfo.Phone
+	}
+
+	if user.Age == nil {
+		user.Age = &oldInfo.Age
+	}
+
+	if user.Address.Country == "" {
+		user.Address.Country = oldInfo.Address.Country
+	}
+
+	if user.Address.City == "" {
+		user.Address.City = oldInfo.Address.City
+	}
+
+	if user.Address.StreetAddress == "" {
+		user.Address.StreetAddress = oldInfo.Address.StreetAddress
+	}
+
+	if user.Address.PostalCode == nil {
+		user.Address.PostalCode = oldInfo.Address.PostalCode
+	}
+
+	person := models.User{
+		ID: userID,
+		Name: models.Name{
+			FirstName: user.Name.FirstName,
+			LastName:  user.Name.LastName,
+		},
+		Email: user.Email,
+		Phone: user.Phone,
+		Age:   *user.Age,
+		Address: models.Address{
+			Country:       user.Address.Country,
+			City:          user.Address.City,
+			PostalCode:    user.Address.PostalCode,
+			StreetAddress: user.Address.StreetAddress,
+		},
+	}
+
+	return us.Repo.Update(ctx, person)
 }
 
 func (us *userService) DeleteUser(ctx context.Context, userID uuid.UUID) error {
