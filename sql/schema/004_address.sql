@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS user_address(
     country TEXT NOT NULL,
     city TEXT NOT NULL,
     street_address TEXT NOT NULL,
-    postal_code INTEGER,
+    postal_code TEXT DEFAULT 'unset',
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL
 );

@@ -49,7 +49,7 @@ type UserAddress struct {
 	Country       string
 	City          string
 	StreetAddress string
-	PostalCode    sql.NullInt32
+	PostalCode    sql.NullString
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
 }

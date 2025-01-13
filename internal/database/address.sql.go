@@ -42,7 +42,7 @@ type CreateUserAddressParams struct {
 	Country       string
 	City          string
 	StreetAddress string
-	PostalCode    sql.NullInt32
+	PostalCode    sql.NullString
 }
 
 func (q *Queries) CreateUserAddress(ctx context.Context, arg CreateUserAddressParams) (UserAddress, error) {
@@ -106,7 +106,7 @@ type GetUserWithAddressRow struct {
 	Country       sql.NullString
 	City          sql.NullString
 	StreetAddress sql.NullString
-	PostalCode    sql.NullInt32
+	PostalCode    sql.NullString
 	CreatedAt_2   sql.NullTime
 	UpdatedAt_2   sql.NullTime
 }
@@ -150,7 +150,7 @@ type UpdateAddressParams struct {
 	Country       string
 	City          string
 	StreetAddress string
-	PostalCode    sql.NullInt32
+	PostalCode    sql.NullString
 	UserID        uuid.UUID
 }
 
