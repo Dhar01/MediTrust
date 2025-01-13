@@ -24,11 +24,12 @@ func main() {
 	cfg := config.NewConfig()
 
 	medRepo := repo.NewMedicineRepository(cfg.DB)
-
 	medService := service.NewMedicineService(medRepo)
 	medCtrl := ctrl.NewMedicineController(medService)
 
-	resetCtrl := ctrl.NewController(cfg.DB, cfg.Platform)
+	genRepo := repo.NewGeneralRepository(cfg.DB)
+	genService := service.NewGeneralService(genRepo)
+	genCtrl := ctrl.NewController(genService, cfg.Platform)
 
 	userRepo := repo.NewUserRepository(cfg.DB)
 	userService := service.NewUserService(userRepo)
@@ -50,7 +51,7 @@ func main() {
 	router.POST(usersBase, userCtrl.HandlerCreateUser)
 	router.DELETE(userBaseByID, userCtrl.HandlerDeleteUser)
 
-	router.POST("/reset", resetCtrl.HandlerReset)
+	router.POST("/reset", genCtrl.HandlerReset)
 
 	port := ":8080"
 
