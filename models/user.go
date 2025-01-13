@@ -57,8 +57,7 @@ type Name struct {
 type UserService interface {
 	CreateUser(ctx context.Context, user CreateUserDTO) (User, error)
 	FindUserByID(ctx context.Context, userID uuid.UUID) (User, error)
-	FindUserByEmail(ctx context.Context, email string) (User, error)
-	FindUserByPhone(ctx context.Context, phone string) (User, error)
+	FindUserByKey(ctx context.Context, key, value string) (User, error)
 	UpdateUser(ctx context.Context, userID uuid.UUID, user UpdateUserDTO) (User, error)
 	DeleteUser(ctx context.Context, userID uuid.UUID) error
 }
@@ -68,6 +67,5 @@ type UserRepository interface {
 	Delete(ctx context.Context, userID uuid.UUID) error
 	Update(ctx context.Context, user User) (User, error)
 	FindByID(ctx context.Context, userID uuid.UUID) (User, error)
-	FindByEmail(ctx context.Context, email string) (User, error)
-	FindByPhone(ctx context.Context, phone string) (User, error)
+	FindUser(ctx context.Context, key, value string) (User, error)
 }

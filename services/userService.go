@@ -71,12 +71,8 @@ func (us *userService) FindUserByID(ctx context.Context, userID uuid.UUID) (mode
 	return us.Repo.FindByID(ctx, userID)
 }
 
-func (us *userService) FindUserByPhone(ctx context.Context, phone string) (models.User, error) {
-	return us.Repo.FindByPhone(ctx, phone)
-}
-
-func (us *userService) FindUserByEmail(ctx context.Context, email string) (models.User, error) {
-	return us.Repo.FindByEmail(ctx, email)
+func (us *userService) FindUserByKey(ctx context.Context, key, value string) (models.User, error) {
+	return us.Repo.FindUser(ctx, key, value)
 }
 
 func (us *userService) UpdateUser(ctx context.Context, userID uuid.UUID, user models.UpdateUserDTO) (models.User, error) {
@@ -123,7 +119,7 @@ func (us *userService) UpdateUser(ctx context.Context, userID uuid.UUID, user mo
 		user.Address.StreetAddress = oldInfo.Address.StreetAddress
 	}
 
-	if user.Address.PostalCode == nil {
+	if user.Address.PostalCode == "" {
 		user.Address.PostalCode = oldInfo.Address.PostalCode
 	}
 
