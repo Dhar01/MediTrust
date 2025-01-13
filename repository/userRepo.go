@@ -71,6 +71,7 @@ func (ur *userRepository) Update(ctx context.Context, user models.User) (models.
 	}
 
 	address, err := ur.DB.UpdateAddress(ctx, database.UpdateAddressParams{
+		UserID:        person.ID,
 		Country:       user.Address.Country,
 		City:          user.Address.City,
 		StreetAddress: user.Address.StreetAddress,
