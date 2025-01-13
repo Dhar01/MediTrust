@@ -13,15 +13,6 @@ import (
 	"github.com/google/uuid"
 )
 
-const addressReset = `-- name: AddressReset :exec
-DELETE FROM user_address
-`
-
-func (q *Queries) AddressReset(ctx context.Context) error {
-	_, err := q.db.ExecContext(ctx, addressReset)
-	return err
-}
-
 const createUserAddress = `-- name: CreateUserAddress :one
 INSERT INTO user_address (
     user_id, country, city, street_address, postal_code, created_at, updated_at
@@ -132,6 +123,15 @@ func (q *Queries) GetUserWithAddress(ctx context.Context, id uuid.UUID) (GetUser
 		&i.UpdatedAt_2,
 	)
 	return i, err
+}
+
+const resetAddress = `-- name: ResetAddress :exec
+DELETE FROM user_address
+`
+
+func (q *Queries) ResetAddress(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, resetAddress)
+	return err
 }
 
 const updateAddress = `-- name: UpdateAddress :one
