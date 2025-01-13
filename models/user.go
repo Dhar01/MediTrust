@@ -46,7 +46,7 @@ type Address struct {
 	Country       string `json:"country"`
 	City          string `json:"city"`
 	StreetAddress string `json:"street_address"`
-	PostalCode    *int32 `json:"postal_code"`
+	PostalCode    string `json:"postal_code"`
 }
 
 type Name struct {
