@@ -130,12 +130,12 @@ func (q *Queries) GetMedicines(ctx context.Context) ([]Medicine, error) {
 	return items, nil
 }
 
-const reset = `-- name: Reset :exec
+const resetMedicines = `-- name: ResetMedicines :exec
 DELETE FROM medicines
 `
 
-func (q *Queries) Reset(ctx context.Context) error {
-	_, err := q.db.ExecContext(ctx, reset)
+func (q *Queries) ResetMedicines(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, resetMedicines)
 	return err
 }
 

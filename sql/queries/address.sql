@@ -33,5 +33,5 @@ SET
 WHERE user_id = $5
 RETURNING *;
 
--- name: AddressReset :exec
+-- name: ResetAddress :exec
 DELETE FROM user_address;
