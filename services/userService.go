@@ -78,7 +78,7 @@ func (us *userService) FindUserByKey(ctx context.Context, key, value string) (mo
 func (us *userService) UpdateUser(ctx context.Context, userID uuid.UUID, user models.UpdateUserDTO) (models.User, error) {
 	var emptyUser models.User
 
-	if *user.Age < 18 {
+	if user.Age != nil && *user.Age < 18 {
 		return emptyUser, errBelowAge
 	}
 
@@ -87,40 +87,36 @@ func (us *userService) UpdateUser(ctx context.Context, userID uuid.UUID, user mo
 		return emptyUser, errors.New("user not found")
 	}
 
-	if user.Name.FirstName == "" {
-		user.Name.FirstName = oldInfo.Name.FirstName
+	if user.Name == nil {
+		user.Name = &oldInfo.Name
+	} else {
+		if user.Name.FirstName == "" {
+			user.Name.FirstName = oldInfo.Name.FirstName
+		}
+
+		if user.Name.LastName == "" {
+			user.Name.LastName = oldInfo.Name.LastName
+		}
 	}
 
-	if user.Name.LastName == "" {
-		user.Name.LastName = oldInfo.Name.LastName
-	}
+	if user.Address == nil {
+		user.Address = &oldInfo.Address
+	} else {
+		if user.Address.Country == "" {
+			user.Address.Country = oldInfo.Address.Country
+		}
 
-	if user.Email == "" {
-		user.Email = oldInfo.Email
-	}
+		if user.Address.City == "" {
+			user.Address.City = oldInfo.Address.City
+		}
 
-	if user.Phone == "" {
-		user.Phone = oldInfo.Phone
-	}
+		if user.Address.StreetAddress == "" {
+			user.Address.StreetAddress = oldInfo.Address.StreetAddress
+		}
 
-	if user.Age == nil {
-		user.Age = &oldInfo.Age
-	}
-
-	if user.Address.Country == "" {
-		user.Address.Country = oldInfo.Address.Country
-	}
-
-	if user.Address.City == "" {
-		user.Address.City = oldInfo.Address.City
-	}
-
-	if user.Address.StreetAddress == "" {
-		user.Address.StreetAddress = oldInfo.Address.StreetAddress
-	}
-
-	if user.Address.PostalCode == "" {
-		user.Address.PostalCode = oldInfo.Address.PostalCode
+		if user.Address.PostalCode == "" {
+			user.Address.PostalCode = oldInfo.Address.PostalCode
+		}
 	}
 
 	person := models.User{
@@ -129,9 +125,9 @@ func (us *userService) UpdateUser(ctx context.Context, userID uuid.UUID, user mo
 			FirstName: user.Name.FirstName,
 			LastName:  user.Name.LastName,
 		},
-		Email: user.Email,
-		Phone: user.Phone,
-		Age:   *user.Age,
+		Email: updateField(user.Email, oldInfo.Email),
+		Phone: updateField(user.Phone, oldInfo.Phone),
+		Age:   *updateIntPointerField(user.Age, &oldInfo.Age),
 		Address: models.Address{
 			Country:       user.Address.Country,
 			City:          user.Address.City,
@@ -145,4 +141,20 @@ func (us *userService) UpdateUser(ctx context.Context, userID uuid.UUID, user mo
 
 func (us *userService) DeleteUser(ctx context.Context, userID uuid.UUID) error {
 	return us.Repo.Delete(ctx, userID)
+}
+
+func updateField(newValue, oldValue string) string {
+	if newValue == "" {
+		return oldValue
+	}
+
+	return newValue
+}
+
+func updateIntPointerField(newValue, oldValue *int32) *int32 {
+	if newValue == nil {
+		return oldValue
+	}
+
+	return newValue
 }
