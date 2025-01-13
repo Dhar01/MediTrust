@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"log"
-	"medicine-app/internal/database"
+	"medicine-app/models"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -11,18 +11,18 @@ import (
 var dev = "dev"
 
 type controller struct {
-	DB       *database.Queries
-	Platform string
+	GeneralService models.GeneralService
+	Platform       string
 }
 
 func errorMsg(err error) gin.H {
 	return gin.H{"error": err.Error()}
 }
 
-func NewController(db *database.Queries, platform string) *controller {
+func NewController(service models.GeneralService, platform string) *controller {
 	return &controller{
-		DB:       db,
-		Platform: platform,
+		GeneralService: service,
+		Platform:       platform,
 	}
 }
 
@@ -34,7 +34,17 @@ func (ctrl *controller) HandlerReset(ctx *gin.Context) {
 		return
 	}
 
-	if err := ctrl.DB.Reset(ctx); err != nil {
+	if err := ctrl.GeneralService.ResetMedicineService(ctx); err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorMsg(err))
+		return
+	}
+
+	if err := ctrl.GeneralService.ResetAddressService(ctx); err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorMsg(err))
+		return
+	}
+
+	if err := ctrl.GeneralService.ResetUserService(ctx); err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorMsg(err))
 		return
 	}
