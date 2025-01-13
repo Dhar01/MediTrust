@@ -1,6 +1,6 @@
 -- +goose Up
 CREATE TABLE IF NOT EXISTS user_address(
-    user_id UUID PRIMARY KEY REFERENCES users(id),
+    user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     country TEXT NOT NULL,
     city TEXT NOT NULL,
     street_address TEXT NOT NULL,
