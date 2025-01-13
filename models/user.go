@@ -27,11 +27,11 @@ type CreateUserDTO struct {
 }
 
 type UpdateUserDTO struct {
-	Name    Name    `json:"name,omitempty"`
-	Email   string  `json:"email,omitempty"`
-	Age     *int32  `json:"age,omitempty"`
-	Phone   string  `json:"phone,omitempty"`
-	Address Address `json:"address,omitempty"`
+	Name    *Name    `json:"name,omitempty"`
+	Email   string   `json:"email,omitempty"`
+	Age     *int32   `json:"age,omitempty"`
+	Phone   string   `json:"phone,omitempty"`
+	Address *Address `json:"address,omitempty"`
 }
 
 type Admin struct {

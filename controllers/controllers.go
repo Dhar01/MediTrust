@@ -39,15 +39,21 @@ func (ctrl *controller) HandlerReset(ctx *gin.Context) {
 		return
 	}
 
+	log.Println("Medicine database reset successfully!")
+
 	if err := ctrl.GeneralService.ResetAddressService(ctx); err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorMsg(err))
 		return
 	}
 
+	log.Println("Address database reset successfully!")
+
 	if err := ctrl.GeneralService.ResetUserService(ctx); err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorMsg(err))
 		return
 	}
+
+	log.Println("User database reset successfully!")
 
 	ctx.Status(http.StatusNoContent)
 }
