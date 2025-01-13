@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"medicine-app/internal/database"
 	"medicine-app/models"
 
@@ -32,17 +33,12 @@ func (ur *userRepository) Create(ctx context.Context, user models.User) (models.
 		return models.User{}, err
 	}
 
-	postalCode := sql.NullString{
-		String: user.Address.PostalCode,
-		Valid:  true,
-	}
-
 	addr, err := ur.DB.CreateUserAddress(ctx, database.CreateUserAddressParams{
 		UserID:        person.ID,
 		Country:       user.Address.Country,
 		City:          user.Address.City,
 		StreetAddress: user.Address.StreetAddress,
-		PostalCode:    postalCode,
+		PostalCode:    toNullString(user.Address.PostalCode),
 	})
 
 	if err != nil {
@@ -78,10 +74,7 @@ func (ur *userRepository) Update(ctx context.Context, user models.User) (models.
 		Country:       user.Address.Country,
 		City:          user.Address.City,
 		StreetAddress: user.Address.StreetAddress,
-		PostalCode: sql.NullString{
-			String: user.Address.PostalCode,
-			Valid:  true,
-		},
+		PostalCode:    toNullString(user.Address.PostalCode),
 	})
 
 	if err != nil {
@@ -91,36 +84,33 @@ func (ur *userRepository) Update(ctx context.Context, user models.User) (models.
 	return toUserDomain(person, address), err
 }
 
+func (ur *userRepository) FindUser(ctx context.Context, key, value string) (models.User, error) {
+	var user database.User
+	var err error
+
+	switch key {
+	case "email":
+		user, err = ur.DB.GetUserByEmail(ctx, value)
+	case "phone":
+		user, err = ur.DB.GetUserByPhone(ctx, value)
+	default:
+		return models.User{}, fmt.Errorf("unsupported lookup key %s", key)
+	}
+
+	if err != nil {
+		return models.User{}, err
+	}
+
+	address, err := ur.DB.GetAddress(ctx, user.ID)
+	if err != nil {
+		return models.User{}, err
+	}
+
+	return toUserDomain(user, address), nil
+}
+
 func (ur *userRepository) FindByID(ctx context.Context, userID uuid.UUID) (models.User, error) {
 	user, err := ur.DB.GetUserByID(ctx, userID)
-	if err != nil {
-		return models.User{}, err
-	}
-
-	address, err := ur.DB.GetAddress(ctx, user.ID)
-	if err != nil {
-		return models.User{}, err
-	}
-
-	return toUserDomain(user, address), nil
-}
-
-func (ur *userRepository) FindByEmail(ctx context.Context, email string) (models.User, error) {
-	user, err := ur.DB.GetUserByEmail(ctx, email)
-	if err != nil {
-		return models.User{}, err
-	}
-
-	address, err := ur.DB.GetAddress(ctx, user.ID)
-	if err != nil {
-		return models.User{}, err
-	}
-
-	return toUserDomain(user, address), nil
-}
-
-func (ur *userRepository) FindByPhone(ctx context.Context, phone string) (models.User, error) {
-	user, err := ur.DB.GetUserByPhone(ctx, phone)
 	if err != nil {
 		return models.User{}, err
 	}
@@ -151,5 +141,18 @@ func toUserDomain(dbUser database.User, address database.UserAddress) models.Use
 			StreetAddress: address.StreetAddress,
 			PostalCode:    address.PostalCode.String,
 		},
+	}
+}
+
+func toNullString(value string) sql.NullString {
+	if value == "" {
+		return sql.NullString{
+			Valid: false,
+		}
+	}
+
+	return sql.NullString{
+		String: value,
+		Valid:  true,
 	}
 }
