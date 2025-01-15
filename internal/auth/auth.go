@@ -6,7 +6,10 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var errPassNotProvided = errors.New("password not provided")
+var (
+	errPassNotProvided = errors.New("password not provided")
+	errWrongPass = errors.New("password hash not matching")
+)
 
 func HashPassword(password string) (string, error) {
 	if password == "" {
@@ -26,7 +29,7 @@ func CheckPasswordHash(password, hash string) error {
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)); err != nil {
-		return err
+		return errWrongPass
 	}
 
 	return nil
