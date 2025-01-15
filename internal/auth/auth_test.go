@@ -10,7 +10,7 @@ func TestHashPassword(t *testing.T) {
 	}
 }
 
-func gethashPass(pass string) string {
+func getHashPass(pass string) string {
 	hash, _ := HashPassword(pass)
 	return hash
 }
@@ -29,10 +29,16 @@ func TestCheckHashPassword(t *testing.T) {
 			Expected: errPassNotProvided,
 		},
 		{
-			Name: "Password validation",
+			Name:     "Password validation",
 			Password: "5atWGC#$%",
-			Hash: gethashPass("5atWGC#$%"),
+			Hash:     getHashPass("5atWGC#$%"),
 			Expected: nil,
+		},
+		{
+			Name:     "Wrong password",
+			Password: "wrongItIs",
+			Hash:     getHashPass("wrongitis"),
+			Expected: errWrongPass,
 		},
 	}
 
