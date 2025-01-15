@@ -11,14 +11,16 @@ import (
 	"github.com/google/uuid"
 )
 
+type AdminPermission struct {
+	AdminID      uuid.UUID
+	PermissionID uuid.UUID
+}
+
 type AdminRole struct {
-	UserID         uuid.UUID
-	Role           string
-	CanManageUsers bool
-	CanManageOrder bool
-	CanManageStore bool
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
+	UserID    uuid.UUID
+	Role      string
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 type Medicine struct {
@@ -31,6 +33,11 @@ type Medicine struct {
 	Stock        int32
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
+}
+
+type Permission struct {
+	ID   uuid.UUID
+	Name string
 }
 
 type User struct {
