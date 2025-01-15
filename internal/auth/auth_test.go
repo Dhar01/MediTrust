@@ -1,6 +1,10 @@
 package auth
 
-import "testing"
+import (
+	"testing"
+
+	"golang.org/x/crypto/bcrypt"
+)
 
 func TestHashPassword(t *testing.T) {
 	password := ""
@@ -25,25 +29,25 @@ func TestCheckHashPassword(t *testing.T) {
 		name     string
 		password string
 		hash     string
-		want error
+		want     error
 	}{
 		{
 			name:     "empty password",
 			password: "",
 			hash:     "",
-			want: errPassNotProvided,
+			want:     errPassNotProvided,
 		},
 		{
 			name:     "password validation",
 			password: "5atWGC#$%",
 			hash:     getHashPassForTest(t, "5atWGC#$%"),
-			want: nil,
+			want:     nil,
 		},
 		{
 			name:     "Wrong password",
 			password: "wrongItIs",
 			hash:     getHashPassForTest(t, "wrongitis"),
-			want: errWrongPass,
+			want:     bcrypt.ErrMismatchedHashAndPassword,
 		},
 	}
 
@@ -53,7 +57,6 @@ func TestCheckHashPassword(t *testing.T) {
 			if err != tc.want {
 				t.Errorf("Test %v - '%s' FAIL: \nexpected %v, \nactual: %v", i, tc.name, tc.want, err)
 			}
-
 		})
 	}
 }
