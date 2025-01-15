@@ -10,43 +10,48 @@ func TestHashPassword(t *testing.T) {
 	}
 }
 
-func getHashPass(pass string) string {
-	hash, _ := HashPassword(pass)
+func getHashPassForTest(t *testing.T, pass string) string {
+	t.Helper()
+	hash, err := HashPassword(pass)
+	if err != nil {
+		t.Fatalf("failed to create test hash: %v", err)
+	}
+
 	return hash
 }
 
 func TestCheckHashPassword(t *testing.T) {
 	tests := []struct {
-		Name     string
-		Password string
-		Hash     string
-		Expected error
+		name     string
+		password string
+		hash     string
+		want error
 	}{
 		{
-			Name:     "no input password",
-			Password: "",
-			Hash:     "",
-			Expected: errPassNotProvided,
+			name:     "empty password",
+			password: "",
+			hash:     "",
+			want: errPassNotProvided,
 		},
 		{
-			Name:     "Password validation",
-			Password: "5atWGC#$%",
-			Hash:     getHashPass("5atWGC#$%"),
-			Expected: nil,
+			name:     "password validation",
+			password: "5atWGC#$%",
+			hash:     getHashPassForTest(t, "5atWGC#$%"),
+			want: nil,
 		},
 		{
-			Name:     "Wrong password",
-			Password: "wrongItIs",
-			Hash:     getHashPass("wrongitis"),
-			Expected: errWrongPass,
+			name:     "Wrong password",
+			password: "wrongItIs",
+			hash:     getHashPassForTest(t, "wrongitis"),
+			want: errWrongPass,
 		},
 	}
 
 	for i, tc := range tests {
-		t.Run(tc.Name, func(t *testing.T) {
-			err := CheckPasswordHash(tc.Password, tc.Hash)
-			if err != tc.Expected {
-				t.Errorf("Test %v - '%s' FAIL: \nexpected %v, \nactual: %v", i, tc.Name, tc.Expected, err)
+		t.Run(tc.name, func(t *testing.T) {
+			err := CheckPasswordHash(tc.password, tc.hash)
+			if err != tc.want {
+				t.Errorf("Test %v - '%s' FAIL: \nexpected %v, \nactual: %v", i, tc.name, tc.want, err)
 			}
 
 		})
