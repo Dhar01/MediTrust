@@ -1,7 +1,11 @@
 package auth
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
+	"net/http"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -11,7 +15,8 @@ import (
 var (
 	companyName = "test"
 
-	errNoTokenProvided = errors.New("no token string provided")
+	errNoTokenProvided    = errors.New("no token string provided")
+	errAuthHeaderNotFound = errors.New("authorization header not found")
 )
 
 func MakeJWT(userID uuid.UUID, tokenSecret string, expiresIn time.Duration) (string, error) {
@@ -68,4 +73,34 @@ func ValidateJWT(tokenString, tokenSecret string) (uuid.UUID, error) {
 	}
 
 	return id, nil
+}
+
+func GetBearerToken(headers http.Header) (string, error) {
+	tokenString, err := getHeader(headers, "Bearer")
+	if err != nil {
+		return "", err
+	}
+
+	return tokenString, nil
+}
+
+func MakeRefreshToken() (string, error) {
+	b := make([]byte, 32)
+	_, err := rand.Read(b)
+	if err != nil {
+		return "", err
+	}
+
+	return hex.EncodeToString(b), nil
+}
+
+func getHeader(headers http.Header, key string) (string, error) {
+	authHeader := headers.Get("Authorization")
+
+	if authHeader == "" || !strings.HasPrefix(authHeader, key) {
+		return "", errAuthHeaderNotFound
+	}
+
+	tokenString := strings.TrimSpace(strings.TrimPrefix(authHeader, key))
+	return tokenString, nil
 }
