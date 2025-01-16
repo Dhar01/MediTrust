@@ -8,14 +8,15 @@ import (
 )
 
 type User struct {
-	ID        uuid.UUID `json:"id"`
-	Name      Name      `json:"name"`
-	Email     string    `json:"email"`
-	Age       int32     `json:"age"`
-	Phone     string    `json:"phone"`
-	Address   Address   `json:"address"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID           uuid.UUID `json:"id"`
+	Name         Name      `json:"name"`
+	Email        string    `json:"email"`
+	Age          int32     `json:"age"`
+	Phone        string    `json:"phone"`
+	Address      Address   `json:"address"`
+	HashPassword string
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
 }
 
 type CreateUserDTO struct {
@@ -26,20 +27,20 @@ type CreateUserDTO struct {
 	Address Address `json:"address" binding:"required"`
 }
 
+type SignUpUser struct {
+	Name     Name   `json:"name" binding:"required"`
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
+	Age      int32  `json:"age" binding:"required"`
+	Phone    string `json:"phone" binding:"required"`
+}
+
 type UpdateUserDTO struct {
 	Name    *Name    `json:"name,omitempty"`
 	Email   string   `json:"email,omitempty"`
 	Age     *int32   `json:"age,omitempty"`
 	Phone   string   `json:"phone,omitempty"`
 	Address *Address `json:"address,omitempty"`
-}
-
-type Admin struct {
-	User
-	Role            string
-	CanManageUsers  bool
-	CanManageOrders bool
-	CanManageStore  bool
 }
 
 type Address struct {
@@ -60,6 +61,7 @@ type UserService interface {
 	FindUserByKey(ctx context.Context, key, value string) (User, error)
 	UpdateUser(ctx context.Context, userID uuid.UUID, user UpdateUserDTO) (User, error)
 	DeleteUser(ctx context.Context, userID uuid.UUID) error
+	SignUpUser(ctx context.Context, user SignUpUser) (User, error)
 }
 
 type UserRepository interface {
@@ -68,4 +70,5 @@ type UserRepository interface {
 	Update(ctx context.Context, user User) (User, error)
 	FindByID(ctx context.Context, userID uuid.UUID) (User, error)
 	FindUser(ctx context.Context, key, value string) (User, error)
+	SignUp(ctx context.Context, user User) (User, error)
 }
