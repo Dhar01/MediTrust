@@ -86,6 +86,23 @@ func (uc *userController) HandlerDeleteUser(ctx *gin.Context) {
 	ctx.Status(http.StatusNoContent)
 }
 
+func (uc *userController) HandlerSignUp(ctx *gin.Context) {
+	var newUser models.SignUpUser
+
+	if err := ctx.ShouldBindJSON(&newUser); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorMsg(err))
+		return
+	}
+
+	user, err := uc.UserService.SignUpUser(ctx, newUser)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorMsg(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, user)
+}
+
 func getUserID(ctx *gin.Context) (uuid.UUID, bool) {
 	userID := ctx.Param("userID")
 	id, err := uuid.Parse(userID)
