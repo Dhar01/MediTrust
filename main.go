@@ -51,6 +51,9 @@ func main() {
 	router.POST(usersBase, userCtrl.HandlerCreateUser)
 	router.DELETE(userBaseByID, userCtrl.HandlerDeleteUser)
 
+	router.POST("/signup", userCtrl.HandlerSignUp)
+	router.POST("/login", userCtrl.HandlerLogIn)
+
 	router.POST("/reset", genCtrl.HandlerReset)
 
 	port := ":8080"
