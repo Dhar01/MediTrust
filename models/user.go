@@ -55,6 +55,11 @@ type Name struct {
 	LastName  string `json:"lastname"`
 }
 
+type LogIn struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
 type UserService interface {
 	CreateUser(ctx context.Context, user CreateUserDTO) (User, error)
 	FindUserByID(ctx context.Context, userID uuid.UUID) (User, error)
@@ -62,6 +67,7 @@ type UserService interface {
 	UpdateUser(ctx context.Context, userID uuid.UUID, user UpdateUserDTO) (User, error)
 	DeleteUser(ctx context.Context, userID uuid.UUID) error
 	SignUpUser(ctx context.Context, user SignUpUser) (User, error)
+	LogInUser(ctx context.Context, login LogIn) error
 }
 
 type UserRepository interface {
