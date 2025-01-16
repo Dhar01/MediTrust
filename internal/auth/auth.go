@@ -8,7 +8,6 @@ import (
 
 var (
 	errPassNotProvided = errors.New("password not provided")
-	// errWrongPass       = errors.New("password hash not matching")
 )
 
 func HashPassword(password string) (string, error) {

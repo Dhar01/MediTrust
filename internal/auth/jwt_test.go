@@ -7,15 +7,45 @@ import (
 	"github.com/google/uuid"
 )
 
-func TestMakeJWT(t *testing.T) {
+func TestJWT(t *testing.T) {
+
+	// tests := []struct {
+	// 	userID uuid.UUID,
+	// 	tokenSecret string,
+	// 	expiresIn time.Duration
+	// } {
+	// 	{
+	// 		userID: uuid.New(),
+	// 		tokenSecret: "",
+	// 		expiresIn: time.Minute,
+	// 	},
+	// }
+
 	userID := uuid.New()
-	tokenST := ""
+	tokenST := "mysecretkey"
 	expiresIn := time.Minute
 
-	_, got := MakeJWT(userID, tokenST, expiresIn)
-	want := errNoTokenProvided
+	t.Run("testing MakeJWT", func(t *testing.T) {
+		_, got := MakeJWT(userID, "", expiresIn)
 
-	if got != want {
-		t.Errorf("Expected %v, got %v", want, got)
-	}
+		want := errNoTokenProvided
+		if got != want {
+			t.Errorf("Expected %v, got %v", want, got)
+		}
+	})
+	t.Run("testing ValidateJWT - OK", func(t *testing.T) {
+		tokenString, err := MakeJWT(userID, tokenST, expiresIn)
+		if err != nil {
+			t.Fatalf("Expected no error, but got %v", err)
+		}
+
+		id, err := ValidateJWT(tokenString, tokenST)
+		if err != nil {
+			t.Fatalf("Expected no error, but got %v", err)
+		}
+
+		if userID != id {
+			t.Errorf("Expected UUIDs to be same; \ngot %v, original %v", id, userID)
+		}
+	})
 }
