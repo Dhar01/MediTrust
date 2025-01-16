@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"medicine-app/internal/auth"
 	"medicine-app/models"
 
 	"github.com/google/uuid"
@@ -141,6 +142,40 @@ func (us *userService) UpdateUser(ctx context.Context, userID uuid.UUID, user mo
 
 func (us *userService) DeleteUser(ctx context.Context, userID uuid.UUID) error {
 	return us.Repo.Delete(ctx, userID)
+}
+
+func (us *userService) SignUpUser(ctx context.Context, user models.SignUpUser) (models.User, error) {
+	var emptyUser models.User
+
+	if user.Age < 18 {
+		return emptyUser, errBelowAge
+	}
+
+	if user.Email == "" || user.Phone == "" {
+		return emptyUser, errEmailPhoneNotProvided
+	}
+
+	if user.Name.FirstName == "" || user.Name.LastName == "" {
+		return emptyUser, errNameNotProvided
+	}
+
+	pass, err := auth.HashPassword(user.Password)
+	if err != nil {
+		return emptyUser, err
+	}
+
+	person := models.User{
+		Name: models.Name{
+			FirstName: user.Name.FirstName,
+			LastName:  user.Name.LastName,
+		},
+		Email:        user.Email,
+		HashPassword: pass,
+		Age:          user.Age,
+		Phone:        user.Phone,
+	}
+
+	return us.Repo.SignUp(ctx, person)
 }
 
 func updateField(newValue, oldValue string) string {
