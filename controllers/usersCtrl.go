@@ -35,6 +35,22 @@ func (uc *userController) HandlerCreateUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, user)
 }
 
+func (uc *userController) HandlerLogIn(ctx *gin.Context) {
+	var login models.LogIn
+
+	if err := ctx.ShouldBindJSON(&login); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorMsg(err))
+		return
+	}
+
+	if err := uc.UserService.LogInUser(ctx, login); err != nil {
+		ctx.JSON(http.StatusNotFound, errorMsg(err))
+		return
+	}
+
+	ctx.Status(http.StatusOK)
+}
+
 func (uc *userController) HandlerGetUserByID(ctx *gin.Context) {
 	id, ok := getUserID(ctx)
 	if !ok {
