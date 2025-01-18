@@ -110,13 +110,12 @@ func (uc *userController) HandlerSignUp(ctx *gin.Context) {
 		return
 	}
 
-	user, err := uc.UserService.SignUpUser(ctx, newUser)
-	if err != nil {
+	if err := uc.UserService.SignUpUser(ctx, newUser); err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorMsg(err))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, user)
+	ctx.Status(http.StatusCreated)
 }
 
 func getUserID(ctx *gin.Context) (uuid.UUID, bool) {
