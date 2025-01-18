@@ -31,7 +31,7 @@ func (ur *userRepository) Create(ctx context.Context, user models.User) (models.
 	})
 
 	if err != nil {
-		return models.User{}, err
+		return wrapUserError(err)
 	}
 
 	addr, err := ur.DB.CreateUserAddress(ctx, database.CreateUserAddressParams{
@@ -43,7 +43,7 @@ func (ur *userRepository) Create(ctx context.Context, user models.User) (models.
 	})
 
 	if err != nil {
-		return models.User{}, err
+		return wrapUserError(err)
 	}
 
 	return toUserDomain(person, addr), nil
@@ -85,7 +85,7 @@ func (ur *userRepository) Update(ctx context.Context, user models.User) (models.
 	})
 
 	if err != nil {
-		return models.User{}, err
+		return wrapUserError(err)
 	}
 
 	address, err := ur.DB.UpdateAddress(ctx, database.UpdateAddressParams{
@@ -97,10 +97,10 @@ func (ur *userRepository) Update(ctx context.Context, user models.User) (models.
 	})
 
 	if err != nil {
-		return models.User{}, err
+		return wrapUserError(err)
 	}
 
-	return toUserDomain(person, address), err
+	return toUserDomain(person, address), nil
 }
 
 func (ur *userRepository) FindUser(ctx context.Context, key, value string) (models.User, error) {
@@ -108,35 +108,34 @@ func (ur *userRepository) FindUser(ctx context.Context, key, value string) (mode
 	var err error
 
 	switch key {
-	case "email":
+	case models.Email:
 		user, err = ur.DB.GetUserByEmail(ctx, value)
-	case "phone":
+	case models.Phone:
 		user, err = ur.DB.GetUserByPhone(ctx, value)
 	default:
 		return models.User{}, fmt.Errorf("unsupported lookup key %s", key)
 	}
 
 	if err != nil {
-		return models.User{}, err
+		return wrapUserError(err)
 	}
 
-	address, err := ur.DB.GetAddress(ctx, user.ID)
-	if err != nil {
-		return models.User{}, err
-	}
-
-	return toUserDomain(user, address), nil
+	return ur.userWithAddress(ctx, user)
 }
 
 func (ur *userRepository) FindByID(ctx context.Context, userID uuid.UUID) (models.User, error) {
 	user, err := ur.DB.GetUserByID(ctx, userID)
 	if err != nil {
-		return models.User{}, err
+		return wrapUserError(err)
 	}
 
+	return ur.userWithAddress(ctx, user)
+}
+
+func (ur *userRepository) userWithAddress(ctx context.Context, user database.User) (models.User, error) {
 	address, err := ur.DB.GetAddress(ctx, user.ID)
 	if err != nil {
-		return models.User{}, err
+		return wrapUserError(err)
 	}
 
 	return toUserDomain(user, address), nil
@@ -161,6 +160,10 @@ func toUserDomain(dbUser database.User, address database.UserAddress) models.Use
 			PostalCode:    address.PostalCode.String,
 		},
 	}
+}
+
+func wrapUserError(err error) (models.User, error) {
+	return models.User{}, err
 }
 
 func toNullString(value string) sql.NullString {
