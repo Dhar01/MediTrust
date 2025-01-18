@@ -7,6 +7,13 @@ import (
 	"github.com/google/uuid"
 )
 
+type UserRole string
+
+const (
+	UserRoleAdmin    UserRole = "admin"
+	UserRoleCustomer UserRole = "customer"
+)
+
 type User struct {
 	ID           uuid.UUID `json:"id"`
 	Name         Name      `json:"name"`
@@ -66,7 +73,7 @@ type UserService interface {
 	FindUserByKey(ctx context.Context, key, value string) (User, error)
 	UpdateUser(ctx context.Context, userID uuid.UUID, user UpdateUserDTO) (User, error)
 	DeleteUser(ctx context.Context, userID uuid.UUID) error
-	SignUpUser(ctx context.Context, user SignUpUser) (User, error)
+	SignUpUser(ctx context.Context, user SignUpUser) error
 	LogInUser(ctx context.Context, login LogIn) error
 }
 
@@ -76,5 +83,5 @@ type UserRepository interface {
 	Update(ctx context.Context, user User) (User, error)
 	FindByID(ctx context.Context, userID uuid.UUID) (User, error)
 	FindUser(ctx context.Context, key, value string) (User, error)
-	SignUp(ctx context.Context, user User) (User, error)
+	SignUp(ctx context.Context, user User) error
 }

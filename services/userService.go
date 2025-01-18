@@ -144,24 +144,22 @@ func (us *userService) DeleteUser(ctx context.Context, userID uuid.UUID) error {
 	return us.Repo.Delete(ctx, userID)
 }
 
-func (us *userService) SignUpUser(ctx context.Context, user models.SignUpUser) (models.User, error) {
-	var emptyUser models.User
-
+func (us *userService) SignUpUser(ctx context.Context, user models.SignUpUser) error {
 	if user.Age < 18 {
-		return emptyUser, errBelowAge
+		return errBelowAge
 	}
 
 	if user.Email == "" || user.Phone == "" {
-		return emptyUser, errEmailPhoneNotProvided
+		return errEmailPhoneNotProvided
 	}
 
 	if user.Name.FirstName == "" || user.Name.LastName == "" {
-		return emptyUser, errNameNotProvided
+		return errNameNotProvided
 	}
 
 	pass, err := auth.HashPassword(user.Password)
 	if err != nil {
-		return emptyUser, err
+		return err
 	}
 
 	person := models.User{
@@ -176,6 +174,14 @@ func (us *userService) SignUpUser(ctx context.Context, user models.SignUpUser) (
 	}
 
 	return us.Repo.SignUp(ctx, person)
+}
+
+func (us *userService) LogInUser(ctx context.Context, login models.LogIn) error {
+	if login.Email == "" || login.Password == "" {
+		return errEmailPhoneNotProvided
+	}
+
+	return nil
 }
 
 func updateField(newValue, oldValue string) string {

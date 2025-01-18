@@ -22,11 +22,12 @@ func NewUserRepository(db *database.Queries) models.UserRepository {
 
 func (ur *userRepository) Create(ctx context.Context, user models.User) (models.User, error) {
 	person, err := ur.DB.CreateUser(ctx, database.CreateUserParams{
-		FirstName: user.Name.FirstName,
-		LastName:  user.Name.LastName,
-		Email:     user.Email,
-		Phone:     user.Phone,
-		Age:       user.Age,
+		FirstName:    user.Name.FirstName,
+		LastName:     user.Name.LastName,
+		Email:        user.Email,
+		Phone:        user.Phone,
+		Age:          user.Age,
+		PasswordHash: user.HashPassword,
 	})
 
 	if err != nil {
@@ -46,6 +47,23 @@ func (ur *userRepository) Create(ctx context.Context, user models.User) (models.
 	}
 
 	return toUserDomain(person, addr), nil
+}
+
+func (ur *userRepository) SignUp(ctx context.Context, user models.User) error {
+	_, err := ur.DB.CreateUser(ctx, database.CreateUserParams{
+		FirstName:    user.Name.FirstName,
+		LastName:     user.Name.LastName,
+		Email:        user.Email,
+		Age:          user.Age,
+		Phone:        user.Phone,
+		PasswordHash: user.HashPassword,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (ur *userRepository) Delete(ctx context.Context, userID uuid.UUID) error {
