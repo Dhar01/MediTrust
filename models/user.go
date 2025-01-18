@@ -12,6 +12,9 @@ type UserRole string
 const (
 	UserRoleAdmin    UserRole = "admin"
 	UserRoleCustomer UserRole = "customer"
+
+	Email string = "email"
+	Phone string = "phone"
 )
 
 type User struct {
