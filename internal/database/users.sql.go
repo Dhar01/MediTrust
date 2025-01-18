@@ -13,7 +13,7 @@ import (
 
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
-    id, first_name, last_name, email, age, phone, created_at, updated_at
+    id, first_name, last_name, email, age, phone, password_hash, created_at, updated_at
 ) VALUES (
     gen_random_uuid(),
     $1,
@@ -21,18 +21,20 @@ INSERT INTO users (
     $3,
     $4,
     $5,
+    $6,
     NOW(),
     NOW()
 )
-RETURNING id, first_name, last_name, email, age, phone, created_at, updated_at
+RETURNING id, first_name, last_name, email, age, phone, isverified, verification_code, created_at, updated_at, password_hash
 `
 
 type CreateUserParams struct {
-	FirstName string
-	LastName  string
-	Email     string
-	Age       int32
-	Phone     string
+	FirstName    string
+	LastName     string
+	Email        string
+	Age          int32
+	Phone        string
+	PasswordHash string
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
@@ -42,6 +44,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		arg.Email,
 		arg.Age,
 		arg.Phone,
+		arg.PasswordHash,
 	)
 	var i User
 	err := row.Scan(
@@ -51,8 +54,11 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Email,
 		&i.Age,
 		&i.Phone,
+		&i.Isverified,
+		&i.VerificationCode,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.PasswordHash,
 	)
 	return i, err
 }
@@ -68,7 +74,7 @@ func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) error {
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, first_name, last_name, email, age, phone, created_at, updated_at FROM users WHERE email = $1
+SELECT id, first_name, last_name, email, age, phone, isverified, verification_code, created_at, updated_at, password_hash FROM users WHERE email = $1
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
@@ -81,14 +87,17 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.Email,
 		&i.Age,
 		&i.Phone,
+		&i.Isverified,
+		&i.VerificationCode,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.PasswordHash,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, first_name, last_name, email, age, phone, created_at, updated_at FROM users WHERE id = $1
+SELECT id, first_name, last_name, email, age, phone, isverified, verification_code, created_at, updated_at, password_hash FROM users WHERE id = $1
 `
 
 func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
@@ -101,14 +110,17 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.Email,
 		&i.Age,
 		&i.Phone,
+		&i.Isverified,
+		&i.VerificationCode,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.PasswordHash,
 	)
 	return i, err
 }
 
 const getUserByPhone = `-- name: GetUserByPhone :one
-SELECT id, first_name, last_name, email, age, phone, created_at, updated_at FROM users WHERE phone = $1
+SELECT id, first_name, last_name, email, age, phone, isverified, verification_code, created_at, updated_at, password_hash FROM users WHERE phone = $1
 `
 
 func (q *Queries) GetUserByPhone(ctx context.Context, phone string) (User, error) {
@@ -121,8 +133,11 @@ func (q *Queries) GetUserByPhone(ctx context.Context, phone string) (User, error
 		&i.Email,
 		&i.Age,
 		&i.Phone,
+		&i.Isverified,
+		&i.VerificationCode,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.PasswordHash,
 	)
 	return i, err
 }
@@ -146,7 +161,7 @@ SET
     phone = $5,
     updated_at = NOW()
 WHERE id = $6
-RETURNING id, first_name, last_name, email, age, phone, created_at, updated_at
+RETURNING id, first_name, last_name, email, age, phone, isverified, verification_code, created_at, updated_at, password_hash
 `
 
 type UpdateUserParams struct {
@@ -175,8 +190,11 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		&i.Email,
 		&i.Age,
 		&i.Phone,
+		&i.Isverified,
+		&i.VerificationCode,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.PasswordHash,
 	)
 	return i, err
 }
