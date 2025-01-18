@@ -18,6 +18,6 @@ CREATE TABLE IF NOT EXISTS admin_permissions (
 );
 
 -- +goose Down
+DROP TABLE IF EXISTS admin_permissions;
 DROP TABLE IF EXISTS admin_roles;
 DROP TABLE IF EXISTS permissions;
-DROP TABLE IF EXISTS admin_permissions;

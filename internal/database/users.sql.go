@@ -73,6 +73,17 @@ func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const getPass = `-- name: GetPass :one
+SELECT password_hash FROM users WHERE email = $1
+`
+
+func (q *Queries) GetPass(ctx context.Context, email string) (string, error) {
+	row := q.db.QueryRowContext(ctx, getPass, email)
+	var password_hash string
+	err := row.Scan(&password_hash)
+	return password_hash, err
+}
+
 const getUserByEmail = `-- name: GetUserByEmail :one
 SELECT id, first_name, last_name, email, age, phone, isverified, verification_code, created_at, updated_at, password_hash FROM users WHERE email = $1
 `
