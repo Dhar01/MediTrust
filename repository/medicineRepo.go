@@ -19,7 +19,6 @@ func NewMedicineRepository(db *database.Queries) models.MedicineRepository {
 }
 
 func (mr *medicineRepository) Create(ctx context.Context, newMed models.Medicine) (models.Medicine, error) {
-
 	medicine, err := mr.DB.CreateMedicine(ctx, database.CreateMedicineParams{
 		Name:         newMed.Name,
 		Dosage:       newMed.Dosage,
@@ -30,7 +29,7 @@ func (mr *medicineRepository) Create(ctx context.Context, newMed models.Medicine
 	})
 
 	if err != nil {
-		return models.Medicine{}, err
+		return wrapMedicineError(err)
 	}
 
 	return toMedicineDomain(medicine), nil
@@ -56,7 +55,7 @@ func (mr *medicineRepository) Update(ctx context.Context, med models.Medicine) (
 	})
 
 	if err != nil {
-		return models.Medicine{}, err
+		return wrapMedicineError(err)
 	}
 
 	return toMedicineDomain(medicine), nil
@@ -65,7 +64,7 @@ func (mr *medicineRepository) Update(ctx context.Context, med models.Medicine) (
 func (mr *medicineRepository) FindByID(ctx context.Context, medID uuid.UUID) (models.Medicine, error) {
 	medicine, err := mr.DB.GetMedicine(ctx, medID)
 	if err != nil {
-		return models.Medicine{}, err
+		return wrapMedicineError(err)
 	}
 
 	return toMedicineDomain(medicine), nil
@@ -84,6 +83,10 @@ func (mr *medicineRepository) FindAll(ctx context.Context) ([]models.Medicine, e
 	}
 
 	return medList, nil
+}
+
+func wrapMedicineError(err error) (models.Medicine, error) {
+	return models.Medicine{}, err
 }
 
 func toMedicineDomain(dbMed database.Medicine) models.Medicine {
