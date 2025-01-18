@@ -41,14 +41,17 @@ type Permission struct {
 }
 
 type User struct {
-	ID        uuid.UUID
-	FirstName string
-	LastName  string
-	Email     string
-	Age       int32
-	Phone     string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID               uuid.UUID
+	FirstName        string
+	LastName         string
+	Email            string
+	Age              int32
+	Phone            string
+	Isverified       bool
+	VerificationCode sql.NullString
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+	PasswordHash     string
 }
 
 type UserAddress struct {
