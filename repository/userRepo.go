@@ -123,6 +123,15 @@ func (ur *userRepository) FindUser(ctx context.Context, key, value string) (mode
 	return ur.userWithAddress(ctx, user)
 }
 
+func (ur *userRepository) FindPass(ctx context.Context, email string) (string, error) {
+	pass, err := ur.DB.GetPass(ctx, email)
+	if err != nil {
+		return "", err
+	}
+
+	return pass, nil
+}
+
 func (ur *userRepository) FindByID(ctx context.Context, userID uuid.UUID) (models.User, error) {
 	user, err := ur.DB.GetUserByID(ctx, userID)
 	if err != nil {

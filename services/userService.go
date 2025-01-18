@@ -181,6 +181,15 @@ func (us *userService) LogInUser(ctx context.Context, login models.LogIn) error 
 		return errEmailPhoneNotProvided
 	}
 
+	hashPass, err := us.Repo.FindPass(ctx, login.Email)
+	if err != nil {
+		return err
+	}
+
+	if err = auth.CheckPasswordHash(login.Password, hashPass); err != nil {
+		return err
+	}
+
 	return nil
 }
 
