@@ -87,4 +87,5 @@ type UserRepository interface {
 	FindByID(ctx context.Context, userID uuid.UUID) (User, error)
 	FindUser(ctx context.Context, key, value string) (User, error)
 	SignUp(ctx context.Context, user User) error
+	FindPass(ctx context.Context, email string) (string, error)
 }
