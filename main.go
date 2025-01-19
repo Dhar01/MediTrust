@@ -36,8 +36,8 @@ func main() {
 	// users
 	api.UserRoutes(router.Group(apiBase), cfg)
 
-	// admin
-	api.AdminRoutes(router.Group(apiBase), cfg)
+	// // admin
+	// api.AdminRoutes(router.Group(apiBase), cfg)
 
 	// general routes
 	api.GeneralRoutes(router.Group(apiBase), cfg)
