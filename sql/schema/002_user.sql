@@ -1,16 +1,18 @@
 -- +goose Up
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY,
+
     first_name TEXT NOT NULL,
     last_name TEXT NOT NULL,
-    email VARCHAR(255) NOT NULL UNIQUE,
     age INTEGER NOT NULL,
-    phone TEXT NOT NULL,
-    isVerified BOOLEAN NOT NULL DEFAULT FALSE,
-    verification_code TEXT,
+
+    email VARCHAR(255) NOT NULL UNIQUE,
+    phone TEXT NOT NULL UNIQUE,
+
+    password_hash TEXT NOT NULL,
+
     created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP NOT NULL,
-    password_hash TEXT NOT NULL
+    updated_at TIMESTAMP NOT NULL
 );
 
 CREATE UNIQUE INDEX idx_users_email ON users(email);
