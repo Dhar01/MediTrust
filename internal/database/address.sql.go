@@ -78,31 +78,29 @@ func (q *Queries) GetAddress(ctx context.Context, userID uuid.UUID) (UserAddress
 }
 
 const getUserWithAddress = `-- name: GetUserWithAddress :one
-SELECT users.id, users.first_name, users.last_name, users.email, users.age, users.phone, users.isverified, users.verification_code, users.created_at, users.updated_at, users.password_hash, user_address.user_id, user_address.country, user_address.city, user_address.street_address, user_address.postal_code, user_address.created_at, user_address.updated_at
+SELECT users.id, users.first_name, users.last_name, users.age, users.email, users.phone, users.password_hash, users.created_at, users.updated_at, user_address.user_id, user_address.country, user_address.city, user_address.street_address, user_address.postal_code, user_address.created_at, user_address.updated_at
 FROM users
 LEFT JOIN user_address ON users.id = user_address.id
 WHERE users.id = $1
 `
 
 type GetUserWithAddressRow struct {
-	ID               uuid.UUID
-	FirstName        string
-	LastName         string
-	Email            string
-	Age              int32
-	Phone            string
-	Isverified       bool
-	VerificationCode sql.NullString
-	CreatedAt        time.Time
-	UpdatedAt        time.Time
-	PasswordHash     string
-	UserID           uuid.NullUUID
-	Country          sql.NullString
-	City             sql.NullString
-	StreetAddress    sql.NullString
-	PostalCode       sql.NullString
-	CreatedAt_2      sql.NullTime
-	UpdatedAt_2      sql.NullTime
+	ID            uuid.UUID
+	FirstName     string
+	LastName      string
+	Age           int32
+	Email         string
+	Phone         string
+	PasswordHash  string
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	UserID        uuid.NullUUID
+	Country       sql.NullString
+	City          sql.NullString
+	StreetAddress sql.NullString
+	PostalCode    sql.NullString
+	CreatedAt_2   sql.NullTime
+	UpdatedAt_2   sql.NullTime
 }
 
 func (q *Queries) GetUserWithAddress(ctx context.Context, id uuid.UUID) (GetUserWithAddressRow, error) {
@@ -112,14 +110,12 @@ func (q *Queries) GetUserWithAddress(ctx context.Context, id uuid.UUID) (GetUser
 		&i.ID,
 		&i.FirstName,
 		&i.LastName,
-		&i.Email,
 		&i.Age,
+		&i.Email,
 		&i.Phone,
-		&i.Isverified,
-		&i.VerificationCode,
+		&i.PasswordHash,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.PasswordHash,
 		&i.UserID,
 		&i.Country,
 		&i.City,

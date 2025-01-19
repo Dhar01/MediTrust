@@ -11,18 +11,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type AdminPermission struct {
-	AdminID      uuid.UUID
-	PermissionID uuid.UUID
-}
-
-type AdminRole struct {
-	UserID    uuid.UUID
-	Role      string
-	CreatedAt time.Time
-	UpdatedAt time.Time
-}
-
 type Medicine struct {
 	ID           uuid.UUID
 	Name         string
@@ -36,22 +24,20 @@ type Medicine struct {
 }
 
 type Permission struct {
-	ID   uuid.UUID
+	ID   int32
 	Name string
 }
 
 type User struct {
-	ID               uuid.UUID
-	FirstName        string
-	LastName         string
-	Email            string
-	Age              int32
-	Phone            string
-	Isverified       bool
-	VerificationCode sql.NullString
-	CreatedAt        time.Time
-	UpdatedAt        time.Time
-	PasswordHash     string
+	ID           uuid.UUID
+	FirstName    string
+	LastName     string
+	Age          int32
+	Email        string
+	Phone        string
+	PasswordHash string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }
 
 type UserAddress struct {
