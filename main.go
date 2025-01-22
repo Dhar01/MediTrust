@@ -27,6 +27,9 @@ const apiBase = "/api/v1"
 func main() {
 	cfg := config.NewConfig()
 
+	// uncomment this line for production
+	// gin.SetMode(gin.ReleaseMode)
+
 	router := gin.Default()
 	router.SetTrustedProxies(nil)
 
