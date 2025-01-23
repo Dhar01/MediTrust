@@ -33,11 +33,11 @@ type UpdateAdminDTO struct {
 }
 
 type AdminService interface {
-	UserService
+	// UserService
 	UpdatePermissions(ctx context.Context, id uuid.UUID, permissions []Permission) error
 }
 
 type AdminRepository interface {
-	UserRepository
+	// UserRepository
 	PermissionUpdate(ctx context.Context) error
 }
