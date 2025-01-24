@@ -11,8 +11,9 @@ import (
 )
 
 type Config struct {
-	DB       *database.Queries
-	Platform string
+	DB        *database.Queries
+	Platform  string
+	SecretKey string
 }
 
 func NewConfig() *Config {
@@ -21,10 +22,12 @@ func NewConfig() *Config {
 	}
 
 	platform := getEnvVariable("PLATFORM")
+	// secretKey := getEnvVariable("SECRET_KEY")
 
 	return &Config{
 		Platform: platform,
 		DB:       connectDB(),
+		// SecretKey: secretKey,
 	}
 }
 
