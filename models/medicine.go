@@ -26,8 +26,8 @@ type CreateMedicineDTO struct {
 	Description  string `json:"description" binding:"required"`
 	Dosage       string `json:"dosage" binding:"required"`
 	Manufacturer string `json:"manufacturer" binding:"required"`
-	Price        int32  `json:"price" binding:"required"`
-	Stock        int32  `json:"stock" binding:"required"`
+	Price        int32  `json:"price" binding:"required,min=0"`
+	Stock        int32  `json:"stock" binding:"required,min=0"`
 }
 
 type UpdateMedicineDTO struct {
@@ -35,8 +35,8 @@ type UpdateMedicineDTO struct {
 	Description  string `json:"description,omitempty"`
 	Dosage       string `json:"dosage,omitempty"`
 	Manufacturer string `json:"manufacturer,omitempty"`
-	Price        *int32 `json:"price,omitempty"`
-	Stock        *int32 `json:"stock,omitempty"`
+	Price        *int32 `json:"price,omitempty" binding:"min=0"`
+	Stock        *int32 `json:"stock,omitempty" binding:"min=0"`
 }
 
 type MedicineService interface {

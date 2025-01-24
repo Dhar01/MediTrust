@@ -31,28 +31,6 @@ func NewMedicineService(repo models.MedicineRepository) models.MedicineService {
 }
 
 func (ms *medicineService) CreateMedicine(ctx context.Context, newMed models.CreateMedicineDTO) (models.Medicine, error) {
-	var emptyMed models.Medicine
-
-	if newMed.Name == "" {
-		return emptyMed, errMedNameNotFound
-	}
-
-	if newMed.Manufacturer == "" {
-		return emptyMed, errManufacturerNotFound
-	}
-
-	if newMed.Dosage == "" {
-		return emptyMed, errDosageNotProvided
-	}
-
-	if newMed.Price < 0 {
-		return emptyMed, errPriceNegative
-	}
-
-	if newMed.Stock < 0 {
-		return emptyMed, errStockNegative
-	}
-
 	medicine := models.Medicine{
 		Name:         newMed.Name,
 		Dosage:       newMed.Dosage,
@@ -79,14 +57,6 @@ func (ms *medicineService) GetMedicineByID(ctx context.Context, medID uuid.UUID)
 
 func (ms *medicineService) UpdateMedicine(ctx context.Context, medID uuid.UUID, med models.UpdateMedicineDTO) (models.Medicine, error) {
 	var emptyMed models.Medicine
-
-	if med.Price != nil && *med.Price < 0 {
-		return emptyMed, errPriceNegative
-	}
-
-	if med.Stock != nil && *med.Stock < 0 {
-		return emptyMed, errStockNegative
-	}
 
 	oldMed, err := ms.Repo.FindByID(ctx, medID)
 	if err != nil {
