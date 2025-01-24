@@ -14,7 +14,7 @@ const (
 	PermissionManageStore  Permission = "manage_store"
 )
 
-type Admin struct {
+type Admin_i struct {
 	User
 	Role        string
 	Permissions []Permission
