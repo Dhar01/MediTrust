@@ -18,35 +18,20 @@ func NewUserController(service models.UserService) *userController {
 	}
 }
 
-func (uc *userController) HandlerLogIn(ctx *gin.Context) {
-	var login models.LogIn
+func (uc *userController) HandlerSignUp(ctx *gin.Context) {
+	var newUser models.SignUpUser
 
-	if err := ctx.ShouldBindJSON(&login); err != nil {
+	if err := ctx.ShouldBindJSON(&newUser); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorMsg(err))
 		return
 	}
 
-	if err := uc.UserService.LogInUser(ctx, login); err != nil {
-		ctx.JSON(http.StatusNotFound, errorMsg(err))
+	if err := uc.UserService.SignUpUser(ctx, newUser); err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorMsg(err))
 		return
 	}
 
-	ctx.Status(http.StatusOK)
-}
-
-func (uc *userController) HandlerGetUserByID(ctx *gin.Context) {
-	id, ok := getUserID(ctx)
-	if !ok {
-		return
-	}
-
-	user, err := uc.UserService.FindUserByID(ctx, id)
-	if err != nil {
-		ctx.JSON(http.StatusNotFound, errorMsg(err))
-		return
-	}
-
-	ctx.JSON(http.StatusFound, user)
+	ctx.Status(http.StatusCreated)
 }
 
 func (uc *userController) HandlerUpdateUser(ctx *gin.Context) {
@@ -85,20 +70,35 @@ func (uc *userController) HandlerDeleteUser(ctx *gin.Context) {
 	ctx.Status(http.StatusNoContent)
 }
 
-func (uc *userController) HandlerSignUp(ctx *gin.Context) {
-	var newUser models.SignUpUser
+func (uc *userController) HandlerLogIn(ctx *gin.Context) {
+	var login models.LogIn
 
-	if err := ctx.ShouldBindJSON(&newUser); err != nil {
+	if err := ctx.ShouldBindJSON(&login); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorMsg(err))
 		return
 	}
 
-	if err := uc.UserService.SignUpUser(ctx, newUser); err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorMsg(err))
+	if err := uc.UserService.LogInUser(ctx, login); err != nil {
+		ctx.JSON(http.StatusNotFound, errorMsg(err))
 		return
 	}
 
-	ctx.Status(http.StatusCreated)
+	ctx.Status(http.StatusOK)
+}
+
+func (uc *userController) HandlerGetUserByID(ctx *gin.Context) {
+	id, ok := getUserID(ctx)
+	if !ok {
+		return
+	}
+
+	user, err := uc.UserService.FindUserByID(ctx, id)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, errorMsg(err))
+		return
+	}
+
+	ctx.JSON(http.StatusFound, user)
 }
 
 func getUserID(ctx *gin.Context) (uuid.UUID, bool) {

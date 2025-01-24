@@ -9,13 +9,6 @@ import (
 	"github.com/google/uuid"
 )
 
-var (
-	errBelowAge              = errors.New("age is not 18")
-	errEmailPhoneNotProvided = errors.New("email/phone not provided")
-	errNameNotProvided       = errors.New("name not provided")
-	errAddressNotProvided    = errors.New("address not provided")
-)
-
 type userService struct {
 	Repo   models.UserRepository
 	Secret string
@@ -32,20 +25,41 @@ func NewUserService(repo models.UserRepository, secret string) models.UserServic
 	}
 }
 
-func (us *userService) FindUserByID(ctx context.Context, userID uuid.UUID) (models.User, error) {
-	return us.Repo.FindByID(ctx, userID)
+func (us *userService) SignUpUser(ctx context.Context, user models.SignUpUser) error {
+	pass, err := auth.HashPassword(user.Password)
+	if err != nil {
+		return err
+	}
+
+	person := models.User{
+		Name: models.Name{
+			FirstName: user.Name.FirstName,
+			LastName:  user.Name.LastName,
+		},
+		Email:        user.Email,
+		HashPassword: pass,
+		Age:          user.Age,
+		Phone:        user.Phone,
+	}
+
+	return us.Repo.SignUp(ctx, person)
 }
 
-func (us *userService) FindUserByKey(ctx context.Context, key, value string) (models.User, error) {
-	return us.Repo.FindUser(ctx, key, value)
+func (us *userService) LogInUser(ctx context.Context, login models.LogIn) error {
+	hashPass, err := us.Repo.FindPass(ctx, login.Email)
+	if err != nil {
+		return err
+	}
+
+	if err = auth.CheckPasswordHash(login.Password, hashPass); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (us *userService) UpdateUser(ctx context.Context, userID uuid.UUID, user models.UpdateUserDTO) (models.User, error) {
 	var emptyUser models.User
-
-	if user.Age != nil && *user.Age < 18 {
-		return emptyUser, errBelowAge
-	}
 
 	oldInfo, err := us.Repo.FindByID(ctx, userID)
 	if err != nil {
@@ -108,41 +122,12 @@ func (us *userService) DeleteUser(ctx context.Context, userID uuid.UUID) error {
 	return us.Repo.Delete(ctx, userID)
 }
 
-func (us *userService) SignUpUser(ctx context.Context, user models.SignUpUser) error {
-	pass, err := auth.HashPassword(user.Password)
-	if err != nil {
-		return err
-	}
-
-	person := models.User{
-		Name: models.Name{
-			FirstName: user.Name.FirstName,
-			LastName:  user.Name.LastName,
-		},
-		Email:        user.Email,
-		HashPassword: pass,
-		Age:          user.Age,
-		Phone:        user.Phone,
-	}
-
-	return us.Repo.SignUp(ctx, person)
+func (us *userService) FindUserByID(ctx context.Context, userID uuid.UUID) (models.User, error) {
+	return us.Repo.FindByID(ctx, userID)
 }
 
-func (us *userService) LogInUser(ctx context.Context, login models.LogIn) error {
-	if login.Email == "" || login.Password == "" {
-		return errEmailPhoneNotProvided
-	}
-
-	hashPass, err := us.Repo.FindPass(ctx, login.Email)
-	if err != nil {
-		return err
-	}
-
-	if err = auth.CheckPasswordHash(login.Password, hashPass); err != nil {
-		return err
-	}
-
-	return nil
+func (us *userService) FindUserByKey(ctx context.Context, key, value string) (models.User, error) {
+	return us.Repo.FindUser(ctx, key, value)
 }
 
 func updateField(newValue, oldValue string) string {
