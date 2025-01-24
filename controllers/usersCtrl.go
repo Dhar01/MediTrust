@@ -78,12 +78,13 @@ func (uc *userController) HandlerLogIn(ctx *gin.Context) {
 		return
 	}
 
-	if err := uc.UserService.LogInUser(ctx, login); err != nil {
+	token, err := uc.UserService.LogInUser(ctx, login)
+	if err != nil {
 		ctx.JSON(http.StatusNotFound, errorMsg(err))
 		return
 	}
 
-	ctx.Status(http.StatusOK)
+	ctx.JSON(http.StatusOK, token)
 }
 
 func (uc *userController) HandlerGetUserByID(ctx *gin.Context) {

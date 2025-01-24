@@ -5,6 +5,7 @@ import (
 	"errors"
 	"medicine-app/internal/auth"
 	"medicine-app/models"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -45,17 +46,34 @@ func (us *userService) SignUpUser(ctx context.Context, user models.SignUpUser) e
 	return us.Repo.SignUp(ctx, person)
 }
 
-func (us *userService) LogInUser(ctx context.Context, login models.LogIn) error {
-	hashPass, err := us.Repo.FindPass(ctx, login.Email)
+func (us *userService) LogInUser(ctx context.Context, login models.LogIn) (models.ResponseUserDTO, error) {
+	user, err := us.Repo.FindPass(ctx, login.Email)
 	if err != nil {
-		return err
+		return wrapUserResponseError(err)
 	}
 
-	if err = auth.CheckPasswordHash(login.Password, hashPass); err != nil {
-		return err
+	if err = auth.CheckPasswordHash(login.Password, user.HashPass); err != nil {
+		return wrapUserResponseError(err)
 	}
 
-	return nil
+	accessToken, err := auth.MakeJWT(user.ID, models.Customer, us.Secret, time.Minute*15)
+	if err != nil {
+		return wrapUserResponseError(err)
+	}
+
+	refreshToken, err := auth.MakeRefreshToken()
+	if err != nil {
+		return wrapUserResponseError(err)
+	}
+
+	if err = us.Repo.CreateRefreshToken(ctx, refreshToken, user.ID); err != nil {
+		return wrapUserResponseError(err)
+	}
+
+	return models.ResponseUserDTO{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}, nil
 }
 
 func (us *userService) UpdateUser(ctx context.Context, userID uuid.UUID, user models.UpdateUserDTO) (models.User, error) {
@@ -144,4 +162,8 @@ func updateIntPointerField(newValue, oldValue *int32) *int32 {
 	}
 
 	return newValue
+}
+
+func wrapUserResponseError(err error) (models.ResponseUserDTO, error) {
+	return models.ResponseUserDTO{}, err
 }
