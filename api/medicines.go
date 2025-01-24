@@ -3,7 +3,7 @@ package api
 import (
 	"medicine-app/config"
 	"medicine-app/controllers"
-	middleware "medicine-app/middlewares"
+	middleware "medicine-app/middleware"
 	repo "medicine-app/repository"
 	service "medicine-app/services"
 
