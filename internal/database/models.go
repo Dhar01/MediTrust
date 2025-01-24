@@ -11,6 +11,13 @@ import (
 	"github.com/google/uuid"
 )
 
+type Admin struct {
+	AdminID      uuid.UUID
+	IsSuperAdmin bool
+	CreatedAt    sql.NullTime
+	UpdatedAt    sql.NullTime
+}
+
 type Medicine struct {
 	ID           uuid.UUID
 	Name         string
@@ -23,9 +30,13 @@ type Medicine struct {
 	UpdatedAt    time.Time
 }
 
-type Permission struct {
-	ID   int32
-	Name string
+type RefreshToken struct {
+	Refreshtoken string
+	UserID       uuid.UUID
+	ExpiresAt    time.Time
+	RevokedAt    time.Time
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }
 
 type User struct {

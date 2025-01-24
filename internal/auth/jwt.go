@@ -13,22 +13,38 @@ import (
 )
 
 var (
+	// Need to update company name
 	companyName = "test"
 
 	errNoTokenProvided    = errors.New("no token string provided")
 	errAuthHeaderNotFound = errors.New("authorization header not found")
+	errNoRoleProvided     = errors.New("no role found")
 )
 
-func MakeJWT(userID uuid.UUID, tokenSecret string, expiresIn time.Duration) (string, error) {
+type Claims struct {
+	UserID string `json:"user_id"`
+	Role   string `json:"role"`
+	jwt.RegisteredClaims
+}
+
+// Generate Access Token
+func MakeJWT(userID uuid.UUID, role, tokenSecret string, expiresIn time.Duration) (string, error) {
 	if tokenSecret == "" {
 		return "", errNoTokenProvided
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.RegisteredClaims{
-		Issuer:    companyName,
-		IssuedAt:  jwt.NewNumericDate(time.Now()),
-		ExpiresAt: jwt.NewNumericDate(time.Now().Add(expiresIn)),
-		Subject:   userID.String(),
+	if role == "" {
+		return "", errNoRoleProvided
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims{
+		UserID: userID.String(),
+		Role:   role,
+		RegisteredClaims: jwt.RegisteredClaims{
+			Issuer:    companyName,
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(expiresIn)),
+		},
 	})
 
 	signedToken, err := token.SignedString([]byte(tokenSecret))
@@ -84,6 +100,7 @@ func GetBearerToken(headers http.Header) (string, error) {
 	return tokenString, nil
 }
 
+// Generate Refresh Token
 func MakeRefreshToken() (string, error) {
 	b := make([]byte, 32)
 	_, err := rand.Read(b)
