@@ -26,3 +26,7 @@ func (gs *generalService) ResetUserService(ctx context.Context) error {
 func (gs *generalService) ResetAddressService(ctx context.Context) error {
 	return gs.Repo.ResetAddressRepo(ctx)
 }
+
+func (gs *generalService) GenerateAccessToken(ctx context.Context) (string, error) {
+	return "", nil
+}
