@@ -72,14 +72,19 @@ func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) error {
 }
 
 const getPass = `-- name: GetPass :one
-SELECT password_hash FROM users WHERE email = $1
+SELECT password_hash, id FROM users WHERE email = $1
 `
 
-func (q *Queries) GetPass(ctx context.Context, email string) (string, error) {
+type GetPassRow struct {
+	PasswordHash string
+	ID           uuid.UUID
+}
+
+func (q *Queries) GetPass(ctx context.Context, email string) (GetPassRow, error) {
 	row := q.db.QueryRowContext(ctx, getPass, email)
-	var password_hash string
-	err := row.Scan(&password_hash)
-	return password_hash, err
+	var i GetPassRow
+	err := row.Scan(&i.PasswordHash, &i.ID)
+	return i, err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
