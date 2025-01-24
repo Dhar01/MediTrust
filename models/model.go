@@ -6,6 +6,7 @@ type GeneralService interface {
 	ResetMedicineService(ctx context.Context) error
 	ResetUserService(ctx context.Context) error
 	ResetAddressService(ctx context.Context) error
+	GenerateAccessToken(ctx context.Context) (string, error)
 }
 
 type GeneralRepository interface {
