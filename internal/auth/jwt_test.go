@@ -40,7 +40,7 @@ func TestJWT(t *testing.T) {
 			t.Fatalf("Expected no error, but got %v", err)
 		}
 
-		id, err := ValidateJWT(tokenString, tokenST)
+		id, _, err := ValidateJWT(tokenString, tokenST)
 		if err != nil {
 			t.Fatalf("Expected no error, but got %v", err)
 		}

@@ -12,11 +12,11 @@ var (
 
 func HashPassword(password string) (string, error) {
 	if password == "" {
-		return "", errPassNotProvided
+		return wrapEmptyError(errPassNotProvided)
 	}
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return "", err
+		return wrapEmptyError(err)
 	}
 
 	return string(hash), nil
