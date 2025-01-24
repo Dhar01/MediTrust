@@ -16,29 +16,29 @@ var (
 	// Need to update company name
 	companyName = "test"
 
-	errNoTokenProvided    = errors.New("no token string provided")
+	errNoTokenProvided    = errors.New("token secret not provided")
 	errAuthHeaderNotFound = errors.New("authorization header not found")
 	errNoRoleProvided     = errors.New("no role found")
 )
 
 type Claims struct {
-	UserID string `json:"user_id"`
-	Role   string `json:"role"`
+	UserID uuid.UUID `json:"user_id"`
+	Role   string    `json:"role"`
 	jwt.RegisteredClaims
 }
 
 // Generate Access Token
 func MakeJWT(userID uuid.UUID, role, tokenSecret string, expiresIn time.Duration) (string, error) {
 	if tokenSecret == "" {
-		return "", errNoTokenProvided
+		return wrapEmptyError(errNoTokenProvided)
 	}
 
 	if role == "" {
-		return "", errNoRoleProvided
+		return wrapEmptyError(errNoRoleProvided)
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims{
-		UserID: userID.String(),
+		UserID: userID,
 		Role:   role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    companyName,
@@ -49,52 +49,40 @@ func MakeJWT(userID uuid.UUID, role, tokenSecret string, expiresIn time.Duration
 
 	signedToken, err := token.SignedString([]byte(tokenSecret))
 	if err != nil {
-		return "", err
+		return wrapEmptyError(err)
 	}
 
 	return signedToken, nil
 }
 
-func ValidateJWT(tokenString, tokenSecret string) (uuid.UUID, error) {
-	claimsStruct := jwt.RegisteredClaims{}
-
+func ValidateJWT(tokenString, tokenSecret string) (uuid.UUID, string, error) {
 	token, err := jwt.ParseWithClaims(
 		tokenString,
-		&claimsStruct,
+		&Claims{},
 		func(t *jwt.Token) (interface{}, error) {
 			return []byte(tokenSecret), nil
 		},
 	)
 	if err != nil {
-		return uuid.Nil, err
+		return wrapUUIDError(err)
 	}
 
-	userIDStr, err := token.Claims.GetSubject()
-	if err != nil {
-		return uuid.Nil, err
+	claims, ok := token.Claims.(*Claims)
+	if !ok || !token.Valid {
+		return wrapUUIDError(err)
 	}
 
-	issuer, err := token.Claims.GetIssuer()
-	if err != nil {
-		return uuid.Nil, err
+	if claims.Issuer != companyName {
+		return wrapUUIDError(err)
 	}
 
-	if issuer != companyName {
-		return uuid.Nil, err
-	}
-
-	id, err := uuid.Parse(userIDStr)
-	if err != nil {
-		return uuid.Nil, err
-	}
-
-	return id, nil
+	return claims.UserID, claims.Role, nil
 }
 
 func GetBearerToken(headers http.Header) (string, error) {
 	tokenString, err := getHeader(headers, "Bearer")
 	if err != nil {
-		return "", err
+		return wrapEmptyError(err)
 	}
 
 	return tokenString, nil
@@ -105,7 +93,7 @@ func MakeRefreshToken() (string, error) {
 	b := make([]byte, 32)
 	_, err := rand.Read(b)
 	if err != nil {
-		return "", err
+		return wrapEmptyError(err)
 	}
 
 	return hex.EncodeToString(b), nil
@@ -115,9 +103,17 @@ func getHeader(headers http.Header, key string) (string, error) {
 	authHeader := headers.Get("Authorization")
 
 	if authHeader == "" || !strings.HasPrefix(authHeader, key) {
-		return "", errAuthHeaderNotFound
+		return wrapEmptyError(errAuthHeaderNotFound)
 	}
 
 	tokenString := strings.TrimSpace(strings.TrimPrefix(authHeader, key))
 	return tokenString, nil
+}
+
+func wrapUUIDError(err error) (uuid.UUID, string, error) {
+	return uuid.Nil, "", err
+}
+
+func wrapEmptyError(err error) (string, error) {
+	return "", err
 }
