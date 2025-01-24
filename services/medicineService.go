@@ -8,14 +8,6 @@ import (
 	"github.com/google/uuid"
 )
 
-var (
-	errPriceNegative        = errors.New("medicine price can't be negative")
-	errStockNegative        = errors.New("medicine stock can't be negative")
-	errMedNameNotFound      = errors.New("medicine name not provided")
-	errDosageNotProvided    = errors.New("medicine dosage not provided")
-	errManufacturerNotFound = errors.New("medicine manufacturer not provided")
-)
-
 type medicineService struct {
 	Repo models.MedicineRepository
 }
