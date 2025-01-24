@@ -24,7 +24,7 @@ SELECT * FROM users WHERE email = $1;
 SELECT * FROM users WHERE phone = $1;
 
 -- name: GetPass :one
-SELECT password_hash FROM users WHERE email = $1;
+SELECT password_hash, id FROM users WHERE email = $1;
 
 -- name: UpdateUser :one
 UPDATE users
