@@ -7,11 +7,9 @@ import (
 	"github.com/google/uuid"
 )
 
-type UserRole string
-
 const (
-	UserRoleAdmin    UserRole = "admin"
-	UserRoleCustomer UserRole = "customer"
+	Admin    string = "admin"
+	Customer string = "customer"
 
 	Email string = "email"
 	Phone string = "phone"
@@ -45,6 +43,13 @@ type LogIn struct {
 }
 
 type ResponseUserDTO struct {
+	AccessToken  string
+	RefreshToken string
+}
+
+type ResponseDTO struct {
+	ID       uuid.UUID
+	HashPass string
 }
 
 type UpdateUserDTO struct {
@@ -67,7 +72,7 @@ type Address struct {
 
 type UserService interface {
 	SignUpUser(ctx context.Context, user SignUpUser) error // should act as CreateUser
-	LogInUser(ctx context.Context, login LogIn) error
+	LogInUser(ctx context.Context, login LogIn) (ResponseUserDTO, error)
 	FindUserByID(ctx context.Context, userID uuid.UUID) (User, error)
 	FindUserByKey(ctx context.Context, key, value string) (User, error)
 	UpdateUser(ctx context.Context, userID uuid.UUID, user UpdateUserDTO) (User, error)
@@ -80,5 +85,6 @@ type UserRepository interface {
 	Update(ctx context.Context, user User) (User, error)
 	FindByID(ctx context.Context, userID uuid.UUID) (User, error)
 	FindUser(ctx context.Context, key, value string) (User, error)
-	FindPass(ctx context.Context, email string) (string, error)
+	FindPass(ctx context.Context, email string) (ResponseDTO, error)
+	CreateRefreshToken(ctx context.Context, token string, id uuid.UUID) error
 }
