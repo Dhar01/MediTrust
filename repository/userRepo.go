@@ -94,13 +94,16 @@ func (ur *userRepository) FindUser(ctx context.Context, key, value string) (mode
 	return ur.userWithAddress(ctx, user)
 }
 
-func (ur *userRepository) FindPass(ctx context.Context, email string) (string, error) {
-	pass, err := ur.DB.GetPass(ctx, email)
+func (ur *userRepository) FindPass(ctx context.Context, email string) (models.ResponseDTO, error) {
+	user, err := ur.DB.GetPass(ctx, email)
 	if err != nil {
-		return "", err
+		return models.ResponseDTO{}, err
 	}
 
-	return pass, nil
+	return models.ResponseDTO{
+		ID:       user.ID,
+		HashPass: user.PasswordHash,
+	}, nil
 }
 
 func (ur *userRepository) FindByID(ctx context.Context, userID uuid.UUID) (models.User, error) {
@@ -110,6 +113,17 @@ func (ur *userRepository) FindByID(ctx context.Context, userID uuid.UUID) (model
 	}
 
 	return ur.userWithAddress(ctx, user)
+}
+
+func (ur *userRepository) CreateRefreshToken(ctx context.Context, token string, id uuid.UUID) error {
+	if err := ur.DB.CreateRefreshToken(ctx, database.CreateRefreshTokenParams{
+		Refreshtoken: token,
+		UserID:       id,
+	}); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (ur *userRepository) userWithAddress(ctx context.Context, user database.User) (models.User, error) {
