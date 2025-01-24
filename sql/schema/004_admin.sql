@@ -1,8 +1,11 @@
 -- +goose Up
-CREATE TABLE IF NOT EXISTS permissions (
-    id SERIAL NOT NULL PRIMARY KEY,
-    name VARCHAR(255) UNIQUE NOT NULL
+CREATE TABLE IF NOT EXISTS admins(
+    admin_id UUID PRIMARY KEY REFERENCES users(id),
+    is_super_admin BOOLEAN NOT NULL DEFAULT FALSE,
+
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP
 );
 
 -- +goose Down
-DROP TABLE IF EXISTS permissions;
+DROP TABLE IF EXISTS admins;
