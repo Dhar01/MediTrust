@@ -21,7 +21,6 @@ type Admin struct {
 }
 
 type CreateAdminDTO struct {
-	CreateUserDTO
 	Role        string       `json:"role" binding:"required"`
 	Permissions []Permission `json:"permissions" binding:"required"`
 }
