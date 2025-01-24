@@ -57,3 +57,13 @@ func (ctrl *controller) HandlerReset(ctx *gin.Context) {
 
 	ctx.Status(http.StatusNoContent)
 }
+
+func (ctrl *controller) HandlerRefresh(ctx *gin.Context) {
+	token, err := ctrl.GeneralService.GenerateAccessToken(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, errorMsg(err))
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, token)
+}
