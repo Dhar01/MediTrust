@@ -3,6 +3,7 @@ package api
 import (
 	"medicine-app/config"
 	"medicine-app/controllers"
+	middleware "medicine-app/middlewares"
 	repo "medicine-app/repository"
 	service "medicine-app/services"
 
@@ -24,11 +25,11 @@ func MedicineRoutes(router *gin.RouterGroup, cfg *config.Config) {
 	router.GET(medicineBaseByID, medCtrl.HandlerGetMedicineByID)
 
 	// POST route for medicines - admin only
-	router.POST(medicineBase, medCtrl.HandlerCreateMedicine)
+	router.POST(medicineBase, middleware.AdminAuth(cfg.SecretKey), medCtrl.HandlerCreateMedicine)
 
 	// PUT route for medicines - Admin only
-	router.PUT(medicineBaseByID, medCtrl.HandlerUpdateMedicine)
+	router.PUT(medicineBaseByID, middleware.AdminAuth(cfg.SecretKey), medCtrl.HandlerUpdateMedicine)
 
 	// DELETE route for medicine - Admin only
-	router.DELETE(medicineBaseByID, medCtrl.HandlerDeleteMedicine)
+	router.DELETE(medicineBaseByID, middleware.AdminAuth(cfg.SecretKey), medCtrl.HandlerDeleteMedicine)
 }

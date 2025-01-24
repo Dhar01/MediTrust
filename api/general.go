@@ -15,4 +15,5 @@ func GeneralRoutes(router *gin.RouterGroup, cfg *config.Config) {
 	generalCtrl := controllers.NewController(generalService, cfg.Platform)
 
 	router.POST("/reset", generalCtrl.HandlerReset)
+	router.POST("/refresh", generalCtrl.HandlerRefresh)
 }
