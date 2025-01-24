@@ -17,55 +17,19 @@ var (
 )
 
 type userService struct {
-	Repo models.UserRepository
+	Repo   models.UserRepository
+	Secret string
 }
 
-func NewUserService(repo models.UserRepository) models.UserService {
+func NewUserService(repo models.UserRepository, secret string) models.UserService {
 	if repo == nil {
 		panic("repo can't be nil")
 	}
 
 	return &userService{
-		Repo: repo,
+		Repo:   repo,
+		Secret: secret,
 	}
-}
-
-func (us *userService) CreateUser(ctx context.Context, user models.CreateUserDTO) (models.User, error) {
-	var emptyUser models.User
-
-	if user.Age < 18 {
-		return emptyUser, errBelowAge
-	}
-
-	if user.Email == "" || user.Phone == "" {
-		return emptyUser, errEmailPhoneNotProvided
-	}
-
-	if user.Name.FirstName == "" || user.Name.LastName == "" {
-		return emptyUser, errNameNotProvided
-	}
-
-	if user.Address.Country == "" || user.Address.City == "" || user.Address.StreetAddress == "" {
-		return emptyUser, errAddressNotProvided
-	}
-
-	person := models.User{
-		Name: models.Name{
-			FirstName: user.Name.FirstName,
-			LastName:  user.Name.LastName,
-		},
-		Phone: user.Phone,
-		Email: user.Email,
-		Age:   user.Age,
-		Address: models.Address{
-			Country:       user.Address.Country,
-			City:          user.Address.City,
-			PostalCode:    user.Address.PostalCode,
-			StreetAddress: user.Address.StreetAddress,
-		},
-	}
-
-	return us.Repo.Create(ctx, person)
 }
 
 func (us *userService) FindUserByID(ctx context.Context, userID uuid.UUID) (models.User, error) {
@@ -145,18 +109,6 @@ func (us *userService) DeleteUser(ctx context.Context, userID uuid.UUID) error {
 }
 
 func (us *userService) SignUpUser(ctx context.Context, user models.SignUpUser) error {
-	if user.Age < 18 {
-		return errBelowAge
-	}
-
-	if user.Email == "" || user.Phone == "" {
-		return errEmailPhoneNotProvided
-	}
-
-	if user.Name.FirstName == "" || user.Name.LastName == "" {
-		return errNameNotProvided
-	}
-
 	pass, err := auth.HashPassword(user.Password)
 	if err != nil {
 		return err

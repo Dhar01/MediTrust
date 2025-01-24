@@ -18,23 +18,6 @@ func NewUserController(service models.UserService) *userController {
 	}
 }
 
-func (uc *userController) HandlerCreateUser(ctx *gin.Context) {
-	var newUser models.CreateUserDTO
-
-	if err := ctx.ShouldBindJSON(&newUser); err != nil {
-		ctx.JSON(http.StatusBadRequest, errorMsg(err))
-		return
-	}
-
-	user, err := uc.UserService.CreateUser(ctx, newUser)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorMsg(err))
-		return
-	}
-
-	ctx.JSON(http.StatusCreated, user)
-}
-
 func (uc *userController) HandlerLogIn(ctx *gin.Context) {
 	var login models.LogIn
 

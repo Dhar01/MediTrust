@@ -20,35 +20,6 @@ func NewUserRepository(db *database.Queries) models.UserRepository {
 	}
 }
 
-func (ur *userRepository) Create(ctx context.Context, user models.User) (models.User, error) {
-	person, err := ur.DB.CreateUser(ctx, database.CreateUserParams{
-		FirstName:    user.Name.FirstName,
-		LastName:     user.Name.LastName,
-		Email:        user.Email,
-		Phone:        user.Phone,
-		Age:          user.Age,
-		PasswordHash: user.HashPassword,
-	})
-
-	if err != nil {
-		return wrapUserError(err)
-	}
-
-	addr, err := ur.DB.CreateUserAddress(ctx, database.CreateUserAddressParams{
-		UserID:        person.ID,
-		Country:       user.Address.Country,
-		City:          user.Address.City,
-		StreetAddress: user.Address.StreetAddress,
-		PostalCode:    toNullString(user.Address.PostalCode),
-	})
-
-	if err != nil {
-		return wrapUserError(err)
-	}
-
-	return toUserDomain(person, addr), nil
-}
-
 func (ur *userRepository) SignUp(ctx context.Context, user models.User) error {
 	_, err := ur.DB.CreateUser(ctx, database.CreateUserParams{
 		FirstName:    user.Name.FirstName,
