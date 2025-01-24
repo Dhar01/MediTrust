@@ -16,7 +16,7 @@ const (
 
 func UserRoutes(router *gin.RouterGroup, cfg *config.Config) {
 	userRepo := repo.NewUserRepository(cfg.DB)
-	userService := service.NewUserService(userRepo)
+	userService := service.NewUserService(userRepo, cfg.SecretKey)
 	userCtrl := controllers.NewUserController(userService)
 
 	// GET route for users
@@ -26,7 +26,7 @@ func UserRoutes(router *gin.RouterGroup, cfg *config.Config) {
 	router.PUT(userBaseByID, userCtrl.HandlerUpdateUser)
 
 	// POST route for users
-	router.POST(usersBase, userCtrl.HandlerCreateUser)
+	router.POST(usersBase, userCtrl.HandlerSignUp)
 	router.POST("/signup", userCtrl.HandlerSignUp)
 	router.POST("/login", userCtrl.HandlerLogIn)
 
