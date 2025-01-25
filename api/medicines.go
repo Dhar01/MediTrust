@@ -20,16 +20,20 @@ func MedicineRoutes(router *gin.RouterGroup, cfg *config.Config) {
 	medService := service.NewMedicineService(medRepo)
 	medCtrl := controllers.NewMedicineController(medService)
 
-	// GET route for medicines
+	// GET route for medicines - PUBLIC
 	router.GET(medicineBase, medCtrl.HandlerGetMedicines)
 	router.GET(medicineBaseByID, medCtrl.HandlerGetMedicineByID)
 
-	// POST route for medicines - admin only
-	router.POST(medicineBase, middleware.AdminAuth(cfg.SecretKey), medCtrl.HandlerCreateMedicine)
+	// Admin-Only routes
+	adminGroup := router.Group(medicineBase, middleware.AdminAuth(cfg.SecretKey))
+	{
+		// POST route for medicines
+		adminGroup.POST(medicineBase, medCtrl.HandlerCreateMedicine)
 
-	// PUT route for medicines - Admin only
-	router.PUT(medicineBaseByID, middleware.AdminAuth(cfg.SecretKey), medCtrl.HandlerUpdateMedicine)
+		// PUT route for medicines
+		adminGroup.PUT(medicineBaseByID, medCtrl.HandlerUpdateMedicine)
 
-	// DELETE route for medicine - Admin only
-	router.DELETE(medicineBaseByID, middleware.AdminAuth(cfg.SecretKey), medCtrl.HandlerDeleteMedicine)
+		// DELETE route for medicine
+		adminGroup.DELETE(medicineBaseByID, medCtrl.HandlerDeleteMedicine)
+	}
 }
