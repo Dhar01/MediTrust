@@ -22,12 +22,12 @@ func NewConfig() *Config {
 	}
 
 	platform := getEnvVariable("PLATFORM")
-	// secretKey := getEnvVariable("SECRET_KEY")
+	secretKey := getEnvVariable("SECRET_KEY")
 
 	return &Config{
-		Platform: platform,
-		DB:       connectDB(),
-		// SecretKey: secretKey,
+		Platform:  platform,
+		DB:        connectDB(),
+		SecretKey: secretKey,
 	}
 }
 
