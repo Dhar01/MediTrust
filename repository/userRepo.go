@@ -74,6 +74,7 @@ func (ur *userRepository) Update(ctx context.Context, user models.User) (models.
 	return toUserDomain(person, address), nil
 }
 
+// FindUser by KEY. Key should be either Email or Phone.
 func (ur *userRepository) FindUser(ctx context.Context, key, value string) (models.User, error) {
 	var user database.User
 	var err error
@@ -91,18 +92,16 @@ func (ur *userRepository) FindUser(ctx context.Context, key, value string) (mode
 		return wrapUserError(err)
 	}
 
-	return ur.userWithAddress(ctx, user)
-}
-
-func (ur *userRepository) FindPass(ctx context.Context, email string) (models.ResponseDTO, error) {
-	user, err := ur.DB.GetPass(ctx, email)
-	if err != nil {
-		return models.ResponseDTO{}, err
-	}
-
-	return models.ResponseDTO{
-		ID:       user.ID,
-		HashPass: user.PasswordHash,
+	return models.User{
+		ID: user.ID,
+		Name: models.Name{
+			FirstName: user.FirstName,
+			LastName:  user.LastName,
+		},
+		Email:        user.Email,
+		Phone:        user.Phone,
+		Age:          user.Age,
+		HashPassword: user.PasswordHash,
 	}, nil
 }
 
@@ -116,14 +115,19 @@ func (ur *userRepository) FindByID(ctx context.Context, userID uuid.UUID) (model
 }
 
 func (ur *userRepository) CreateRefreshToken(ctx context.Context, token string, id uuid.UUID) error {
-	if err := ur.DB.CreateRefreshToken(ctx, database.CreateRefreshTokenParams{
+	return ur.DB.CreateRefreshToken(ctx, database.CreateRefreshTokenParams{
 		Refreshtoken: token,
 		UserID:       id,
-	}); err != nil {
-		return err
+	})
+}
+
+func (ur *userRepository) FindUserFromToken(ctx context.Context, token string) (models.User, error) {
+	user, err := ur.DB.GetUserFromRefreshToken(ctx, token)
+	if err != nil {
+		return wrapUserError(err)
 	}
 
-	return nil
+	return ur.userWithAddress(ctx, user)
 }
 
 func (ur *userRepository) userWithAddress(ctx context.Context, user database.User) (models.User, error) {
