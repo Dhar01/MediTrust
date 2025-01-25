@@ -59,11 +59,20 @@ func (ctrl *controller) HandlerReset(ctx *gin.Context) {
 }
 
 func (ctrl *controller) HandlerRefresh(ctx *gin.Context) {
-	token, err := ctrl.GeneralService.GenerateAccessToken(ctx)
+	token, err := ctrl.GeneralService.GenerateToken(ctx, ctx.Request.Header)
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, errorMsg(err))
 		return
 	}
 
 	ctx.JSON(http.StatusCreated, token)
+}
+
+func (ctrl *controller) HandlerRevoke(ctx *gin.Context) {
+	if err := ctrl.GeneralService.RevokeRefreshToken(ctx, ctx.Request.Header); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "can't revoke refresh token"})
+		return
+	}
+
+	ctx.Status(http.StatusOK)
 }
