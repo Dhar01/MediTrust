@@ -18,23 +18,26 @@ const (
 // planning to use gin's default binding for validation
 
 type User struct {
-	ID           uuid.UUID `json:"id"`
-	Name         Name      `json:"name" binding:"required,dive"`
-	Email        string    `json:"email" binding:"required,email"`
-	Age          int32     `json:"age" binding:"required,gte=18"`
-	Phone        string    `json:"phone" binding:"required,len=11"` // for BD phone
-	Address      Address   `json:"address" binding:"required,dive"`
-	HashPassword string    `json:"-"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
+	ID           uuid.UUID
+	Name         Name
+	Email        string
+	Age          int32
+	Phone        string
+	Address      Address
+	HashPassword string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }
 
+/*
+DTO's for interacting with external request and responses
+*/
 type SignUpUser struct {
 	Name     Name   `json:"name" binding:"required,dive"`
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required,min=8"`
 	Age      int32  `json:"age" binding:"required,gte=18"`
-	Phone    string `json:"phone" binding:"required,len=11"`
+	Phone    string `json:"phone" binding:"required,len=11"` // for BD phone
 }
 
 type LogIn struct {
@@ -42,14 +45,20 @@ type LogIn struct {
 	Password string `json:"password" binding:"required,min=8"`
 }
 
-type ResponseUserDTO struct {
+type ResponseTokenDTO struct {
 	AccessToken  string
 	RefreshToken string
 }
 
-type ResponseDTO struct {
-	ID       uuid.UUID
-	HashPass string
+type UserResponseDTO struct {
+	ID        uuid.UUID `json:"id"`
+	Name      Name      `json:"name"`
+	Email     string    `json:"email"`
+	Age       int32     `json:"age"`
+	Phone     string    `json:"phone"`
+	Address   Address   `json:"address"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type UpdateUserDTO struct {
@@ -72,10 +81,10 @@ type Address struct {
 
 type UserService interface {
 	SignUpUser(ctx context.Context, user SignUpUser) error // should act as CreateUser
-	LogInUser(ctx context.Context, login LogIn) (ResponseUserDTO, error)
-	FindUserByID(ctx context.Context, userID uuid.UUID) (User, error)
-	FindUserByKey(ctx context.Context, key, value string) (User, error)
-	UpdateUser(ctx context.Context, userID uuid.UUID, user UpdateUserDTO) (User, error)
+	LogInUser(ctx context.Context, login LogIn) (ResponseTokenDTO, error)
+	FindUserByID(ctx context.Context, userID uuid.UUID) (UserResponseDTO, error)
+	FindUserByKey(ctx context.Context, key, value string) (UserResponseDTO, error)
+	UpdateUser(ctx context.Context, userID uuid.UUID, user UpdateUserDTO) (UserResponseDTO, error)
 	DeleteUser(ctx context.Context, userID uuid.UUID) error
 }
 
@@ -85,6 +94,6 @@ type UserRepository interface {
 	Update(ctx context.Context, user User) (User, error)
 	FindByID(ctx context.Context, userID uuid.UUID) (User, error)
 	FindUser(ctx context.Context, key, value string) (User, error)
-	FindPass(ctx context.Context, email string) (ResponseDTO, error)
 	CreateRefreshToken(ctx context.Context, token string, id uuid.UUID) error
+	FindUserFromToken(ctx context.Context, token string) (User, error)
 }
