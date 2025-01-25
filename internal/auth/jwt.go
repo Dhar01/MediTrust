@@ -69,11 +69,11 @@ func ValidateJWT(tokenString, tokenSecret string) (uuid.UUID, string, error) {
 
 	claims, ok := token.Claims.(*Claims)
 	if !ok || !token.Valid {
-		return wrapUUIDError(err)
+		return wrapUUIDError(jwt.ErrTokenSignatureInvalid)
 	}
 
 	if claims.Issuer != companyName {
-		return wrapUUIDError(err)
+		return wrapUUIDError(jwt.ErrTokenInvalidIssuer)
 	}
 
 	return claims.UserID, claims.Role, nil
