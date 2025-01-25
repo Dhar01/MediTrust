@@ -30,6 +30,7 @@ Create a `.env` file in the root directory with the following variables:
 
 ```env
 DB_URL="postgres://<username>:<password>@<host>:<port>/<database_name>"
+SECRET_KEY="Your Secret Key here"
 PLATFORM="<environment>"
 ```
 - Replace the `DB_URL` values with your database connection string.
