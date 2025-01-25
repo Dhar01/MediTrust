@@ -33,7 +33,7 @@ type User struct {
 DTO's for interacting with external request and responses
 */
 type SignUpUser struct {
-	Name     Name   `json:"name" binding:"required,dive"`
+	Name     Name   `json:"name" binding:"required"`
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required,min=8"`
 	Age      int32  `json:"age" binding:"required,gte=18"`
@@ -80,7 +80,7 @@ type Address struct {
 }
 
 type UserService interface {
-	SignUpUser(ctx context.Context, user SignUpUser) error // should act as CreateUser
+	SignUpUser(ctx context.Context, user SignUpUser) (uuid.UUID, error) // should act as CreateUser
 	LogInUser(ctx context.Context, login LogIn) (ResponseTokenDTO, error)
 	FindUserByID(ctx context.Context, userID uuid.UUID) (UserResponseDTO, error)
 	FindUserByKey(ctx context.Context, key, value string) (UserResponseDTO, error)
@@ -89,7 +89,7 @@ type UserService interface {
 }
 
 type UserRepository interface {
-	SignUp(ctx context.Context, user User) error // should act as CreateUser
+	SignUp(ctx context.Context, user User) (User, error) // should act as CreateUser
 	Delete(ctx context.Context, userID uuid.UUID) error
 	Update(ctx context.Context, user User) (User, error)
 	FindByID(ctx context.Context, userID uuid.UUID) (User, error)
