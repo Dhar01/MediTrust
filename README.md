@@ -2,6 +2,28 @@
 
 A medicine e-commerce backend in Go.
 
+
+## SetUp
+
+This project uses Go and PostgresSQL. Please ensure to set them up before proceeding.
+
+1. Install Go
+   - Download and install Go from the [official Go website](https://go.dev/dl/).
+   - Verify installation:
+
+    ```bash
+    go version
+    ```
+
+2. Install PostgreSQL
+    - Install PostgreSQL from the [official PostgreSQL website](https://www.postgresql.org/download/).
+    - Verify Installation:
+
+    ```bash
+    psql --version
+    ````
+
+
 ## Environment Variables
 
 Create a `.env` file in the root directory with the following variables:
@@ -10,12 +32,13 @@ Create a `.env` file in the root directory with the following variables:
 DB_URL="postgres://<username>:<password>@<host>:<port>/<database_name>"
 PLATFORM="<environment>"
 ```
-
-Currently available platform is `"deb"`.
+- Replace the `DB_URL` values with your database connection string.
+- Currently available platform is `"deb"`.
 
 Find `db_migration.sh` in the `scripts` to automate DB migration.
 
-# API-endpoint
+
+# API-endpoints
 
 ### Medicine
 
