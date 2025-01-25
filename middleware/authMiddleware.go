@@ -26,9 +26,8 @@ func AdminAuth(secret string) gin.HandlerFunc {
 func IsLoggedIn(secret string) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		id, role, err := getAuth(ctx, secret)
-		if err != nil {
-			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired token"})
-			ctx.Abort()
+		if err != nil || id == uuid.Nil || role == "" {
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired token"})
 			return
 		}
 
