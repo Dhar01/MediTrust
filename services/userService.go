@@ -25,10 +25,10 @@ func NewUserService(repo models.UserRepository, secret string) models.UserServic
 	}
 }
 
-func (us *userService) SignUpUser(ctx context.Context, user models.SignUpUser) error {
+func (us *userService) SignUpUser(ctx context.Context, user models.SignUpUser) (uuid.UUID, error) {
 	pass, err := auth.HashPassword(user.Password)
 	if err != nil {
-		return err
+		return uuid.Nil, err
 	}
 
 	person := models.User{
@@ -42,7 +42,12 @@ func (us *userService) SignUpUser(ctx context.Context, user models.SignUpUser) e
 		Phone:        user.Phone,
 	}
 
-	return us.Repo.SignUp(ctx, person)
+	newUser, err := us.Repo.SignUp(ctx, person)
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	return newUser.ID, nil
 }
 
 func (us *userService) LogInUser(ctx context.Context, login models.LogIn) (models.ResponseTokenDTO, error) {
