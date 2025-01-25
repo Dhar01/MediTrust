@@ -20,8 +20,8 @@ func NewUserRepository(db *database.Queries) models.UserRepository {
 	}
 }
 
-func (ur *userRepository) SignUp(ctx context.Context, user models.User) error {
-	_, err := ur.DB.CreateUser(ctx, database.CreateUserParams{
+func (ur *userRepository) SignUp(ctx context.Context, user models.User) (models.User, error) {
+	newUser, err := ur.DB.CreateUser(ctx, database.CreateUserParams{
 		FirstName:    user.Name.FirstName,
 		LastName:     user.Name.LastName,
 		Email:        user.Email,
@@ -31,10 +31,10 @@ func (ur *userRepository) SignUp(ctx context.Context, user models.User) error {
 	})
 
 	if err != nil {
-		return err
+		return wrapUserError(err)
 	}
 
-	return nil
+	return toUser(newUser), nil
 }
 
 func (ur *userRepository) Delete(ctx context.Context, userID uuid.UUID) error {
