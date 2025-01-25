@@ -26,12 +26,13 @@ func (uc *userController) HandlerSignUp(ctx *gin.Context) {
 		return
 	}
 
-	if err := uc.UserService.SignUpUser(ctx, newUser); err != nil {
+	id, err := uc.UserService.SignUpUser(ctx, newUser);
+	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorMsg(err))
 		return
 	}
 
-	ctx.Status(http.StatusCreated)
+	ctx.JSON(http.StatusCreated, id)
 }
 
 func (uc *userController) HandlerUpdateUser(ctx *gin.Context) {
