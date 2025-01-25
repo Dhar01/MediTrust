@@ -3,6 +3,7 @@ package api
 import (
 	"medicine-app/config"
 	"medicine-app/controllers"
+	"medicine-app/middleware"
 	repo "medicine-app/repository"
 	service "medicine-app/services"
 
@@ -20,16 +21,19 @@ func UserRoutes(router *gin.RouterGroup, cfg *config.Config) {
 	userCtrl := controllers.NewUserController(userService)
 
 	// GET route for users
-	router.GET(userBaseByID, userCtrl.HandlerGetUserByID)
-
-	// PUT route for users
-	router.PUT(userBaseByID, userCtrl.HandlerUpdateUser)
+	router.GET(userBaseByID, middleware.AdminAuth(cfg.SecretKey), userCtrl.HandlerGetUserByID)
 
 	// POST route for users
 	router.POST(usersBase, userCtrl.HandlerSignUp)
 	router.POST("/signup", userCtrl.HandlerSignUp)
 	router.POST("/login", userCtrl.HandlerLogIn)
 
-	// DELETE route for users
-	router.DELETE(userBaseByID, userCtrl.HandlerDeleteUser)
+	userLoggedIn := router.Group(userBaseByID, middleware.IsLoggedIn(cfg.SecretKey))
+	{
+		// PUT route for users
+		userLoggedIn.PUT(userBaseByID, userCtrl.HandlerUpdateUser)
+
+		// DELETE route for users
+		userLoggedIn.DELETE(userBaseByID, userCtrl.HandlerDeleteUser)
+	}
 }
