@@ -45,37 +45,37 @@ func (us *userService) SignUpUser(ctx context.Context, user models.SignUpUser) e
 	return us.Repo.SignUp(ctx, person)
 }
 
-func (us *userService) LogInUser(ctx context.Context, login models.LogIn) (models.ResponseUserDTO, error) {
+func (us *userService) LogInUser(ctx context.Context, login models.LogIn) (models.ResponseTokenDTO, error) {
 	user, err := us.Repo.FindUser(ctx, models.Email, login.Email)
 	if err != nil {
-		return wrapUserResponseError(err)
+		return wrapTokenResponseError(err)
 	}
 
 	if err = auth.CheckPasswordHash(login.Password, user.HashPassword); err != nil {
-		return wrapUserResponseError(err)
+		return wrapTokenResponseError(err)
 	}
 
 	accessToken, err := auth.MakeJWT(user.ID, models.Customer, us.Secret, time.Minute*15)
 	if err != nil {
-		return wrapUserResponseError(err)
+		return wrapTokenResponseError(err)
 	}
 
 	refreshToken, err := auth.MakeRefreshToken()
 	if err != nil {
-		return wrapUserResponseError(err)
+		return wrapTokenResponseError(err)
 	}
 
 	if err = us.Repo.CreateRefreshToken(ctx, refreshToken, user.ID); err != nil {
-		return wrapUserResponseError(err)
+		return wrapTokenResponseError(err)
 	}
 
-	return models.ResponseUserDTO{
+	return models.ResponseTokenDTO{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	}, nil
 }
 
-func (us *userService) UpdateUser(ctx context.Context, userID uuid.UUID, user models.UpdateUserDTO) (models.User, error) {
+func (us *userService) UpdateUser(ctx context.Context, userID uuid.UUID, user models.UpdateUserDTO) (models.UserResponseDTO, error) {
 	oldInfo, err := us.Repo.FindByID(ctx, userID)
 	if err != nil {
 		return wrapUserError(err)
@@ -130,25 +130,61 @@ func (us *userService) UpdateUser(ctx context.Context, userID uuid.UUID, user mo
 		},
 	}
 
-	return us.Repo.Update(ctx, person)
+	userUpdate, err := us.Repo.Update(ctx, person)
+	if err != nil {
+		return wrapUserError(err)
+	}
+
+	return toUserDTODomain(userUpdate), nil
 }
 
 func (us *userService) DeleteUser(ctx context.Context, userID uuid.UUID) error {
 	return us.Repo.Delete(ctx, userID)
 }
 
-func (us *userService) FindUserByID(ctx context.Context, userID uuid.UUID) (models.User, error) {
-	return us.Repo.FindByID(ctx, userID)
-}
-
-// FindUser by KEY. Key should be either Email or Phone.
-func (us *userService) FindUserByKey(ctx context.Context, key, value string) (models.User, error) {
-	user, err := us.Repo.FindUser(ctx, key, value)
+func (us *userService) FindUserByID(ctx context.Context, userID uuid.UUID) (models.UserResponseDTO, error) {
+	user, err := us.Repo.FindByID(ctx, userID)
 	if err != nil {
 		return wrapUserError(err)
 	}
 
-	return us.Repo.FindByID(ctx, user.ID)
+	return toUserDTODomain(user), nil
+}
+
+// FindUser by KEY. Key should be either Email or Phone.
+func (us *userService) FindUserByKey(ctx context.Context, key, value string) (models.UserResponseDTO, error) {
+	person, err := us.Repo.FindUser(ctx, key, value)
+	if err != nil {
+		return wrapUserError(err)
+	}
+
+	user, err := us.Repo.FindByID(ctx, person.ID)
+	if err != nil {
+		return wrapUserError(err)
+	}
+
+	return toUserDTODomain(user), nil
+}
+
+func toUserDTODomain(user models.User) models.UserResponseDTO {
+	return models.UserResponseDTO{
+		ID: user.ID,
+		Name: models.Name{
+			FirstName: user.Name.FirstName,
+			LastName:  user.Name.LastName,
+		},
+		Email:     user.Email,
+		Age:       user.Age,
+		Phone:     user.Phone,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
+		Address: models.Address{
+			Country:       user.Address.Country,
+			City:          user.Address.City,
+			StreetAddress: user.Address.StreetAddress,
+			PostalCode:    user.Address.PostalCode,
+		},
+	}
 }
 
 func updateField(newValue, oldValue string) string {
@@ -167,10 +203,10 @@ func updateIntPointerField(newValue, oldValue *int32) *int32 {
 	return newValue
 }
 
-func wrapUserResponseError(err error) (models.ResponseUserDTO, error) {
-	return models.ResponseUserDTO{}, err
+func wrapTokenResponseError(err error) (models.ResponseTokenDTO, error) {
+	return models.ResponseTokenDTO{}, err
 }
 
-func wrapUserError(err error) (models.User, error) {
-	return models.User{}, err
+func wrapUserError(err error) (models.UserResponseDTO, error) {
+	return models.UserResponseDTO{}, err
 }
