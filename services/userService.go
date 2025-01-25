@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"errors"
 	"medicine-app/internal/auth"
 	"medicine-app/models"
 	"time"
@@ -47,12 +46,12 @@ func (us *userService) SignUpUser(ctx context.Context, user models.SignUpUser) e
 }
 
 func (us *userService) LogInUser(ctx context.Context, login models.LogIn) (models.ResponseUserDTO, error) {
-	user, err := us.Repo.FindPass(ctx, login.Email)
+	user, err := us.Repo.FindUser(ctx, models.Email, login.Email)
 	if err != nil {
 		return wrapUserResponseError(err)
 	}
 
-	if err = auth.CheckPasswordHash(login.Password, user.HashPass); err != nil {
+	if err = auth.CheckPasswordHash(login.Password, user.HashPassword); err != nil {
 		return wrapUserResponseError(err)
 	}
 
@@ -77,11 +76,9 @@ func (us *userService) LogInUser(ctx context.Context, login models.LogIn) (model
 }
 
 func (us *userService) UpdateUser(ctx context.Context, userID uuid.UUID, user models.UpdateUserDTO) (models.User, error) {
-	var emptyUser models.User
-
 	oldInfo, err := us.Repo.FindByID(ctx, userID)
 	if err != nil {
-		return emptyUser, errors.New("user not found")
+		return wrapUserError(err)
 	}
 
 	if user.Name == nil {
@@ -144,8 +141,14 @@ func (us *userService) FindUserByID(ctx context.Context, userID uuid.UUID) (mode
 	return us.Repo.FindByID(ctx, userID)
 }
 
+// FindUser by KEY. Key should be either Email or Phone.
 func (us *userService) FindUserByKey(ctx context.Context, key, value string) (models.User, error) {
-	return us.Repo.FindUser(ctx, key, value)
+	user, err := us.Repo.FindUser(ctx, key, value)
+	if err != nil {
+		return wrapUserError(err)
+	}
+
+	return us.Repo.FindByID(ctx, user.ID)
 }
 
 func updateField(newValue, oldValue string) string {
@@ -166,4 +169,8 @@ func updateIntPointerField(newValue, oldValue *int32) *int32 {
 
 func wrapUserResponseError(err error) (models.ResponseUserDTO, error) {
 	return models.ResponseUserDTO{}, err
+}
+
+func wrapUserError(err error) (models.User, error) {
+	return models.User{}, err
 }
