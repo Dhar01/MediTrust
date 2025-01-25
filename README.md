@@ -2,6 +2,19 @@
 
 A medicine e-commerce backend in Go.
 
+## Environment Variables
+
+Create a `.env` file in the root directory with the following variables:
+
+```env
+DB_URL="postgres://<username>:<password>@<host>:<port>/<database_name>"
+PLATFORM="<environment>"
+```
+
+Currently available platform is `"deb"`.
+
+Find `db_migration.sh` in the `scripts` to automate DB migration.
+
 # API-endpoint
 
 ### Medicine
