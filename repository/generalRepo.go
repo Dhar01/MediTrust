@@ -49,18 +49,3 @@ func (gr *generalRepository) FindUserFromToken(ctx context.Context, token string
 
 	return toUser(user), nil
 }
-
-func toUser(dbUser database.User) models.User {
-	return models.User{
-		ID: dbUser.ID,
-		Name: models.Name{
-			FirstName: dbUser.FirstName,
-			LastName:  dbUser.LastName,
-		},
-		Email:     dbUser.Email,
-		Age:       dbUser.Age,
-		Phone:     dbUser.Phone,
-		CreatedAt: dbUser.CreatedAt,
-		UpdatedAt: dbUser.UpdatedAt,
-	}
-}
