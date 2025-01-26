@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS users (
     first_name TEXT NOT NULL,
     last_name TEXT NOT NULL,
     age INTEGER NOT NULL,
+    role TEXT NOT NULL,
 
     email VARCHAR(255) NOT NULL UNIQUE,
     phone TEXT NOT NULL UNIQUE,
