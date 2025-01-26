@@ -26,7 +26,7 @@ func (uc *userController) HandlerSignUp(ctx *gin.Context) {
 		return
 	}
 
-	id, err := uc.UserService.SignUpUser(ctx, newUser);
+	id, err := uc.UserService.SignUpUser(ctx, newUser)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorMsg(err))
 		return
@@ -36,20 +36,42 @@ func (uc *userController) HandlerSignUp(ctx *gin.Context) {
 }
 
 func (uc *userController) HandlerUpdateUser(ctx *gin.Context) {
-	id, ok := getUserID(ctx)
-	if !ok {
+	userID, exists := ctx.Get("user_id")
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "user_id not found"})
+		return
+	}
+
+	userRole, exists := ctx.Get("role")
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "role not found"})
+		return
+	}
+
+	role := userRole.(string)
+	id := userID.(uuid.UUID)
+
+	// log.Println(role)
+	// log.Println(id)
+
+	if role != models.Admin && role != models.Customer {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "role isn't applicable"})
 		return
 	}
 
 	var updateUser models.UpdateUserDTO
 
 	if err := ctx.ShouldBindJSON(&updateUser); err != nil {
+		ctx.Error(err)
 		ctx.JSON(http.StatusBadRequest, errorMsg(err))
 		return
 	}
 
+	// log.Println(updateUser)
+
 	user, err := uc.UserService.UpdateUser(ctx, id, updateUser)
 	if err != nil {
+		ctx.Error(err)
 		ctx.JSON(http.StatusInternalServerError, errorMsg(err))
 		return
 	}
