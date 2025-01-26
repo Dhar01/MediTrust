@@ -60,7 +60,8 @@ func (us *userService) LogInUser(ctx context.Context, login models.LogIn) (model
 		return wrapTokenResponseError(err)
 	}
 
-	accessToken, err := auth.MakeJWT(user.ID, models.Customer, us.Secret, time.Minute*15)
+	// TODO: need to handle models.Admin type
+	accessToken, err := auth.MakeJWT(user.ID, models.Customer, us.Secret, time.Minute*55)
 	if err != nil {
 		return wrapTokenResponseError(err)
 	}
@@ -82,60 +83,37 @@ func (us *userService) LogInUser(ctx context.Context, login models.LogIn) (model
 
 func (us *userService) UpdateUser(ctx context.Context, userID uuid.UUID, user models.UpdateUserDTO) (models.UserResponseDTO, error) {
 	oldInfo, err := us.Repo.FindByID(ctx, userID)
+	// log.Printf("OLDINFO: %+v", oldInfo)
 	if err != nil {
 		return wrapUserError(err)
-	}
-
-	if user.Name == nil {
-		user.Name = &oldInfo.Name
-	} else {
-		if user.Name.FirstName == "" {
-			user.Name.FirstName = oldInfo.Name.FirstName
-		}
-
-		if user.Name.LastName == "" {
-			user.Name.LastName = oldInfo.Name.LastName
-		}
-	}
-
-	if user.Address == nil {
-		user.Address = &oldInfo.Address
-	} else {
-		if user.Address.Country == "" {
-			user.Address.Country = oldInfo.Address.Country
-		}
-
-		if user.Address.City == "" {
-			user.Address.City = oldInfo.Address.City
-		}
-
-		if user.Address.StreetAddress == "" {
-			user.Address.StreetAddress = oldInfo.Address.StreetAddress
-		}
-
-		if user.Address.PostalCode == "" {
-			user.Address.PostalCode = oldInfo.Address.PostalCode
-		}
 	}
 
 	person := models.User{
 		ID: userID,
 		Name: models.Name{
-			FirstName: user.Name.FirstName,
-			LastName:  user.Name.LastName,
+			FirstName: updateStrPointerField(user.Name.FirstName, oldInfo.Name.FirstName),
+			LastName:  updateStrPointerField(user.Name.LastName, oldInfo.Name.LastName),
 		},
+		Role:  oldInfo.Role,
 		Email: updateField(user.Email, oldInfo.Email),
 		Phone: updateField(user.Phone, oldInfo.Phone),
-		Age:   *updateIntPointerField(user.Age, &oldInfo.Age),
-		Address: models.Address{
-			Country:       user.Address.Country,
-			City:          user.Address.City,
-			PostalCode:    user.Address.PostalCode,
-			StreetAddress: user.Address.StreetAddress,
-		},
+		Age:   *updateIntPointerField(&user.Age, &oldInfo.Age),
+
+		// TODO: need to work on address section
+
+		// Address: models.Address{
+		// 	Country:       updateStrPointerField(user.Address.Country, oldInfo.Address.Country),
+		// 	City:          updateStrPointerField(user.Address.City, oldInfo.Address.City),
+		// 	PostalCode:    updateStrPointerField(user.Address.PostalCode, oldInfo.Address.PostalCode),
+		// 	StreetAddress: updateStrPointerField(user.Address.StreetAddress, oldInfo.Address.StreetAddress),
+		// },
+
 	}
 
+	// log.Printf("UPDATEDUSER: %+v", person)
+
 	userUpdate, err := us.Repo.Update(ctx, person)
+	// log.Printf("Userupdate Data: %v", userUpdate)
 	if err != nil {
 		return wrapUserError(err)
 	}
@@ -193,6 +171,14 @@ func toUserDTODomain(user models.User) models.UserResponseDTO {
 }
 
 func updateField(newValue, oldValue string) string {
+	if newValue == "" {
+		return oldValue
+	}
+
+	return newValue
+}
+
+func updateStrPointerField(newValue, oldValue string) string {
 	if newValue == "" {
 		return oldValue
 	}
