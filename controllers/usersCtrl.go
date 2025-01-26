@@ -36,20 +36,17 @@ func (uc *userController) HandlerSignUp(ctx *gin.Context) {
 }
 
 func (uc *userController) HandlerUpdateUser(ctx *gin.Context) {
-	userID, exists := ctx.Get("user_id")
-	if !exists {
+	id, ok := getUserID(ctx)
+	if !ok {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "user_id not found"})
 		return
 	}
 
-	userRole, exists := ctx.Get("role")
-	if !exists {
+	role, ok := getRole(ctx)
+	if !ok {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "role not found"})
 		return
 	}
-
-	role := userRole.(string)
-	id := userID.(uuid.UUID)
 
 	// log.Println(role)
 	// log.Println(id)
@@ -82,6 +79,7 @@ func (uc *userController) HandlerUpdateUser(ctx *gin.Context) {
 func (uc *userController) HandlerDeleteUser(ctx *gin.Context) {
 	id, ok := getUserID(ctx)
 	if !ok {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "user_id not found"})
 		return
 	}
 
@@ -126,12 +124,19 @@ func (uc *userController) HandlerGetUserByID(ctx *gin.Context) {
 }
 
 func getUserID(ctx *gin.Context) (uuid.UUID, bool) {
-	userID := ctx.Param("userID")
-	id, err := uuid.Parse(userID)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, errorMsg(err))
+	userID, exists := ctx.Get("user_id")
+	if !exists {
 		return uuid.Nil, false
 	}
 
-	return id, true
+	return userID.(uuid.UUID), true
+}
+
+func getRole(ctx *gin.Context) (string, bool) {
+	role, exists := ctx.Get("role")
+	if !exists {
+		return "", false
+	}
+
+	return role.(string), true
 }
