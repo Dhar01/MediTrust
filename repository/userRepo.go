@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"medicine-app/internal/database"
 	"medicine-app/models"
@@ -25,6 +24,7 @@ func (ur *userRepository) SignUp(ctx context.Context, user models.User) (models.
 		FirstName:    user.Name.FirstName,
 		LastName:     user.Name.LastName,
 		Email:        user.Email,
+		Role:         user.Role,
 		Age:          user.Age,
 		Phone:        user.Phone,
 		PasswordHash: user.HashPassword,
@@ -59,19 +59,22 @@ func (ur *userRepository) Update(ctx context.Context, user models.User) (models.
 		return wrapUserError(err)
 	}
 
-	address, err := ur.DB.UpdateAddress(ctx, database.UpdateAddressParams{
-		UserID:        person.ID,
-		Country:       user.Address.Country,
-		City:          user.Address.City,
-		StreetAddress: user.Address.StreetAddress,
-		PostalCode:    toNullString(user.Address.PostalCode),
-	})
+	// TODO: need to work on address sector
 
-	if err != nil {
-		return wrapUserError(err)
-	}
+	// address, err := ur.DB.UpdateAddress(ctx, database.UpdateAddressParams{
+	// 	UserID:        person.ID,
+	// 	Country:       user.Address.Country,
+	// 	City:          user.Address.City,
+	// 	StreetAddress: user.Address.StreetAddress,
+	// 	PostalCode:    toNullString(user.Address.PostalCode),
+	// })
+	// if err != nil {
+	// 	return wrapUserError(err)
+	// }
 
-	return toUserDomain(person, address), nil
+	// return toUserDomain(person, address), nil
+
+	return toUser(person), nil
 }
 
 // FindUser by KEY. Key should be either Email or Phone.
@@ -99,6 +102,7 @@ func (ur *userRepository) FindUser(ctx context.Context, key, value string) (mode
 			LastName:  user.LastName,
 		},
 		Email:        user.Email,
+		Role:         user.Role,
 		Phone:        user.Phone,
 		Age:          user.Age,
 		HashPassword: user.PasswordHash,
@@ -111,7 +115,9 @@ func (ur *userRepository) FindByID(ctx context.Context, userID uuid.UUID) (model
 		return wrapUserError(err)
 	}
 
-	return ur.userWithAddress(ctx, user)
+	// log.Printf("DBUSER: %+v", user)
+
+	return toUser(user), nil
 }
 
 func (ur *userRepository) CreateRefreshToken(ctx context.Context, token string, id uuid.UUID) error {
@@ -149,6 +155,7 @@ func toUserDomain(dbUser database.User, address database.UserAddress) models.Use
 		Email:     dbUser.Email,
 		Age:       dbUser.Age,
 		Phone:     dbUser.Phone,
+		Role:      dbUser.Role,
 		CreatedAt: dbUser.CreatedAt,
 		UpdatedAt: dbUser.UpdatedAt,
 		Address: models.Address{
@@ -164,15 +171,30 @@ func wrapUserError(err error) (models.User, error) {
 	return models.User{}, err
 }
 
-func toNullString(value string) sql.NullString {
-	if value == "" {
-		return sql.NullString{
-			Valid: false,
-		}
-	}
+// func toNullString(value string) sql.NullString {
+// 	if value == "" {
+// 		return sql.NullString{
+// 			Valid: false,
+// 		}
+// 	}
+// 	return sql.NullString{
+// 		String: value,
+// 		Valid:  true,
+// 	}
+// }
 
-	return sql.NullString{
-		String: value,
-		Valid:  true,
+func toUser(dbUser database.User) models.User {
+	return models.User{
+		ID: dbUser.ID,
+		Name: models.Name{
+			FirstName: dbUser.FirstName,
+			LastName:  dbUser.LastName,
+		},
+		Email:     dbUser.Email,
+		Age:       dbUser.Age,
+		Phone:     dbUser.Phone,
+		Role:      dbUser.Role,
+		CreatedAt: dbUser.CreatedAt,
+		UpdatedAt: dbUser.UpdatedAt,
 	}
 }
