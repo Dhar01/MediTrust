@@ -10,10 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const (
-	usersBase    = "/users"
-	userBaseByID = usersBase + "/:userID"
-)
+var usersBase = "/users"
 
 func UserRoutes(router *gin.RouterGroup, cfg *config.Config) {
 	userRepo := repo.NewUserRepository(cfg.DB)
@@ -21,19 +18,16 @@ func UserRoutes(router *gin.RouterGroup, cfg *config.Config) {
 	userCtrl := controllers.NewUserController(userService)
 
 	// GET route for users
-	router.GET(userBaseByID, middleware.AdminAuth(cfg.SecretKey), userCtrl.HandlerGetUserByID)
+	router.GET(usersBase, middleware.AdminAuth(cfg.SecretKey), userCtrl.HandlerGetUserByID)
 
 	// POST route for users
 	router.POST(usersBase, userCtrl.HandlerSignUp)
 	router.POST("/signup", userCtrl.HandlerSignUp)
 	router.POST("/login", userCtrl.HandlerLogIn)
 
-	userLoggedIn := router.Group(userBaseByID, middleware.IsLoggedIn(cfg.SecretKey))
-	{
-		// PUT route for users
-		userLoggedIn.PUT(userBaseByID, userCtrl.HandlerUpdateUser)
+	// PUT route for users
+	router.PUT(usersBase, middleware.IsLoggedIn(cfg.SecretKey), userCtrl.HandlerUpdateUser)
 
-		// DELETE route for users
-		userLoggedIn.DELETE(userBaseByID, userCtrl.HandlerDeleteUser)
-	}
+	// DELETE route for users
+	router.DELETE(usersBase, middleware.IsLoggedIn(cfg.SecretKey), userCtrl.HandlerDeleteUser)
 }

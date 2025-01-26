@@ -24,16 +24,12 @@ func MedicineRoutes(router *gin.RouterGroup, cfg *config.Config) {
 	router.GET(medicineBase, medCtrl.HandlerGetMedicines)
 	router.GET(medicineBaseByID, medCtrl.HandlerGetMedicineByID)
 
-	// Admin-Only routes
-	adminGroup := router.Group(medicineBase, middleware.AdminAuth(cfg.SecretKey))
-	{
-		// POST route for medicines
-		adminGroup.POST(medicineBase, medCtrl.HandlerCreateMedicine)
+	// POST route for medicines
+	router.POST(medicineBase, middleware.AdminAuth(cfg.SecretKey), medCtrl.HandlerCreateMedicine)
 
-		// PUT route for medicines
-		adminGroup.PUT(medicineBaseByID, medCtrl.HandlerUpdateMedicine)
+	// PUT route for medicines
+	router.PUT(medicineBaseByID, middleware.AdminAuth(cfg.SecretKey), medCtrl.HandlerUpdateMedicine)
 
-		// DELETE route for medicine
-		adminGroup.DELETE(medicineBaseByID, medCtrl.HandlerDeleteMedicine)
-	}
+	// DELETE route for medicine
+	router.DELETE(medicineBaseByID, middleware.AdminAuth(cfg.SecretKey), medCtrl.HandlerDeleteMedicine)
 }
