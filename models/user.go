@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
-const (
+var (
 	Admin    string = "admin"
 	Customer string = "customer"
 
@@ -22,6 +22,7 @@ type User struct {
 	Name         Name
 	Email        string
 	Age          int32
+	Role         string
 	Phone        string
 	Address      Address
 	HashPassword string
@@ -62,21 +63,21 @@ type UserResponseDTO struct {
 }
 
 type UpdateUserDTO struct {
-	Name    *Name    `json:"name,omitempty" binding:"omitempty,dive"`
-	Email   string   `json:"email,omitempty" biding:"omitempty,email"`
-	Age     *int32   `json:"age,omitempty" binding:"omitempty,gte=18"`
-	Phone   string   `json:"phone,omitempty" binding:"omitempty,len=11"`
-	Address *Address `json:"address,omitempty" binding:"omitempty,dive"`
+	Name  Name   `json:"name,omitempty" binding:"omitempty"`
+	Email string `json:"email,omitempty" binding:"omitempty,email"`
+	Age   int32  `json:"age,omitempty" binding:"omitempty,gte=18"`
+	Phone string `json:"phone,omitempty" binding:"omitempty,len=11"`
+	// Address Address `json:"address,omitempty" binding:"omitempty"`
 }
 type Name struct {
-	FirstName string `json:"firstname" binding:"required,min=4"`
-	LastName  string `json:"lastname" binding:"required,min=4"`
+	FirstName string `json:"firstname,omitempty" binding:"omitempty,min=4"`
+	LastName  string `json:"lastname,omitempty" binding:"omitempty,min=4"`
 }
 type Address struct {
-	Country       string `json:"country" binding:"required"`
-	City          string `json:"city" binding:"required"`
-	StreetAddress string `json:"street_address" binding:"required"`
-	PostalCode    string `json:"postal_code" binding:"required"`
+	Country       string `json:"country,omitempty" binding:"omitempty"`
+	City          string `json:"city,omitempty" binding:"omitempty"`
+	StreetAddress string `json:"street_address,omitempty" binding:"omitempty"`
+	PostalCode    string `json:"postal_code,omitempty" binding:"omitempty"`
 }
 
 type UserService interface {
