@@ -13,10 +13,15 @@ func AdminAuth(secret string) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		id, role, err := getAuth(ctx, secret)
 		if err != nil || role != models.Admin {
-			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired token"})
-			ctx.Abort()
+			ctx.Error(err)
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired token"})
 			return
 		}
+
+		// * uncomment in production
+
+		// log.Println(id)
+		// log.Println(role)
 
 		ctx.Set("user_id", id)
 		ctx.Next()
@@ -26,7 +31,9 @@ func AdminAuth(secret string) gin.HandlerFunc {
 func IsLoggedIn(secret string) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		id, role, err := getAuth(ctx, secret)
+		// TODO: Need to handle "role"
 		if err != nil || id == uuid.Nil || role == "" {
+			ctx.Error(err)
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired token"})
 			return
 		}
@@ -42,6 +49,8 @@ func getAuth(ctx *gin.Context, secret string) (uuid.UUID, string, error) {
 	if err != nil {
 		return wrapNilError(err)
 	}
+
+	// log.Println(token)
 
 	id, role, err := auth.ValidateJWT(token, secret)
 	if err != nil {
