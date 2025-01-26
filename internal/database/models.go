@@ -44,6 +44,7 @@ type User struct {
 	FirstName    string
 	LastName     string
 	Age          int32
+	Role         string
 	Email        string
 	Phone        string
 	PasswordHash string

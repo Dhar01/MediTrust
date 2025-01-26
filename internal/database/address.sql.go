@@ -78,7 +78,7 @@ func (q *Queries) GetAddress(ctx context.Context, userID uuid.UUID) (UserAddress
 }
 
 const getUserWithAddress = `-- name: GetUserWithAddress :one
-SELECT users.id, users.first_name, users.last_name, users.age, users.email, users.phone, users.password_hash, users.created_at, users.updated_at, user_address.user_id, user_address.country, user_address.city, user_address.street_address, user_address.postal_code, user_address.created_at, user_address.updated_at
+SELECT users.id, users.first_name, users.last_name, users.age, users.role, users.email, users.phone, users.password_hash, users.created_at, users.updated_at, user_address.user_id, user_address.country, user_address.city, user_address.street_address, user_address.postal_code, user_address.created_at, user_address.updated_at
 FROM users
 LEFT JOIN user_address ON users.id = user_address.id
 WHERE users.id = $1
@@ -89,6 +89,7 @@ type GetUserWithAddressRow struct {
 	FirstName     string
 	LastName      string
 	Age           int32
+	Role          string
 	Email         string
 	Phone         string
 	PasswordHash  string
@@ -111,6 +112,7 @@ func (q *Queries) GetUserWithAddress(ctx context.Context, id uuid.UUID) (GetUser
 		&i.FirstName,
 		&i.LastName,
 		&i.Age,
+		&i.Role,
 		&i.Email,
 		&i.Phone,
 		&i.PasswordHash,
