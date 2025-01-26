@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"medicine-app/internal/database"
 	"medicine-app/models"
@@ -61,20 +62,20 @@ func (ur *userRepository) Update(ctx context.Context, user models.User) (models.
 
 	// TODO: need to work on address sector
 
-	// address, err := ur.DB.UpdateAddress(ctx, database.UpdateAddressParams{
-	// 	UserID:        person.ID,
-	// 	Country:       user.Address.Country,
-	// 	City:          user.Address.City,
-	// 	StreetAddress: user.Address.StreetAddress,
-	// 	PostalCode:    toNullString(user.Address.PostalCode),
-	// })
-	// if err != nil {
-	// 	return wrapUserError(err)
-	// }
+	address, err := ur.DB.UpdateAddress(ctx, database.UpdateAddressParams{
+		UserID:        person.ID,
+		Country:       user.Address.Country,
+		City:          user.Address.City,
+		StreetAddress: user.Address.StreetAddress,
+		PostalCode:    toNullString(user.Address.PostalCode),
+	})
+	if err != nil {
+		return wrapUserError(err)
+	}
 
-	// return toUserDomain(person, address), nil
+	return toUserDomain(person, address), nil
 
-	return toUser(person), nil
+	// return toUser(person), nil
 }
 
 // FindUser by KEY. Key should be either Email or Phone.
@@ -95,18 +96,7 @@ func (ur *userRepository) FindUser(ctx context.Context, key, value string) (mode
 		return wrapUserError(err)
 	}
 
-	return models.User{
-		ID: user.ID,
-		Name: models.Name{
-			FirstName: user.FirstName,
-			LastName:  user.LastName,
-		},
-		Email:        user.Email,
-		Role:         user.Role,
-		Phone:        user.Phone,
-		Age:          user.Age,
-		HashPassword: user.PasswordHash,
-	}, nil
+	return toUser(user), nil
 }
 
 func (ur *userRepository) FindByID(ctx context.Context, userID uuid.UUID) (models.User, error) {
@@ -171,17 +161,17 @@ func wrapUserError(err error) (models.User, error) {
 	return models.User{}, err
 }
 
-// func toNullString(value string) sql.NullString {
-// 	if value == "" {
-// 		return sql.NullString{
-// 			Valid: false,
-// 		}
-// 	}
-// 	return sql.NullString{
-// 		String: value,
-// 		Valid:  true,
-// 	}
-// }
+func toNullString(value string) sql.NullString {
+	if value == "" {
+		return sql.NullString{
+			Valid: false,
+		}
+	}
+	return sql.NullString{
+		String: value,
+		Valid:  true,
+	}
+}
 
 func toUser(dbUser database.User) models.User {
 	return models.User{
@@ -190,11 +180,13 @@ func toUser(dbUser database.User) models.User {
 			FirstName: dbUser.FirstName,
 			LastName:  dbUser.LastName,
 		},
-		Email:     dbUser.Email,
-		Age:       dbUser.Age,
-		Phone:     dbUser.Phone,
-		Role:      dbUser.Role,
-		CreatedAt: dbUser.CreatedAt,
-		UpdatedAt: dbUser.UpdatedAt,
+		Email:        dbUser.Email,
+		Exist:        true,
+		Age:          dbUser.Age,
+		HashPassword: dbUser.PasswordHash,
+		Phone:        dbUser.Phone,
+		Role:         dbUser.Role,
+		CreatedAt:    dbUser.CreatedAt,
+		UpdatedAt:    dbUser.UpdatedAt,
 	}
 }
