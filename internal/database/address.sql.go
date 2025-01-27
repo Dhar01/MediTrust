@@ -13,6 +13,17 @@ import (
 	"github.com/google/uuid"
 )
 
+const checkAddressExist = `-- name: CheckAddressExist :one
+SELECT EXISTS (SELECT 1 FROM user_address WHERE user_id = $1)
+`
+
+func (q *Queries) CheckAddressExist(ctx context.Context, userID uuid.UUID) (bool, error) {
+	row := q.db.QueryRowContext(ctx, checkAddressExist, userID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const createUserAddress = `-- name: CreateUserAddress :one
 INSERT INTO user_address (
     user_id, country, city, street_address, postal_code, created_at, updated_at
