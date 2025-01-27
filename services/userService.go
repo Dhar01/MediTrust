@@ -2,12 +2,15 @@ package service
 
 import (
 	"context"
+	"errors"
 	"medicine-app/internal/auth"
 	"medicine-app/models"
 	"time"
 
 	"github.com/google/uuid"
 )
+
+var errUserExist = errors.New("user exist")
 
 type userService struct {
 	Repo   models.UserRepository
@@ -26,6 +29,11 @@ func NewUserService(repo models.UserRepository, secret string) models.UserServic
 }
 
 func (us *userService) SignUpUser(ctx context.Context, user models.SignUpUser) (uuid.UUID, error) {
+	available, _ := us.Repo.FindUser(ctx, models.Email, user.Email)
+	if available.Exist {
+		return wrapNilUUIDError(errUserExist)
+	}
+
 	pass, err := auth.HashPassword(user.Password)
 	if err != nil {
 		return uuid.Nil, err
@@ -37,6 +45,7 @@ func (us *userService) SignUpUser(ctx context.Context, user models.SignUpUser) (
 			LastName:  user.Name.LastName,
 		},
 		Email:        user.Email,
+		Exist:        true,
 		HashPassword: pass,
 		Age:          user.Age,
 		Phone:        user.Phone,
@@ -44,7 +53,7 @@ func (us *userService) SignUpUser(ctx context.Context, user models.SignUpUser) (
 
 	newUser, err := us.Repo.SignUp(ctx, person)
 	if err != nil {
-		return uuid.Nil, err
+		return wrapNilUUIDError(err)
 	}
 
 	return newUser.ID, nil
@@ -94,20 +103,11 @@ func (us *userService) UpdateUser(ctx context.Context, userID uuid.UUID, user mo
 			FirstName: updateStrPointerField(user.Name.FirstName, oldInfo.Name.FirstName),
 			LastName:  updateStrPointerField(user.Name.LastName, oldInfo.Name.LastName),
 		},
-		Role:  oldInfo.Role,
-		Email: updateField(user.Email, oldInfo.Email),
-		Phone: updateField(user.Phone, oldInfo.Phone),
-		Age:   *updateIntPointerField(&user.Age, &oldInfo.Age),
-
-		// TODO: need to work on address section
-
-		// Address: models.Address{
-		// 	Country:       updateStrPointerField(user.Address.Country, oldInfo.Address.Country),
-		// 	City:          updateStrPointerField(user.Address.City, oldInfo.Address.City),
-		// 	PostalCode:    updateStrPointerField(user.Address.PostalCode, oldInfo.Address.PostalCode),
-		// 	StreetAddress: updateStrPointerField(user.Address.StreetAddress, oldInfo.Address.StreetAddress),
-		// },
-
+		Role:    oldInfo.Role,
+		Email:   updateField(user.Email, oldInfo.Email),
+		Phone:   updateField(user.Phone, oldInfo.Phone),
+		Age:     *updateIntPointerField(&user.Age, &oldInfo.Age),
+		Address: setAddress(user.Address, &oldInfo.Address),
 	}
 
 	// log.Printf("UPDATEDUSER: %+v", person)
@@ -200,4 +200,22 @@ func wrapTokenResponseError(err error) (models.ResponseTokenDTO, error) {
 
 func wrapUserError(err error) (models.UserResponseDTO, error) {
 	return models.UserResponseDTO{}, err
+}
+
+func wrapNilUUIDError(err error) (uuid.UUID, error) {
+	return uuid.Nil, err
+}
+
+func setAddress(address, oldAddress *models.Address) models.Address {
+	if address == nil {
+		address = oldAddress
+	}
+
+	return models.Address{
+		Country:       address.Country,
+		City:          address.City,
+		StreetAddress: address.StreetAddress,
+		PostalCode:    address.PostalCode,
+	}
+
 }
