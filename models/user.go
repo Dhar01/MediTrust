@@ -25,6 +25,7 @@ type User struct {
 	Role         string
 	Phone        string
 	Address      Address
+	Exist        bool
 	HashPassword string
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
@@ -63,11 +64,11 @@ type UserResponseDTO struct {
 }
 
 type UpdateUserDTO struct {
-	Name  Name   `json:"name,omitempty" binding:"omitempty"`
-	Email string `json:"email,omitempty" binding:"omitempty,email"`
-	Age   int32  `json:"age,omitempty" binding:"omitempty,gte=18"`
-	Phone string `json:"phone,omitempty" binding:"omitempty,len=11"`
-	// Address Address `json:"address,omitempty" binding:"omitempty"`
+	Name    Name     `json:"name,omitempty" binding:"omitempty"`
+	Email   string   `json:"email,omitempty" binding:"omitempty,email"`
+	Age     int32    `json:"age,omitempty" binding:"omitempty,gte=18"`
+	Phone   string   `json:"phone,omitempty" binding:"omitempty,len=11"`
+	Address *Address `json:"address,omitempty" binding:"omitempty"`
 }
 type Name struct {
 	FirstName string `json:"firstname,omitempty" binding:"omitempty,min=4"`
