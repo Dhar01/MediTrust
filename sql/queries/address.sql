@@ -12,6 +12,9 @@ INSERT INTO user_address (
 )
 RETURNING *;
 
+-- name: CheckAddressExist :one
+SELECT EXISTS (SELECT 1 FROM user_address WHERE user_id = $1);
+
 -- name: GetAddress :one
 SELECT * FROM user_address
 WHERE user_id = $1;
