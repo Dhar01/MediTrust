@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
 	"medicine-app/internal/database"
 	"medicine-app/models"
 
@@ -47,6 +48,8 @@ func (ur *userRepository) Delete(ctx context.Context, userID uuid.UUID) error {
 }
 
 func (ur *userRepository) Update(ctx context.Context, user models.User) (models.User, error) {
+	log.Printf("User ID before update: %v", user.ID)
+
 	person, err := ur.DB.UpdateUser(ctx, database.UpdateUserParams{
 		FirstName: user.Name.FirstName,
 		LastName:  user.Name.LastName,
@@ -61,14 +64,34 @@ func (ur *userRepository) Update(ctx context.Context, user models.User) (models.
 	}
 
 	// TODO: need to work on address sector
+	log.Printf("updated person ID: %+v", person.ID)
 
-	address, err := ur.DB.UpdateAddress(ctx, database.UpdateAddressParams{
-		UserID:        person.ID,
-		Country:       user.Address.Country,
-		City:          user.Address.City,
-		StreetAddress: user.Address.StreetAddress,
-		PostalCode:    toNullString(user.Address.PostalCode),
-	})
+	exists, err := ur.DB.CheckAddressExist(ctx, person.ID)
+	if err != nil {
+		return wrapUserError(err)
+	}
+
+	var address database.UserAddress
+
+	if !exists {
+		address, err = ur.DB.CreateUserAddress(ctx, database.CreateUserAddressParams{
+			UserID:        user.ID,
+			Country:       user.Address.Country,
+			City:          user.Address.City,
+			StreetAddress: user.Address.StreetAddress,
+			PostalCode:    toNullString(user.Address.PostalCode),
+		})
+	} else {
+		address, err = ur.DB.UpdateAddress(ctx, database.UpdateAddressParams{
+			UserID:        user.ID,
+			Country:       user.Address.Country,
+			City:          user.Address.City,
+			StreetAddress: user.Address.StreetAddress,
+			PostalCode:    toNullString(user.Address.PostalCode),
+		})
+	}
+
+	log.Printf("address user ID: %+v", address.UserID)
 	if err != nil {
 		return wrapUserError(err)
 	}
