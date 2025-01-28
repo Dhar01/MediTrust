@@ -11,6 +11,17 @@ import (
 	"github.com/google/uuid"
 )
 
+const countUsers = `-- name: CountUsers :one
+SELECT COUNT(*) FROM users
+`
+
+func (q *Queries) CountUsers(ctx context.Context) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countUsers)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
     id, first_name, last_name, email, age, phone, role, password_hash, created_at, updated_at
@@ -89,6 +100,17 @@ func (q *Queries) GetPass(ctx context.Context, email string) (GetPassRow, error)
 	var i GetPassRow
 	err := row.Scan(&i.PasswordHash, &i.ID)
 	return i, err
+}
+
+const getRole = `-- name: GetRole :one
+SELECT role FROM users WHERE id = $1
+`
+
+func (q *Queries) GetRole(ctx context.Context, id uuid.UUID) (string, error) {
+	row := q.db.QueryRowContext(ctx, getRole, id)
+	var role string
+	err := row.Scan(&role)
+	return role, err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
