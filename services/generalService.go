@@ -32,19 +32,13 @@ func (gs *generalService) ResetAddressService(ctx context.Context) error {
 	return gs.Repo.ResetAddressRepo(ctx)
 }
 
-func (gs *generalService) GenerateToken(ctx context.Context, headers http.Header) (models.ResponseTokenDTO, error) {
-	token, err := auth.GetBearerToken(headers)
+func (gs *generalService) GenerateToken(ctx context.Context, refreshToken string) (models.ResponseTokenDTO, error) {
+	user, err := gs.Repo.FindUserFromToken(ctx, refreshToken)
 	if err != nil {
 		return wrapTokenResponseError(err)
 	}
 
-	user, err := gs.Repo.FindUserFromToken(ctx, token)
-	if err != nil {
-		return wrapTokenResponseError(err)
-	}
-
-	// TODO: Fix role
-	accessToken, err := auth.MakeJWT(user.ID, "", gs.Secret, time.Minute*15)
+	accessToken, err := auth.MakeJWT(user.ID, user.Role, gs.Secret, time.Minute*15)
 	if err != nil {
 		return wrapTokenResponseError(err)
 	}
