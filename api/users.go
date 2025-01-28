@@ -30,4 +30,6 @@ func UserRoutes(router *gin.RouterGroup, cfg *config.Config) {
 
 	// DELETE route for users
 	router.DELETE(usersBase, middleware.IsLoggedIn(cfg.SecretKey), userCtrl.HandlerDeleteUser)
+
+	router.POST("/logout", middleware.IsLoggedIn(cfg.SecretKey), userCtrl.HandlerLogout)
 }
