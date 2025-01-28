@@ -88,6 +88,7 @@ type UserService interface {
 	FindUserByKey(ctx context.Context, key, value string) (UserResponseDTO, error)
 	UpdateUser(ctx context.Context, userID uuid.UUID, user UpdateUserDTO) (UserResponseDTO, error)
 	DeleteUser(ctx context.Context, userID uuid.UUID) error
+	LogoutUser(ctx context.Context, id uuid.UUID) error
 }
 
 type UserRepository interface {
@@ -100,4 +101,5 @@ type UserRepository interface {
 	FindUserFromToken(ctx context.Context, token string) (User, error)
 	CountAvailableUsers(ctx context.Context) (int, error)
 	GetUserRole(ctx context.Context, id uuid.UUID) (string, error)
+	Logout(ctx context.Context, id uuid.UUID) error
 }
