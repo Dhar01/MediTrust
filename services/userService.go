@@ -74,7 +74,7 @@ func (us *userService) SignUpUser(ctx context.Context, user models.SignUpUser) (
 	return newUser.ID, nil
 }
 
-func (us *userService) LogInUser(ctx context.Context, login models.LogIn) (models.ResponseTokenDTO, error) {
+func (us *userService) LogInUser(ctx context.Context, login models.LogIn) (models.TokenResponseDTO, error) {
 	user, err := us.Repo.FindUser(ctx, models.Email, login.Email)
 	if err != nil {
 		return wrapTokenResponseError(err)
@@ -89,7 +89,7 @@ func (us *userService) LogInUser(ctx context.Context, login models.LogIn) (model
 		return wrapTokenResponseError(err)
 	}
 
-	accessToken, err := auth.MakeJWT(user.ID, role, us.Secret, time.Minute*55)
+	accessToken, err := auth.MakeJWT(user.ID, role, us.Secret, time.Minute*15)
 	if err != nil {
 		return wrapTokenResponseError(err)
 	}
@@ -103,7 +103,7 @@ func (us *userService) LogInUser(ctx context.Context, login models.LogIn) (model
 		return wrapTokenResponseError(err)
 	}
 
-	return models.ResponseTokenDTO{
+	return models.TokenResponseDTO{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	}, nil
@@ -217,8 +217,8 @@ func updateIntPointerField(newValue, oldValue *int32) *int32 {
 	return newValue
 }
 
-func wrapTokenResponseError(err error) (models.ResponseTokenDTO, error) {
-	return models.ResponseTokenDTO{}, err
+func wrapTokenResponseError(err error) (models.TokenResponseDTO, error) {
+	return models.TokenResponseDTO{}, err
 }
 
 func wrapUserError(err error) (models.UserResponseDTO, error) {
