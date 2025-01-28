@@ -4,7 +4,6 @@ import (
 	"context"
 	"medicine-app/internal/auth"
 	"medicine-app/models"
-	"net/http"
 	"time"
 )
 
@@ -49,11 +48,6 @@ func (gs *generalService) GenerateToken(ctx context.Context, refreshToken string
 	}, nil
 }
 
-func (gs *generalService) RevokeRefreshToken(ctx context.Context, headers http.Header) error {
-	authToken, err := auth.GetBearerToken(headers)
-	if err != nil {
-		return err
-	}
-
-	return gs.Repo.RevokeToken(ctx, authToken)
+func (gs *generalService) RevokeRefreshToken(ctx context.Context, refreshToken string) error {
+	return gs.Repo.RevokeToken(ctx, refreshToken)
 }
