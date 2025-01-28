@@ -68,3 +68,16 @@ func (q *Queries) RevokeRefreshToken(ctx context.Context, refreshtoken string) e
 	_, err := q.db.ExecContext(ctx, revokeRefreshToken, refreshtoken)
 	return err
 }
+
+const revokeTokenByID = `-- name: RevokeTokenByID :exec
+UPDATE refresh_tokens
+SET
+    updated_at = NOW(),
+    revoked_at = NOW()
+WHERE user_id = $1
+`
+
+func (q *Queries) RevokeTokenByID(ctx context.Context, userID uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, revokeTokenByID, userID)
+	return err
+}
