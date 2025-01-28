@@ -60,22 +60,20 @@ func (ctrl *controller) HandlerReset(ctx *gin.Context) {
 }
 
 func (ctrl *controller) HandlerRefresh(ctx *gin.Context) {
-	var reqToken models.ReqToken
-
-	if err := ctx.ShouldBindJSON(&reqToken); err != nil {
-		ctx.Error(err)
-		ctx.JSON(http.StatusBadRequest, errorMsg(err))
+	refreshToken, ok := getRefreshToken(ctx)
+	if !ok {
+		ctx.Status(http.StatusUnauthorized)
 		return
 	}
 
-	token, err := ctrl.GeneralService.GenerateToken(ctx, reqToken.RefreshToken)
+	token, err := ctrl.GeneralService.GenerateToken(ctx, refreshToken)
 	if err != nil {
 		ctx.Error(err)
 		ctx.JSON(http.StatusUnauthorized, errorMsg(err))
 		return
 	}
 
-	ctx.SetCookie("refresh_token", token.RefreshToken, int(time.Hour*7*24), "/", models.DomainName, true, true)
+	ctx.SetCookie(models.TokenRefresh, token.RefreshToken, int(time.Hour*7*24), models.RootPath, models.DomainName, true, true)
 
 	ctx.JSON(http.StatusCreated, models.ServerResponse{
 		AccessToken: token.AccessToken,
@@ -83,11 +81,31 @@ func (ctrl *controller) HandlerRefresh(ctx *gin.Context) {
 }
 
 func (ctrl *controller) HandlerRevoke(ctx *gin.Context) {
-	if err := ctrl.GeneralService.RevokeRefreshToken(ctx, ctx.Request.Header); err != nil {
+	refreshToken, ok := getRefreshToken(ctx)
+	if !ok {
+		ctx.Status(http.StatusUnauthorized)
+		return
+	}
+	if err := ctrl.GeneralService.RevokeRefreshToken(ctx, refreshToken); err != nil {
 		ctx.Error(err)
 		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "can't revoke refresh token"})
 		return
 	}
 
-	ctx.Status(http.StatusOK)
+	ctx.SetCookie(models.TokenRefresh, models.TokenNull, -1, models.RootPath, models.DomainName, true, true)
+	ctx.Status(http.StatusNoContent)
+}
+
+func getRefreshToken(ctx *gin.Context) (string, bool) {
+	refreshToken, err := ctx.Cookie(models.TokenRefresh)
+	if err != nil {
+		ctx.Error(err)
+		return "", false
+	}
+
+	if refreshToken == "" {
+		return "", false
+	}
+
+	return refreshToken, true
 }
