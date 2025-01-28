@@ -107,7 +107,7 @@ func (uc *userController) HandlerLogIn(ctx *gin.Context) {
 		return
 	}
 
-	ctx.SetCookie("refresh_token", token.RefreshToken, int(time.Hour*7*24), "/", models.DomainName, true, true)
+	ctx.SetCookie(models.TokenRefresh, token.RefreshToken, int(time.Hour*7*24), models.RootPath, models.DomainName, true, true)
 
 	ctx.JSON(http.StatusOK, models.ServerResponse{
 		AccessToken: token.AccessToken,
@@ -126,7 +126,7 @@ func (uc *userController) HandlerLogout(ctx *gin.Context) {
 		return
 	}
 
-	ctx.SetCookie("refresh_token", "", -1, "/", models.DomainName, true, true)
+	ctx.SetCookie(models.TokenRefresh, models.TokenNull, -1, models.RootPath, models.DomainName, true, true)
 	ctx.Status(http.StatusNoContent)
 }
 
