@@ -39,6 +39,20 @@ func (us *userService) SignUpUser(ctx context.Context, user models.SignUpUser) (
 		return uuid.Nil, err
 	}
 
+	// first user will always be admin
+	count, err := us.Repo.CountAvailableUsers(ctx)
+	if err != nil {
+		return wrapNilUUIDError(err)
+	}
+
+	var role string
+
+	if count == 0 {
+		role = models.Admin
+	} else {
+		role = models.Customer
+	}
+
 	person := models.User{
 		Name: models.Name{
 			FirstName: user.Name.FirstName,
@@ -46,6 +60,7 @@ func (us *userService) SignUpUser(ctx context.Context, user models.SignUpUser) (
 		},
 		Email:        user.Email,
 		Exist:        true,
+		Role:         role,
 		HashPassword: pass,
 		Age:          user.Age,
 		Phone:        user.Phone,
@@ -69,8 +84,12 @@ func (us *userService) LogInUser(ctx context.Context, login models.LogIn) (model
 		return wrapTokenResponseError(err)
 	}
 
-	// TODO: need to handle models.Admin type
-	accessToken, err := auth.MakeJWT(user.ID, models.Customer, us.Secret, time.Minute*55)
+	role, err := us.Repo.GetUserRole(ctx, user.ID)
+	if err != nil {
+		return wrapTokenResponseError(err)
+	}
+
+	accessToken, err := auth.MakeJWT(user.ID, role, us.Secret, time.Minute*55)
 	if err != nil {
 		return wrapTokenResponseError(err)
 	}
