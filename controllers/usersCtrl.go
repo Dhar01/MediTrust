@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"medicine-app/models"
 	"net/http"
 
@@ -106,6 +107,21 @@ func (uc *userController) HandlerLogIn(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, token)
+}
+
+func (uc *userController) HandlerLogout(ctx *gin.Context) {
+	id, ok := getUserID(ctx)
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, errorMsg(fmt.Errorf("cant' get user ID")))
+		return
+	}
+
+	if err := uc.UserService.LogoutUser(ctx, id); err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorMsg(err))
+		return
+	}
+
+	ctx.Status(http.StatusNoContent)
 }
 
 func (uc *userController) HandlerGetUserByID(ctx *gin.Context) {
