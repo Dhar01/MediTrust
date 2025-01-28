@@ -149,6 +149,24 @@ func (ur *userRepository) FindUserFromToken(ctx context.Context, token string) (
 	return ur.userWithAddress(ctx, user)
 }
 
+func (ur *userRepository) CountAvailableUsers(ctx context.Context) (int, error) {
+	count, err := ur.DB.CountUsers(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	return int(count), nil
+}
+
+func (ur *userRepository) GetUserRole(ctx context.Context, id uuid.UUID) (string, error) {
+	role, err := ur.DB.GetRole(ctx, id)
+	if err != nil {
+		return "", err
+	}
+
+	return role, nil
+}
+
 func (ur *userRepository) userWithAddress(ctx context.Context, user database.User) (models.User, error) {
 	address, err := ur.DB.GetAddress(ctx, user.ID)
 	if err != nil {
