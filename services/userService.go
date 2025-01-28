@@ -109,6 +109,10 @@ func (us *userService) LogInUser(ctx context.Context, login models.LogIn) (model
 	}, nil
 }
 
+func (us *userService) LogoutUser(ctx context.Context, id uuid.UUID) error {
+	return us.Repo.Logout(ctx, id)
+}
+
 func (us *userService) UpdateUser(ctx context.Context, userID uuid.UUID, user models.UpdateUserDTO) (models.UserResponseDTO, error) {
 	oldInfo, err := us.Repo.FindByID(ctx, userID)
 	// log.Printf("OLDINFO: %+v", oldInfo)
