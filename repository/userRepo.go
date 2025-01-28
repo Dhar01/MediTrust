@@ -149,6 +149,14 @@ func (ur *userRepository) FindUserFromToken(ctx context.Context, token string) (
 	return ur.userWithAddress(ctx, user)
 }
 
+func (ur *userRepository) Logout(ctx context.Context, id uuid.UUID) error {
+	if err := ur.DB.RevokeTokenByID(ctx, id); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (ur *userRepository) CountAvailableUsers(ctx context.Context) (int, error) {
 	count, err := ur.DB.CountUsers(ctx)
 	if err != nil {
