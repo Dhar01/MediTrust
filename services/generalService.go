@@ -32,7 +32,7 @@ func (gs *generalService) ResetAddressService(ctx context.Context) error {
 	return gs.Repo.ResetAddressRepo(ctx)
 }
 
-func (gs *generalService) GenerateToken(ctx context.Context, refreshToken string) (models.ResponseTokenDTO, error) {
+func (gs *generalService) GenerateToken(ctx context.Context, refreshToken string) (models.TokenResponseDTO, error) {
 	user, err := gs.Repo.FindUserFromToken(ctx, refreshToken)
 	if err != nil {
 		return wrapTokenResponseError(err)
@@ -43,18 +43,9 @@ func (gs *generalService) GenerateToken(ctx context.Context, refreshToken string
 		return wrapTokenResponseError(err)
 	}
 
-	newRefreshToken, err := auth.MakeRefreshToken()
-	if err != nil {
-		return wrapTokenResponseError(err)
-	}
-
-	if err = gs.Repo.CreateRefreshToken(ctx, newRefreshToken, user.ID); err != nil {
-		return wrapTokenResponseError(err)
-	}
-
-	return models.ResponseTokenDTO{
+	return models.TokenResponseDTO{
 		AccessToken:  accessToken,
-		RefreshToken: newRefreshToken,
+		RefreshToken: refreshToken,
 	}, nil
 }
 
