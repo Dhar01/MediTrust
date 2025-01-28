@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
+	"medicine-app/models"
 	"net/http"
 	"strings"
 	"time"
@@ -13,12 +14,10 @@ import (
 )
 
 var (
-	// Need to update company name
-	companyName = "test"
-
 	errNoTokenProvided    = errors.New("token secret not provided")
 	errAuthHeaderNotFound = errors.New("authorization header not found")
 	errNoRoleProvided     = errors.New("no role found")
+	errNoUUIDProvided     = errors.New("no user ID provided")
 )
 
 type Claims struct {
@@ -37,11 +36,15 @@ func MakeJWT(userID uuid.UUID, role, tokenSecret string, expiresIn time.Duration
 		return wrapEmptyError(errNoRoleProvided)
 	}
 
+	if userID == uuid.Nil {
+		return wrapEmptyError(errNoUUIDProvided)
+	}
+
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims{
 		UserID: userID,
 		Role:   role,
 		RegisteredClaims: jwt.RegisteredClaims{
-			Issuer:    companyName,
+			Issuer:    models.CompanyName,
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(expiresIn)),
 		},
@@ -72,7 +75,7 @@ func ValidateJWT(tokenString, tokenSecret string) (uuid.UUID, string, error) {
 		return wrapUUIDError(jwt.ErrTokenSignatureInvalid)
 	}
 
-	if claims.Issuer != companyName {
+	if claims.Issuer != models.CompanyName {
 		return wrapUUIDError(jwt.ErrTokenInvalidIssuer)
 	}
 
