@@ -7,18 +7,6 @@ import (
 	"github.com/google/uuid"
 )
 
-var (
-	Admin    string = "admin"
-	Customer string = "customer"
-
-	Email string = "email"
-	Phone string = "phone"
-
-	// Change these two name
-	DomainName  string = "www.domain.com"
-	CompanyName string = "company"
-)
-
 // planning to use gin's default binding for validation
 
 type User struct {

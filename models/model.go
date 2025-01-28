@@ -2,9 +2,24 @@ package models
 
 import (
 	"context"
-	"net/http"
 
 	"github.com/google/uuid"
+)
+
+var (
+	Admin    string = "admin"
+	Customer string = "customer"
+
+	Email string = "email"
+	Phone string = "phone"
+
+	// Change these two name
+	DomainName  string = "www.domain.com"
+	CompanyName string = "company"
+
+	RootPath     string = "/"
+	TokenRefresh string = "refresh_token"
+	TokenNull    string = ""
 )
 
 type ReqToken struct {
@@ -16,7 +31,7 @@ type GeneralService interface {
 	ResetUserService(ctx context.Context) error
 	ResetAddressService(ctx context.Context) error
 	GenerateToken(ctx context.Context, refreshToken string) (TokenResponseDTO, error)
-	RevokeRefreshToken(ctx context.Context, headers http.Header) error
+	RevokeRefreshToken(ctx context.Context, refreshToken string) error
 }
 
 type GeneralRepository interface {
