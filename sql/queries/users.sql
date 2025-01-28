@@ -15,6 +15,12 @@ INSERT INTO users (
 )
 RETURNING *;
 
+-- name: CountUsers :one
+SELECT COUNT(*) FROM users;
+
+-- name: GetRole :one
+SELECT role FROM users WHERE id = $1;
+
 -- name: GetUserByID :one
 SELECT * FROM users WHERE id = $1;
 
