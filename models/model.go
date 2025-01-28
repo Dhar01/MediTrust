@@ -15,7 +15,7 @@ type GeneralService interface {
 	ResetMedicineService(ctx context.Context) error
 	ResetUserService(ctx context.Context) error
 	ResetAddressService(ctx context.Context) error
-	GenerateToken(ctx context.Context, refreshToken string) (ResponseTokenDTO, error)
+	GenerateToken(ctx context.Context, refreshToken string) (TokenResponseDTO, error)
 	RevokeRefreshToken(ctx context.Context, headers http.Header) error
 }
 

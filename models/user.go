@@ -13,6 +13,10 @@ var (
 
 	Email string = "email"
 	Phone string = "phone"
+
+	// Change these two name
+	DomainName  string = "www.domain.com"
+	CompanyName string = "company"
 )
 
 // planning to use gin's default binding for validation
@@ -47,9 +51,13 @@ type LogIn struct {
 	Password string `json:"password" binding:"required,min=8"`
 }
 
-type ResponseTokenDTO struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
+type TokenResponseDTO struct {
+	AccessToken  string
+	RefreshToken string
+}
+
+type ServerResponse struct {
+	AccessToken string `json:"access_token"`
 }
 
 type UserResponseDTO struct {
@@ -83,7 +91,7 @@ type Address struct {
 
 type UserService interface {
 	SignUpUser(ctx context.Context, user SignUpUser) (uuid.UUID, error) // should act as CreateUser
-	LogInUser(ctx context.Context, login LogIn) (ResponseTokenDTO, error)
+	LogInUser(ctx context.Context, login LogIn) (TokenResponseDTO, error)
 	FindUserByID(ctx context.Context, userID uuid.UUID) (UserResponseDTO, error)
 	FindUserByKey(ctx context.Context, key, value string) (UserResponseDTO, error)
 	UpdateUser(ctx context.Context, userID uuid.UUID, user UpdateUserDTO) (UserResponseDTO, error)
