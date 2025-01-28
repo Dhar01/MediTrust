@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"medicine-app/models"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -106,7 +107,11 @@ func (uc *userController) HandlerLogIn(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, token)
+	ctx.SetCookie("refresh_token", token.RefreshToken, int(time.Hour*7*24), "/", models.DomainName, true, true)
+
+	ctx.JSON(http.StatusOK, models.ServerResponse{
+		AccessToken: token.AccessToken,
+	})
 }
 
 func (uc *userController) HandlerLogout(ctx *gin.Context) {
@@ -121,6 +126,7 @@ func (uc *userController) HandlerLogout(ctx *gin.Context) {
 		return
 	}
 
+	ctx.SetCookie("refresh_token", "", -1, "/", models.DomainName, true, true)
 	ctx.Status(http.StatusNoContent)
 }
 
