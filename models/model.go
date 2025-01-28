@@ -7,11 +7,15 @@ import (
 	"github.com/google/uuid"
 )
 
+type ReqToken struct {
+	RefreshToken string `json:"refresh_token"`
+}
+
 type GeneralService interface {
 	ResetMedicineService(ctx context.Context) error
 	ResetUserService(ctx context.Context) error
 	ResetAddressService(ctx context.Context) error
-	GenerateToken(ctx context.Context, headers http.Header) (ResponseTokenDTO, error)
+	GenerateToken(ctx context.Context, refreshToken string) (ResponseTokenDTO, error)
 	RevokeRefreshToken(ctx context.Context, headers http.Header) error
 }
 
