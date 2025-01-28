@@ -98,4 +98,6 @@ type UserRepository interface {
 	FindUser(ctx context.Context, key, value string) (User, error)
 	CreateRefreshToken(ctx context.Context, token string, id uuid.UUID) error
 	FindUserFromToken(ctx context.Context, token string) (User, error)
+	CountAvailableUsers(ctx context.Context) (int, error)
+	GetUserRole(ctx context.Context, id uuid.UUID) (string, error)
 }
