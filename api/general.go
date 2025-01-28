@@ -16,4 +16,5 @@ func GeneralRoutes(router *gin.RouterGroup, cfg *config.Config) {
 
 	router.POST("/reset", generalCtrl.HandlerReset)
 	router.POST("/refresh", generalCtrl.HandlerRefresh)
+	router.POST("/revoke", generalCtrl.HandlerRevoke)
 }
