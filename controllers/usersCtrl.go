@@ -28,7 +28,7 @@ func (uc *userController) HandlerSignUp(ctx *gin.Context) {
 		return
 	}
 
-	id, err := uc.UserService.SignUpUser(ctx, newUser)
+	id, err := uc.UserService.SignUpUser(ctx.Request.Context(), newUser)
 	if err != nil {
 		errorResponse(ctx, http.StatusInternalServerError, err)
 		return
@@ -64,7 +64,7 @@ func (uc *userController) HandlerUpdateUser(ctx *gin.Context) {
 
 	// log.Println(updateUser)
 
-	user, err := uc.UserService.UpdateUser(ctx, id, updateUser)
+	user, err := uc.UserService.UpdateUser(ctx.Request.Context(), id, updateUser)
 	if err != nil {
 		errorResponse(ctx, http.StatusInternalServerError, err)
 		return
@@ -80,7 +80,7 @@ func (uc *userController) HandlerDeleteUser(ctx *gin.Context) {
 		return
 	}
 
-	if err := uc.UserService.DeleteUser(ctx, id); err != nil {
+	if err := uc.UserService.DeleteUser(ctx.Request.Context(), id); err != nil {
 		errorResponse(ctx, http.StatusNotFound, err)
 		return
 	}
@@ -96,7 +96,7 @@ func (uc *userController) HandlerLogIn(ctx *gin.Context) {
 		return
 	}
 
-	token, err := uc.UserService.LogInUser(ctx, login)
+	token, err := uc.UserService.LogInUser(ctx.Request.Context(), login)
 	if err != nil {
 		errorResponse(ctx, http.StatusNotFound, err)
 		return
@@ -115,7 +115,7 @@ func (uc *userController) HandlerLogout(ctx *gin.Context) {
 		return
 	}
 
-	if err := uc.UserService.LogoutUser(ctx, id); err != nil {
+	if err := uc.UserService.LogoutUser(ctx.Request.Context(), id); err != nil {
 		errorResponse(ctx, http.StatusInternalServerError, err)
 		return
 	}
@@ -125,13 +125,12 @@ func (uc *userController) HandlerLogout(ctx *gin.Context) {
 }
 
 func (uc *userController) HandlerGetUserByID(ctx *gin.Context) {
-
 	id, ok := getUserID(ctx)
 	if !ok {
 		return
 	}
 
-	user, err := uc.UserService.FindUserByID(ctx, id)
+	user, err := uc.UserService.FindUserByID(ctx.Request.Context(), id)
 	if err != nil {
 		errorResponse(ctx, http.StatusNotFound, err)
 		return

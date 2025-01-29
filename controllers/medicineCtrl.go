@@ -27,7 +27,7 @@ func (mc *medicineController) HandlerCreateMedicine(ctx *gin.Context) {
 		return
 	}
 
-	medicine, err := mc.MedicineService.CreateMedicine(ctx, newMedicine)
+	medicine, err := mc.MedicineService.CreateMedicine(ctx.Request.Context(), newMedicine)
 	if err != nil {
 		errorResponse(ctx, http.StatusInternalServerError, err)
 		return
@@ -37,7 +37,7 @@ func (mc *medicineController) HandlerCreateMedicine(ctx *gin.Context) {
 }
 
 func (mc *medicineController) HandlerGetMedicines(ctx *gin.Context) {
-	medicines, err := mc.MedicineService.GetMedicines(ctx)
+	medicines, err := mc.MedicineService.GetMedicines(ctx.Request.Context())
 	if err != nil {
 		errorResponse(ctx, http.StatusInternalServerError, err)
 		return
@@ -52,7 +52,7 @@ func (mc *medicineController) HandlerGetMedicineByID(ctx *gin.Context) {
 		return
 	}
 
-	medicine, err := mc.MedicineService.GetMedicineByID(ctx, id)
+	medicine, err := mc.MedicineService.GetMedicineByID(ctx.Request.Context(), id)
 	if err != nil {
 		errorResponse(ctx, http.StatusInternalServerError, err)
 		return
@@ -74,7 +74,7 @@ func (mc *medicineController) HandlerUpdateMedicine(ctx *gin.Context) {
 		return
 	}
 
-	medicine, err := mc.MedicineService.UpdateMedicine(ctx, id, updateMed)
+	medicine, err := mc.MedicineService.UpdateMedicine(ctx.Request.Context(), id, updateMed)
 	if err != nil {
 		errorResponse(ctx, http.StatusInternalServerError, err)
 		return
@@ -89,7 +89,7 @@ func (mc *medicineController) HandlerDeleteMedicine(ctx *gin.Context) {
 		return
 	}
 
-	if err := mc.MedicineService.DeleteMedicine(ctx, id); err != nil {
+	if err := mc.MedicineService.DeleteMedicine(ctx.Request.Context(), id); err != nil {
 		errorResponse(ctx, http.StatusInternalServerError, err)
 		return
 	}
