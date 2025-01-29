@@ -14,7 +14,7 @@ var (
 	Phone string = "phone"
 
 	// Change these two name
-	DomainName  string = "www.domain.com"
+	DomainName  string = "localhost"
 	CompanyName string = "company"
 
 	RootPath     string = "/"
