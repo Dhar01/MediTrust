@@ -108,7 +108,6 @@ func (uc *userController) HandlerLogIn(ctx *gin.Context) {
 	}
 
 	ctx.SetCookie(models.TokenRefresh, token.RefreshToken, int(time.Hour*7*24), models.RootPath, models.DomainName, true, true)
-
 	ctx.JSON(http.StatusOK, models.ServerResponse{
 		AccessToken: token.AccessToken,
 	})
@@ -127,7 +126,7 @@ func (uc *userController) HandlerLogout(ctx *gin.Context) {
 	}
 
 	ctx.SetCookie(models.TokenRefresh, models.TokenNull, -1, models.RootPath, models.DomainName, true, true)
-	ctx.Status(http.StatusNoContent)
+	ctx.Status(http.StatusOK)
 }
 
 func (uc *userController) HandlerGetUserByID(ctx *gin.Context) {
