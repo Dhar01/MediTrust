@@ -59,6 +59,7 @@ func GenerateAccessToken(userID uuid.UUID, role, tokenSecret string, expiresIn t
 	return signedToken, nil
 }
 
+// Validate Access Token
 func ValidateAccessToken(tokenString, tokenSecret string) (uuid.UUID, string, error) {
 	token, err := jwt.ParseWithClaims(
 		tokenString,
@@ -87,6 +88,7 @@ func ValidateAccessToken(tokenString, tokenSecret string) (uuid.UUID, string, er
 	return claims.UserID, claims.Role, nil
 }
 
+// Get Bearer Token - Authorization
 func GetBearerToken(headers http.Header) (string, error) {
 	authHeader := headers.Get("Authorization")
 	if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
