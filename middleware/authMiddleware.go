@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"medicine-app/internal/auth"
 	"medicine-app/models"
 	"net/http"
@@ -11,20 +12,16 @@ import (
 
 func AdminAuth(secret string) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		id, role, err := getAuth(ctx, secret)
+		id, role, err := getUserAuth(ctx, secret)
 		if err != nil {
-			ctx.Error(err)
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired token"})
+			wrapAuthError(ctx, err, "invalid or expired token")
 			return
 		}
 
 		if role != models.Admin {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "user not supported"})
+			wrapAuthError(ctx, fmt.Errorf("invalid user - not admin"), "user not supported")
+			return
 		}
-
-		// * uncomment in production
-		// log.Println(id)
-		// log.Println(role)
 
 		ctx.Set("user_id", id)
 		ctx.Next()
@@ -33,10 +30,9 @@ func AdminAuth(secret string) gin.HandlerFunc {
 
 func IsLoggedIn(secret string) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		id, role, err := getAuth(ctx, secret)
+		id, role, err := getUserAuth(ctx, secret)
 		if err != nil || id == uuid.Nil || role == "" {
-			ctx.Error(err)
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired token"})
+			wrapAuthError(ctx, err, "invalid or expired token")
 			return
 		}
 
@@ -46,18 +42,14 @@ func IsLoggedIn(secret string) gin.HandlerFunc {
 	}
 }
 
-func getAuth(ctx *gin.Context, secret string) (uuid.UUID, string, error) {
+func getUserAuth(ctx *gin.Context, secret string) (uuid.UUID, string, error) {
 	token, err := auth.GetBearerToken(ctx.Request.Header)
 	if err != nil {
-		ctx.Error(err)
 		return wrapNilError(err)
 	}
 
-	// log.Println(token)
-
 	id, role, err := auth.ValidateAccessToken(token, secret)
 	if err != nil {
-		ctx.Error(err)
 		return wrapNilError(err)
 	}
 
@@ -66,4 +58,9 @@ func getAuth(ctx *gin.Context, secret string) (uuid.UUID, string, error) {
 
 func wrapNilError(err error) (uuid.UUID, string, error) {
 	return uuid.Nil, "", err
+}
+
+func wrapAuthError(ctx *gin.Context, err error, message string) {
+	ctx.Error(err)
+	ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": message})
 }
