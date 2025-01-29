@@ -89,12 +89,12 @@ func (us *userService) LogInUser(ctx context.Context, login models.LogIn) (model
 		return wrapTokenResponseError(err)
 	}
 
-	accessToken, err := auth.MakeJWT(user.ID, role, us.Secret, time.Minute*15)
+	accessToken, err := auth.GenerateAccessToken(user.ID, role, us.Secret, time.Minute*15)
 	if err != nil {
 		return wrapTokenResponseError(err)
 	}
 
-	refreshToken, err := auth.MakeRefreshToken()
+	refreshToken, err := auth.GenerateRefreshToken()
 	if err != nil {
 		return wrapTokenResponseError(err)
 	}

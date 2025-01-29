@@ -37,7 +37,7 @@ func (gs *generalService) GenerateToken(ctx context.Context, refreshToken string
 		return wrapTokenResponseError(err)
 	}
 
-	accessToken, err := auth.MakeJWT(user.ID, user.Role, gs.Secret, time.Minute*15)
+	accessToken, err := auth.GenerateAccessToken(user.ID, user.Role, gs.Secret, time.Minute*15)
 	if err != nil {
 		return wrapTokenResponseError(err)
 	}
