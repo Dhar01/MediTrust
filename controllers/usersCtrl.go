@@ -28,13 +28,49 @@ func (uc *userController) HandlerSignUp(ctx *gin.Context) {
 		return
 	}
 
-	id, err := uc.UserService.SignUpUser(ctx.Request.Context(), newUser)
+	signUp, err := uc.UserService.SignUpUser(ctx.Request.Context(), newUser)
 	if err != nil {
 		errorResponse(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, id)
+	ctx.JSON(http.StatusCreated, signUp)
+}
+
+func (uc *userController) HandlerLogIn(ctx *gin.Context) {
+	var login models.LogIn
+
+	if err := ctx.ShouldBindJSON(&login); err != nil {
+		errorResponse(ctx, http.StatusBadRequest, err)
+		return
+	}
+
+	token, err := uc.UserService.LogInUser(ctx.Request.Context(), login)
+	if err != nil {
+		errorResponse(ctx, http.StatusNotFound, err)
+		return
+	}
+
+	ctx.SetCookie(models.TokenRefresh, token.RefreshToken, int(time.Hour*7*24), models.RootPath, models.DomainName, true, true)
+	ctx.JSON(http.StatusOK, models.ServerResponse{
+		AccessToken: token.AccessToken,
+	})
+}
+
+func (uc *userController) HandlerLogout(ctx *gin.Context) {
+	id, ok := getUserID(ctx)
+	if !ok {
+		errorResponse(ctx, http.StatusUnauthorized, fmt.Errorf("can't get user-id"))
+		return
+	}
+
+	if err := uc.UserService.LogoutUser(ctx.Request.Context(), id); err != nil {
+		errorResponse(ctx, http.StatusInternalServerError, err)
+		return
+	}
+
+	ctx.SetCookie(models.TokenRefresh, models.TokenNull, -1, models.RootPath, models.DomainName, true, true)
+	ctx.Status(http.StatusOK)
 }
 
 func (uc *userController) HandlerUpdateUser(ctx *gin.Context) {
@@ -86,42 +122,6 @@ func (uc *userController) HandlerDeleteUser(ctx *gin.Context) {
 	}
 
 	ctx.Status(http.StatusNoContent)
-}
-
-func (uc *userController) HandlerLogIn(ctx *gin.Context) {
-	var login models.LogIn
-
-	if err := ctx.ShouldBindJSON(&login); err != nil {
-		errorResponse(ctx, http.StatusBadRequest, err)
-		return
-	}
-
-	token, err := uc.UserService.LogInUser(ctx.Request.Context(), login)
-	if err != nil {
-		errorResponse(ctx, http.StatusNotFound, err)
-		return
-	}
-
-	ctx.SetCookie(models.TokenRefresh, token.RefreshToken, int(time.Hour*7*24), models.RootPath, models.DomainName, true, true)
-	ctx.JSON(http.StatusOK, models.ServerResponse{
-		AccessToken: token.AccessToken,
-	})
-}
-
-func (uc *userController) HandlerLogout(ctx *gin.Context) {
-	id, ok := getUserID(ctx)
-	if !ok {
-		errorResponse(ctx, http.StatusUnauthorized, fmt.Errorf("can't get user-id"))
-		return
-	}
-
-	if err := uc.UserService.LogoutUser(ctx.Request.Context(), id); err != nil {
-		errorResponse(ctx, http.StatusInternalServerError, err)
-		return
-	}
-
-	ctx.SetCookie(models.TokenRefresh, models.TokenNull, -1, models.RootPath, models.DomainName, true, true)
-	ctx.Status(http.StatusOK)
 }
 
 func (uc *userController) HandlerGetUserByID(ctx *gin.Context) {

@@ -28,30 +28,35 @@ func NewUserService(repo models.UserRepository, secret string) models.UserServic
 	}
 }
 
-func (us *userService) SignUpUser(ctx context.Context, user models.SignUpUser) (uuid.UUID, error) {
+func (us *userService) SignUpUser(ctx context.Context, user models.SignUpUser) (models.SignUpResponse, error) {
+	// check if the user exists with the associated email
 	available, _ := us.Repo.FindUser(ctx, models.Email, user.Email)
 	if available.Exist {
-		return wrapNilUUIDError(errUserExist)
+		return wrapSignUpError(errUserExist)
 	}
 
+	// if not exist, then...
 	pass, err := auth.HashPassword(user.Password)
 	if err != nil {
-		return uuid.Nil, err
+		return models.SignUpResponse{}, err
 	}
 
 	// first user will always be admin
 	count, err := us.Repo.CountAvailableUsers(ctx)
 	if err != nil {
-		return wrapNilUUIDError(err)
+		return wrapSignUpError(err)
 	}
-
 	var role string
-
-	if count == 0 {
-		role = models.Admin
-	} else {
+	if count > 0 {
 		role = models.Customer
+	} else {
+		role = models.Admin
 	}
+
+	/*
+		above piece of code need to be replaced later. For the MVP, I wanted create the first
+		user as Admin. I'm planning to create a cmd to create admin.
+	*/
 
 	person := models.User{
 		Name: models.Name{
@@ -68,10 +73,12 @@ func (us *userService) SignUpUser(ctx context.Context, user models.SignUpUser) (
 
 	newUser, err := us.Repo.SignUp(ctx, person)
 	if err != nil {
-		return wrapNilUUIDError(err)
+		return wrapSignUpError(err)
 	}
 
-	return newUser.ID, nil
+	return models.SignUpResponse{
+		ID: newUser.ID,
+	}, nil
 }
 
 func (us *userService) LogInUser(ctx context.Context, login models.LogIn) (models.TokenResponseDTO, error) {
@@ -217,8 +224,8 @@ func wrapUserError(err error) (models.UserResponseDTO, error) {
 	return models.UserResponseDTO{}, err
 }
 
-func wrapNilUUIDError(err error) (uuid.UUID, error) {
-	return uuid.Nil, err
+func wrapSignUpError(err error) (models.SignUpResponse, error) {
+	return models.SignUpResponse{}, err
 }
 
 func setAddress(address, oldAddress *models.Address) models.Address {

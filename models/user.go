@@ -34,13 +34,17 @@ type SignUpUser struct {
 	Phone    string `json:"phone" binding:"required,len=11"` // for BD phone
 }
 
+type SignUpResponse struct {
+	ID uuid.UUID `json:"id"`
+}
+
 type LogIn struct {
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required,min=8"`
 }
 
 type TokenResponseDTO struct {
-	AccessToken  string
+	AccessToken  string `json:"access_token"`
 	RefreshToken string
 }
 
@@ -78,7 +82,7 @@ type Address struct {
 }
 
 type UserService interface {
-	SignUpUser(ctx context.Context, user SignUpUser) (uuid.UUID, error) // should act as CreateUser
+	SignUpUser(ctx context.Context, user SignUpUser) (SignUpResponse, error) // should act as CreateUser
 	LogInUser(ctx context.Context, login LogIn) (TokenResponseDTO, error)
 	FindUserByID(ctx context.Context, userID uuid.UUID) (UserResponseDTO, error)
 	FindUserByKey(ctx context.Context, key, value string) (UserResponseDTO, error)
