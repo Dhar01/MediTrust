@@ -38,6 +38,9 @@ PLATFORM="<environment>"
 
 Find `db_migration.sh` in the `scripts` to automate DB migration.
 
+## To-Do
+
+- [ ] Explore more security options (mostly encryption on cookies and tokens)
 
 # API-endpoints
 
