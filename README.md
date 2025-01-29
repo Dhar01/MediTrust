@@ -46,22 +46,32 @@ Find `db_migration.sh` in the `scripts` to automate DB migration.
 
 ### Medicine
 
-| name | method | route |
-|:-----|:------:|:------|
-| create medicine | POST | /api/v1/medicines |
+| name | method | route | note |
+|:-----|:------:|:------|------|
+| create medicine | POST | /api/v1/medicines | *admin only* |
 | get all medicine | GET | /api/v1/medicines |
 | get medicine by ID | GET | /api/v1/medicines/:medID |
-| update medicine by ID | PUT | /api/v1/medicines/:medID |
-| delete medicine by ID | DELETE | /api/v1/medicines/:medID |
+| update medicine by ID | PUT | /api/v1/medicines/:medID | *admin only* |
+| delete medicine by ID | DELETE | /api/v1/medicines/:medID | *admin only* |
 
 ### Users
 
-| name | method | route |
-|:-----|:------:|-------|
-| create user | POST | /api/v1/users |
-| get user by ID | GET | /api/v1/users/:userID |
-| update user by ID | PUT | /api/v1/users/:userID |
-| delete user by ID | DELETE | /api/v1/users/:userID |
+| name | method | route | note |
+|:-----|:------:|-------|------|
+| get user by ID | GET | /api/v1/users/:userID | *admin only* |
+| signup user | POST | /api/v1/signup |
+| login user | POST | /api/v1/login |
+| update user | PUT | /api/v1/users |
+| logout user | POST | /api/v1/logout |
+| delete user | DELETE | /api/v1/users |
+| refresh token | POST | /api/v1/refresh |
+| revoke token | POST | /api/v1/revoke |
+
+### General
+
+| name | method | route | note |
+|------|--------|-------|------|
+| reset DB | POST | /api/v1/reset | *dev* environment only |
 
 # Status
 
