@@ -27,7 +27,7 @@ func TestJWT(t *testing.T) {
 	expiresIn := time.Minute
 
 	t.Run("testing MakeJWT", func(t *testing.T) {
-		_, got := MakeJWT(userID, models.Admin, "", expiresIn)
+		_, got := GenerateAccessToken(userID, models.Admin, "", expiresIn)
 
 		want := errNoTokenProvided
 		if got != want {
@@ -35,12 +35,12 @@ func TestJWT(t *testing.T) {
 		}
 	})
 	t.Run("testing ValidateJWT - OK", func(t *testing.T) {
-		tokenString, err := MakeJWT(userID, models.Customer, tokenST, expiresIn)
+		tokenString, err := GenerateAccessToken(userID, models.Customer, tokenST, expiresIn)
 		if err != nil {
 			t.Fatalf("Expected no error, but got %v", err)
 		}
 
-		id, _, err := ValidateJWT(tokenString, tokenST)
+		id, _, err := ValidateAccessToken(tokenString, tokenST)
 		if err != nil {
 			t.Fatalf("Expected no error, but got %v", err)
 		}
