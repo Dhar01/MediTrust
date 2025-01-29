@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"medicine-app/models"
 	"net/http"
 	"strings"
@@ -16,28 +17,28 @@ import (
 var (
 	errNoTokenProvided    = errors.New("token secret not provided")
 	errAuthHeaderNotFound = errors.New("authorization header not found")
-	errNoRoleProvided     = errors.New("no role found")
+	errNoRoleProvided     = errors.New("no role provided")
 	errNoUUIDProvided     = errors.New("no user ID provided")
 )
 
 type Claims struct {
-	UserID uuid.UUID `json:"user_id"`
-	Role   string    `json:"role"`
+	UserID uuid.UUID
+	Role   string
 	jwt.RegisteredClaims
 }
 
 // Generate Access Token
-func MakeJWT(userID uuid.UUID, role, tokenSecret string, expiresIn time.Duration) (string, error) {
+func GenerateAccessToken(userID uuid.UUID, role, tokenSecret string, expiresIn time.Duration) (string, error) {
 	if tokenSecret == "" {
-		return wrapEmptyError(errNoTokenProvided)
+		return wrapEmptyError(fmt.Errorf("MakeJWT: %w", errNoTokenProvided))
 	}
 
 	if role == "" {
-		return wrapEmptyError(errNoRoleProvided)
+		return wrapEmptyError(fmt.Errorf("MakeJWT: %w", errNoRoleProvided))
 	}
 
 	if userID == uuid.Nil {
-		return wrapEmptyError(errNoUUIDProvided)
+		return wrapEmptyError(fmt.Errorf("MakeJWT: %w", errNoUUIDProvided))
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims{
@@ -52,65 +53,59 @@ func MakeJWT(userID uuid.UUID, role, tokenSecret string, expiresIn time.Duration
 
 	signedToken, err := token.SignedString([]byte(tokenSecret))
 	if err != nil {
-		return wrapEmptyError(err)
+		return wrapEmptyError(fmt.Errorf("MakeJWT: failed to sign token - %w", err))
 	}
 
 	return signedToken, nil
 }
 
-func ValidateJWT(tokenString, tokenSecret string) (uuid.UUID, string, error) {
+func ValidateAccessToken(tokenString, tokenSecret string) (uuid.UUID, string, error) {
 	token, err := jwt.ParseWithClaims(
 		tokenString,
 		&Claims{},
 		func(t *jwt.Token) (interface{}, error) {
+			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
+			}
 			return []byte(tokenSecret), nil
 		},
 	)
+
 	if err != nil {
-		return wrapUUIDError(err)
+		return wrapUUIDError(fmt.Errorf("ValidateJWT: failed to parse token - %w", err))
 	}
 
 	claims, ok := token.Claims.(*Claims)
 	if !ok || !token.Valid {
-		return wrapUUIDError(jwt.ErrTokenSignatureInvalid)
+		return wrapUUIDError(fmt.Errorf("ValidateJWT: %w", jwt.ErrTokenSignatureInvalid))
 	}
 
 	if claims.Issuer != models.CompanyName {
-		return wrapUUIDError(jwt.ErrTokenInvalidIssuer)
+		return wrapUUIDError(fmt.Errorf("ValidateJWT: %w", jwt.ErrTokenInvalidIssuer))
 	}
 
 	return claims.UserID, claims.Role, nil
 }
 
 func GetBearerToken(headers http.Header) (string, error) {
-	tokenString, err := getHeader(headers, "Bearer")
-	if err != nil {
-		return wrapEmptyError(err)
+	authHeader := headers.Get("Authorization")
+	if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
+		return wrapEmptyError(fmt.Errorf("GetBearerToken: %w", errAuthHeaderNotFound))
 	}
 
+	tokenString := strings.TrimSpace(strings.TrimPrefix(authHeader, "Bearer "))
 	return tokenString, nil
 }
 
 // Generate Refresh Token
-func MakeRefreshToken() (string, error) {
+func GenerateRefreshToken() (string, error) {
 	b := make([]byte, 32)
 	_, err := rand.Read(b)
 	if err != nil {
-		return wrapEmptyError(err)
+		return wrapEmptyError(fmt.Errorf("GenerateRefreshToken: failed to generate - %w", err))
 	}
 
 	return hex.EncodeToString(b), nil
-}
-
-func getHeader(headers http.Header, key string) (string, error) {
-	authHeader := headers.Get("Authorization")
-
-	if authHeader == "" || !strings.HasPrefix(authHeader, key) {
-		return wrapEmptyError(errAuthHeaderNotFound)
-	}
-
-	tokenString := strings.TrimSpace(strings.TrimPrefix(authHeader, key))
-	return tokenString, nil
 }
 
 func wrapUUIDError(err error) (uuid.UUID, string, error) {
