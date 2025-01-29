@@ -35,8 +35,8 @@ type UpdateMedicineDTO struct {
 	Description  string `json:"description,omitempty"`
 	Dosage       string `json:"dosage,omitempty"`
 	Manufacturer string `json:"manufacturer,omitempty"`
-	Price        *int32 `json:"price,omitempty" binding:"min=0"`
-	Stock        *int32 `json:"stock,omitempty" binding:"min=0"`
+	Price        *int32 `json:"price,omitempty"`
+	Stock        *int32 `json:"stock,omitempty"`
 }
 
 type MedicineService interface {

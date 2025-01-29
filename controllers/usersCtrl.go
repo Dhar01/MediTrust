@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"log"
 	"medicine-app/models"
 	"net/http"
 	"time"
@@ -125,10 +126,20 @@ func (uc *userController) HandlerDeleteUser(ctx *gin.Context) {
 }
 
 func (uc *userController) HandlerGetUserByID(ctx *gin.Context) {
-	id, ok := getUserID(ctx)
-	if !ok {
+
+	// id, ok := getUserID(ctx)
+	// if !ok {
+	// 	return
+	// }
+
+	userID := ctx.Param("userID")
+	id, err := uuid.Parse(userID)
+	if err != nil {
+		errorResponse(ctx, http.StatusBadRequest, err)
 		return
 	}
+
+	log.Println(userID)
 
 	user, err := uc.UserService.FindUserByID(ctx.Request.Context(), id)
 	if err != nil {

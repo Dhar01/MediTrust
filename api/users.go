@@ -18,7 +18,7 @@ func UserRoutes(router *gin.RouterGroup, cfg *config.Config) {
 	userCtrl := controllers.NewUserController(userService)
 
 	// GET route for users
-	router.GET(usersBase, middleware.AdminAuth(cfg.SecretKey), userCtrl.HandlerGetUserByID)
+	router.GET(usersBase+"/:userID", middleware.AdminAuth(cfg.SecretKey), userCtrl.HandlerGetUserByID)
 
 	// POST route for users
 	router.POST(usersBase, userCtrl.HandlerSignUp)
