@@ -23,13 +23,13 @@ func (mc *medicineController) HandlerCreateMedicine(ctx *gin.Context) {
 	var newMedicine models.CreateMedicineDTO
 
 	if err := ctx.ShouldBindJSON(&newMedicine); err != nil {
-		ctx.JSON(http.StatusBadRequest, errorMsg(err))
+		errorResponse(ctx, http.StatusBadRequest, err)
 		return
 	}
 
 	medicine, err := mc.MedicineService.CreateMedicine(ctx, newMedicine)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorMsg(err))
+		errorResponse(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -39,7 +39,7 @@ func (mc *medicineController) HandlerCreateMedicine(ctx *gin.Context) {
 func (mc *medicineController) HandlerGetMedicines(ctx *gin.Context) {
 	medicines, err := mc.MedicineService.GetMedicines(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorMsg(err))
+		errorResponse(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -54,7 +54,7 @@ func (mc *medicineController) HandlerGetMedicineByID(ctx *gin.Context) {
 
 	medicine, err := mc.MedicineService.GetMedicineByID(ctx, id)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorMsg(err))
+		errorResponse(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -70,13 +70,13 @@ func (mc *medicineController) HandlerUpdateMedicine(ctx *gin.Context) {
 	var updateMed models.UpdateMedicineDTO
 
 	if err := ctx.ShouldBindJSON(&updateMed); err != nil {
-		ctx.IndentedJSON(http.StatusBadRequest, errorMsg(err))
+		errorResponse(ctx, http.StatusBadRequest, err)
 		return
 	}
 
 	medicine, err := mc.MedicineService.UpdateMedicine(ctx, id, updateMed)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorMsg(err))
+		errorResponse(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -90,7 +90,7 @@ func (mc *medicineController) HandlerDeleteMedicine(ctx *gin.Context) {
 	}
 
 	if err := mc.MedicineService.DeleteMedicine(ctx, id); err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorMsg(err))
+		errorResponse(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -101,7 +101,7 @@ func getMedicineID(ctx *gin.Context) (uuid.UUID, bool) {
 	medID := ctx.Param("medID")
 	id, err := uuid.Parse(medID)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, errorMsg(err))
+		errorResponse(ctx, http.StatusBadRequest, err)
 		return uuid.Nil, false
 	}
 
