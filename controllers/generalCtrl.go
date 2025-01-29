@@ -16,10 +16,6 @@ type controller struct {
 	Platform       string
 }
 
-func errorMsg(err error) gin.H {
-	return gin.H{"error": err.Error()}
-}
-
 func NewController(service models.GeneralService, platform string) *controller {
 	return &controller{
 		GeneralService: service,
@@ -36,21 +32,21 @@ func (ctrl *controller) HandlerReset(ctx *gin.Context) {
 	}
 
 	if err := ctrl.GeneralService.ResetMedicineService(ctx); err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorMsg(err))
+		errorResponse(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
 	log.Println("Medicine database reset successfully!")
 
 	if err := ctrl.GeneralService.ResetAddressService(ctx); err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorMsg(err))
+		errorResponse(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
 	log.Println("Address database reset successfully!")
 
 	if err := ctrl.GeneralService.ResetUserService(ctx); err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorMsg(err))
+		errorResponse(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -68,13 +64,11 @@ func (ctrl *controller) HandlerRefresh(ctx *gin.Context) {
 
 	token, err := ctrl.GeneralService.GenerateToken(ctx, refreshToken)
 	if err != nil {
-		ctx.Error(err)
-		ctx.JSON(http.StatusUnauthorized, errorMsg(err))
+		errorResponse(ctx, http.StatusUnauthorized, err)
 		return
 	}
 
 	ctx.SetCookie(models.TokenRefresh, token.RefreshToken, int(time.Hour*7*24), models.RootPath, models.DomainName, true, true)
-
 	ctx.JSON(http.StatusCreated, models.ServerResponse{
 		AccessToken: token.AccessToken,
 	})
@@ -87,8 +81,7 @@ func (ctrl *controller) HandlerRevoke(ctx *gin.Context) {
 		return
 	}
 	if err := ctrl.GeneralService.RevokeRefreshToken(ctx, refreshToken); err != nil {
-		ctx.Error(err)
-		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "can't revoke refresh token"})
+		errorResponse(ctx, http.StatusUnauthorized, err)
 		return
 	}
 
@@ -99,7 +92,6 @@ func (ctrl *controller) HandlerRevoke(ctx *gin.Context) {
 func getRefreshToken(ctx *gin.Context) (string, bool) {
 	refreshToken, err := ctx.Cookie(models.TokenRefresh)
 	if err != nil {
-		ctx.Error(err)
 		return "", false
 	}
 
@@ -108,4 +100,9 @@ func getRefreshToken(ctx *gin.Context) (string, bool) {
 	}
 
 	return refreshToken, true
+}
+
+func errorResponse(ctx *gin.Context, code int, err error) {
+	ctx.Error(err)
+	ctx.JSON(code, gin.H{"error": err.Error()})
 }

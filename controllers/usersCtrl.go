@@ -24,13 +24,13 @@ func (uc *userController) HandlerSignUp(ctx *gin.Context) {
 	var newUser models.SignUpUser
 
 	if err := ctx.ShouldBindJSON(&newUser); err != nil {
-		ctx.JSON(http.StatusBadRequest, errorMsg(err))
+		errorResponse(ctx, http.StatusBadRequest, err)
 		return
 	}
 
 	id, err := uc.UserService.SignUpUser(ctx, newUser)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorMsg(err))
+		errorResponse(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -40,29 +40,25 @@ func (uc *userController) HandlerSignUp(ctx *gin.Context) {
 func (uc *userController) HandlerUpdateUser(ctx *gin.Context) {
 	id, ok := getUserID(ctx)
 	if !ok {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "user_id not found"})
+		errorResponse(ctx, http.StatusUnauthorized, fmt.Errorf("user_id not found"))
 		return
 	}
 
 	role, ok := getRole(ctx)
 	if !ok {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "role not found"})
+		errorResponse(ctx, http.StatusUnauthorized, fmt.Errorf("role not found"))
 		return
 	}
 
-	// log.Println(role)
-	// log.Println(id)
-
 	if role != models.Admin && role != models.Customer {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "role isn't applicable"})
+		errorResponse(ctx, http.StatusUnauthorized, fmt.Errorf("role not applicable"))
 		return
 	}
 
 	var updateUser models.UpdateUserDTO
 
 	if err := ctx.ShouldBindJSON(&updateUser); err != nil {
-		ctx.Error(err)
-		ctx.JSON(http.StatusBadRequest, errorMsg(err))
+		errorResponse(ctx, http.StatusBadRequest, err)
 		return
 	}
 
@@ -70,8 +66,7 @@ func (uc *userController) HandlerUpdateUser(ctx *gin.Context) {
 
 	user, err := uc.UserService.UpdateUser(ctx, id, updateUser)
 	if err != nil {
-		ctx.Error(err)
-		ctx.JSON(http.StatusInternalServerError, errorMsg(err))
+		errorResponse(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -81,12 +76,12 @@ func (uc *userController) HandlerUpdateUser(ctx *gin.Context) {
 func (uc *userController) HandlerDeleteUser(ctx *gin.Context) {
 	id, ok := getUserID(ctx)
 	if !ok {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "user_id not found"})
+		errorResponse(ctx, http.StatusUnauthorized, fmt.Errorf("user_id not found"))
 		return
 	}
 
 	if err := uc.UserService.DeleteUser(ctx, id); err != nil {
-		ctx.JSON(http.StatusNotFound, errorMsg(err))
+		errorResponse(ctx, http.StatusNotFound, err)
 		return
 	}
 
@@ -97,13 +92,13 @@ func (uc *userController) HandlerLogIn(ctx *gin.Context) {
 	var login models.LogIn
 
 	if err := ctx.ShouldBindJSON(&login); err != nil {
-		ctx.JSON(http.StatusBadRequest, errorMsg(err))
+		errorResponse(ctx, http.StatusBadRequest, err)
 		return
 	}
 
 	token, err := uc.UserService.LogInUser(ctx, login)
 	if err != nil {
-		ctx.JSON(http.StatusNotFound, errorMsg(err))
+		errorResponse(ctx, http.StatusNotFound, err)
 		return
 	}
 
@@ -116,12 +111,12 @@ func (uc *userController) HandlerLogIn(ctx *gin.Context) {
 func (uc *userController) HandlerLogout(ctx *gin.Context) {
 	id, ok := getUserID(ctx)
 	if !ok {
-		ctx.JSON(http.StatusBadRequest, errorMsg(fmt.Errorf("cant' get user ID")))
+		errorResponse(ctx, http.StatusUnauthorized, fmt.Errorf("can't get user-id"))
 		return
 	}
 
 	if err := uc.UserService.LogoutUser(ctx, id); err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorMsg(err))
+		errorResponse(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -138,7 +133,7 @@ func (uc *userController) HandlerGetUserByID(ctx *gin.Context) {
 
 	user, err := uc.UserService.FindUserByID(ctx, id)
 	if err != nil {
-		ctx.JSON(http.StatusNotFound, errorMsg(err))
+		errorResponse(ctx, http.StatusNotFound, err)
 		return
 	}
 
