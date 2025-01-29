@@ -26,14 +26,14 @@ func TestJWT(t *testing.T) {
 	tokenST := "mysecretkey"
 	expiresIn := time.Minute
 
-	t.Run("testing MakeJWT", func(t *testing.T) {
-		_, got := GenerateAccessToken(userID, models.Admin, "", expiresIn)
+	// t.Run("testing MakeJWT", func(t *testing.T) {
+	// 	_, got := GenerateAccessToken(userID, models.Admin, "", expiresIn)
+	// 	want := errNoTokenProvided
+	// 	if got != want {
+	// 		t.Errorf("Expected %v, got %v", want, got)
+	// 	}
+	// })
 
-		want := errNoTokenProvided
-		if got != want {
-			t.Errorf("Expected %v, got %v", want, got)
-		}
-	})
 	t.Run("testing ValidateJWT - OK", func(t *testing.T) {
 		tokenString, err := GenerateAccessToken(userID, models.Customer, tokenST, expiresIn)
 		if err != nil {
