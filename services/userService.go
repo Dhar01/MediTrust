@@ -123,8 +123,8 @@ func (us *userService) UpdateUser(ctx context.Context, userID uuid.UUID, user mo
 	person := models.User{
 		ID: userID,
 		Name: models.Name{
-			FirstName: updateStrPointerField(user.Name.FirstName, oldInfo.Name.FirstName),
-			LastName:  updateStrPointerField(user.Name.LastName, oldInfo.Name.LastName),
+			FirstName: updateField(user.Name.FirstName, oldInfo.Name.FirstName),
+			LastName:  updateField(user.Name.LastName, oldInfo.Name.LastName),
 		},
 		Role:    oldInfo.Role,
 		Email:   updateField(user.Email, oldInfo.Email),
@@ -194,14 +194,6 @@ func toUserDTODomain(user models.User) models.UserResponseDTO {
 }
 
 func updateField(newValue, oldValue string) string {
-	if newValue == "" {
-		return oldValue
-	}
-
-	return newValue
-}
-
-func updateStrPointerField(newValue, oldValue string) string {
 	if newValue == "" {
 		return oldValue
 	}

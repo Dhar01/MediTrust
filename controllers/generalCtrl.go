@@ -31,21 +31,21 @@ func (ctrl *controller) HandlerReset(ctx *gin.Context) {
 		return
 	}
 
-	if err := ctrl.GeneralService.ResetMedicineService(ctx); err != nil {
+	if err := ctrl.GeneralService.ResetMedicineService(ctx.Request.Context()); err != nil {
 		errorResponse(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
 	log.Println("Medicine database reset successfully!")
 
-	if err := ctrl.GeneralService.ResetAddressService(ctx); err != nil {
+	if err := ctrl.GeneralService.ResetAddressService(ctx.Request.Context()); err != nil {
 		errorResponse(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
 	log.Println("Address database reset successfully!")
 
-	if err := ctrl.GeneralService.ResetUserService(ctx); err != nil {
+	if err := ctrl.GeneralService.ResetUserService(ctx.Request.Context()); err != nil {
 		errorResponse(ctx, http.StatusInternalServerError, err)
 		return
 	}
@@ -62,7 +62,7 @@ func (ctrl *controller) HandlerRefresh(ctx *gin.Context) {
 		return
 	}
 
-	token, err := ctrl.GeneralService.GenerateToken(ctx, refreshToken)
+	token, err := ctrl.GeneralService.GenerateToken(ctx.Request.Context(), refreshToken)
 	if err != nil {
 		errorResponse(ctx, http.StatusUnauthorized, err)
 		return
@@ -80,7 +80,7 @@ func (ctrl *controller) HandlerRevoke(ctx *gin.Context) {
 		ctx.Status(http.StatusUnauthorized)
 		return
 	}
-	if err := ctrl.GeneralService.RevokeRefreshToken(ctx, refreshToken); err != nil {
+	if err := ctrl.GeneralService.RevokeRefreshToken(ctx.Request.Context(), refreshToken); err != nil {
 		errorResponse(ctx, http.StatusUnauthorized, err)
 		return
 	}
