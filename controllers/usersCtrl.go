@@ -130,6 +130,7 @@ func (uc *userController) HandlerLogout(ctx *gin.Context) {
 }
 
 func (uc *userController) HandlerGetUserByID(ctx *gin.Context) {
+
 	id, ok := getUserID(ctx)
 	if !ok {
 		return

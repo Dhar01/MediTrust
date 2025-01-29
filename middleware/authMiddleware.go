@@ -12,10 +12,14 @@ import (
 func AdminAuth(secret string) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		id, role, err := getAuth(ctx, secret)
-		if err != nil || role != models.Admin {
+		if err != nil {
 			ctx.Error(err)
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired token"})
 			return
+		}
+
+		if role != models.Admin {
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "user not supported"})
 		}
 
 		// * uncomment in production
@@ -45,13 +49,15 @@ func IsLoggedIn(secret string) gin.HandlerFunc {
 func getAuth(ctx *gin.Context, secret string) (uuid.UUID, string, error) {
 	token, err := auth.GetBearerToken(ctx.Request.Header)
 	if err != nil {
+		ctx.Error(err)
 		return wrapNilError(err)
 	}
 
 	// log.Println(token)
 
-	id, role, err := auth.ValidateJWT(token, secret)
+	id, role, err := auth.ValidateAccessToken(token, secret)
 	if err != nil {
+		ctx.Error(err)
 		return wrapNilError(err)
 	}
 
