@@ -87,6 +87,10 @@ func (us *userService) LogInUser(ctx context.Context, login models.LogIn) (model
 		return wrapTokenResponseError(err)
 	}
 
+	if _, err := us.Repo.GetVerification(ctx, user.ID); err != nil {
+		return wrapTokenResponseError(err)
+	}
+
 	if err = auth.CheckPasswordHash(login.Password, user.HashPassword); err != nil {
 		return wrapTokenResponseError(err)
 	}
@@ -114,6 +118,12 @@ func (us *userService) LogInUser(ctx context.Context, login models.LogIn) (model
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	}, nil
+}
+
+func(us *userService) SetVerifiedUser(ctx, token string) error {
+
+
+	return nil
 }
 
 func (us *userService) LogoutUser(ctx context.Context, id uuid.UUID) error {
