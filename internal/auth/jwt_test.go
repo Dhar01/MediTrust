@@ -49,8 +49,12 @@ func TestJWT(t *testing.T) {
 		tokenString, err := GenerateVerificationToken(userID, models.Customer, tokenST)
 		assertMessage(t, err)
 
-		_, err = ValidateVerificationToken(tokenString, tokenST)
+		id, err := ValidateVerificationToken(tokenString, tokenST)
 		assertMessage(t, err)
+
+		if userID != id {
+			t.Errorf("Expected UUIDs to be same; \ngot %v, original %v", id, userID)
+		}
 	})
 	t.Run("testing VerificationToken - Not OK", func(t *testing.T) {
 		tokenString, err := GenerateVerificationToken(userID, models.Admin, "noSecret")
