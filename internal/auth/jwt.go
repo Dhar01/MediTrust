@@ -80,7 +80,7 @@ func GenerateVerificationToken(userid uuid.UUID, role, tokenSecret string) (stri
 		return wrapEmptyError(fmt.Errorf("GenerateVerificationToken: %w", err))
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodES256, Claims{
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims{
 		UserID: userid,
 		Role:   role,
 		RegisteredClaims: jwt.RegisteredClaims{
