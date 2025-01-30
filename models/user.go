@@ -102,4 +102,6 @@ type UserRepository interface {
 	CountAvailableUsers(ctx context.Context) (int, error)
 	GetUserRole(ctx context.Context, id uuid.UUID) (string, error)
 	Logout(ctx context.Context, id uuid.UUID) error
+	GetVerification(ctx context.Context, id uuid.UUID) (bool, error)
+	SetVerification(ctx context.Context, id uuid.UUID) error
 }
