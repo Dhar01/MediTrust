@@ -24,6 +24,7 @@ func UserRoutes(router *gin.RouterGroup, cfg *config.Config) {
 	router.POST(usersBase, userCtrl.HandlerSignUp)
 	router.POST("/signup", userCtrl.HandlerSignUp)
 	router.POST("/login", userCtrl.HandlerLogIn)
+	router.POST("/verify", userCtrl.HandlerVerify)
 
 	// PUT route for users
 	router.PUT(usersBase, middleware.IsLoggedIn(cfg.SecretKey), userCtrl.HandlerUpdateUser)

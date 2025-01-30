@@ -150,6 +150,10 @@ func (uc *userController) HandlerGetUserByID(ctx *gin.Context) {
 	ctx.JSON(http.StatusFound, user)
 }
 
+func (us *userController) HandlerVerify(ctx *gin.Context) {
+	
+}
+
 func getUserID(ctx *gin.Context) (uuid.UUID, bool) {
 	userID, exists := ctx.Get("user_id")
 	if !exists {
