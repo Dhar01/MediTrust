@@ -183,6 +183,18 @@ func (q *Queries) GetUserByPhone(ctx context.Context, phone string) (User, error
 	return i, err
 }
 
+const getVerified = `-- name: GetVerified :one
+SELECT verified FROM users
+WHERE id = $1
+`
+
+func (q *Queries) GetVerified(ctx context.Context, id uuid.UUID) (bool, error) {
+	row := q.db.QueryRowContext(ctx, getVerified, id)
+	var verified bool
+	err := row.Scan(&verified)
+	return verified, err
+}
+
 const resetUsers = `-- name: ResetUsers :exec
 DELETE FROM users
 `
