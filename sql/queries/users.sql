@@ -52,6 +52,10 @@ SET
     updated_at = NOW()
 WHERE id = $1;
 
+-- name: GetVerified :one
+SELECT verified FROM users
+WHERE id = $1;
+
 -- name: DeleteUser :exec
 DELETE FROM users
 WHERE id = $1;
