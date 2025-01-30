@@ -46,6 +46,7 @@ type User struct {
 	Age          int32
 	Role         string
 	Email        string
+	Verified     bool
 	Phone        string
 	PasswordHash string
 	CreatedAt    time.Time

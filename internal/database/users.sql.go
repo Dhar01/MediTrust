@@ -37,7 +37,7 @@ INSERT INTO users (
     NOW(),
     NOW()
 )
-RETURNING id, first_name, last_name, age, role, email, phone, password_hash, created_at, updated_at
+RETURNING id, first_name, last_name, age, role, email, verified, phone, password_hash, created_at, updated_at
 `
 
 type CreateUserParams struct {
@@ -68,6 +68,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Age,
 		&i.Role,
 		&i.Email,
+		&i.Verified,
 		&i.Phone,
 		&i.PasswordHash,
 		&i.CreatedAt,
@@ -114,7 +115,7 @@ func (q *Queries) GetRole(ctx context.Context, id uuid.UUID) (string, error) {
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, first_name, last_name, age, role, email, phone, password_hash, created_at, updated_at FROM users WHERE email = $1
+SELECT id, first_name, last_name, age, role, email, verified, phone, password_hash, created_at, updated_at FROM users WHERE email = $1
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
@@ -127,6 +128,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.Age,
 		&i.Role,
 		&i.Email,
+		&i.Verified,
 		&i.Phone,
 		&i.PasswordHash,
 		&i.CreatedAt,
@@ -136,7 +138,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, first_name, last_name, age, role, email, phone, password_hash, created_at, updated_at FROM users WHERE id = $1
+SELECT id, first_name, last_name, age, role, email, verified, phone, password_hash, created_at, updated_at FROM users WHERE id = $1
 `
 
 func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
@@ -149,6 +151,7 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.Age,
 		&i.Role,
 		&i.Email,
+		&i.Verified,
 		&i.Phone,
 		&i.PasswordHash,
 		&i.CreatedAt,
@@ -158,7 +161,7 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 }
 
 const getUserByPhone = `-- name: GetUserByPhone :one
-SELECT id, first_name, last_name, age, role, email, phone, password_hash, created_at, updated_at FROM users WHERE phone = $1
+SELECT id, first_name, last_name, age, role, email, verified, phone, password_hash, created_at, updated_at FROM users WHERE phone = $1
 `
 
 func (q *Queries) GetUserByPhone(ctx context.Context, phone string) (User, error) {
@@ -171,6 +174,7 @@ func (q *Queries) GetUserByPhone(ctx context.Context, phone string) (User, error
 		&i.Age,
 		&i.Role,
 		&i.Email,
+		&i.Verified,
 		&i.Phone,
 		&i.PasswordHash,
 		&i.CreatedAt,
@@ -188,6 +192,19 @@ func (q *Queries) ResetUsers(ctx context.Context) error {
 	return err
 }
 
+const setVerified = `-- name: SetVerified :exec
+UPDATE users
+SET
+    verified = TRUE,
+    updated_at = NOW()
+WHERE id = $1
+`
+
+func (q *Queries) SetVerified(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, setVerified, id)
+	return err
+}
+
 const updateUser = `-- name: UpdateUser :one
 UPDATE users
 SET
@@ -198,7 +215,7 @@ SET
     phone = $5,
     updated_at = NOW()
 WHERE id = $6
-RETURNING id, first_name, last_name, age, role, email, phone, password_hash, created_at, updated_at
+RETURNING id, first_name, last_name, age, role, email, verified, phone, password_hash, created_at, updated_at
 `
 
 type UpdateUserParams struct {
@@ -227,6 +244,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		&i.Age,
 		&i.Role,
 		&i.Email,
+		&i.Verified,
 		&i.Phone,
 		&i.PasswordHash,
 		&i.CreatedAt,
