@@ -151,7 +151,14 @@ func (uc *userController) HandlerGetUserByID(ctx *gin.Context) {
 }
 
 func (us *userController) HandlerVerify(ctx *gin.Context) {
-	
+	token := ctx.Query("token")
+
+	if err := us.UserService.SetVerifiedUser(ctx.Request.Context(), token); err != nil {
+		errorResponse(ctx, http.StatusBadRequest, err)
+		return
+	}
+
+	ctx.Status(http.StatusAccepted)
 }
 
 func getUserID(ctx *gin.Context) (uuid.UUID, bool) {
