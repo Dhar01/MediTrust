@@ -89,6 +89,7 @@ type UserService interface {
 	UpdateUser(ctx context.Context, userID uuid.UUID, user UpdateUserDTO) (UserResponseDTO, error)
 	DeleteUser(ctx context.Context, userID uuid.UUID) error
 	LogoutUser(ctx context.Context, id uuid.UUID) error
+	SetVerifiedUser(ctx context.Context, token string) error
 }
 
 type UserRepository interface {

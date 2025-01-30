@@ -14,4 +14,11 @@ var (
 	RootPath     string = "/"
 	TokenRefresh string = "refresh_token"
 	TokenNull    string = ""
+
+	BackendEmail string = "test@example.com"
+
+	Host     string = "smtp.example.com"
+	Port     int    = 587
+	Username        = "user"
+	Password        = "123456"
 )
