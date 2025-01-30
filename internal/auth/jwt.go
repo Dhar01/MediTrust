@@ -99,22 +99,22 @@ func GenerateVerificationToken(userid uuid.UUID, role, tokenSecret string) (stri
 }
 
 // Validate Verification Token
-func ValidateVerificationToken(tokenString, tokenSecret string) (bool, error) {
+func ValidateVerificationToken(tokenString, tokenSecret string) (uuid.UUID, error) {
 	token, err := getToken(tokenString, tokenSecret)
 	if err != nil {
-		return false, fmt.Errorf("ValidateVerificationToken: %w", err)
+		return uuid.Nil, fmt.Errorf("ValidateVerificationToken: %w", err)
 	}
 
 	claims, ok := token.Claims.(*Claims)
 	if !ok || !token.Valid {
-		return false, fmt.Errorf("ValidateVerificationToken: %w", jwt.ErrSignatureInvalid)
+		return uuid.Nil, fmt.Errorf("ValidateVerificationToken: %w", jwt.ErrSignatureInvalid)
 	}
 
 	if claims.Issuer != models.CompanyName {
-		return false, fmt.Errorf("ValidateVerificationToken: %w", jwt.ErrTokenInvalidIssuer)
+		return uuid.Nil, fmt.Errorf("ValidateVerificationToken: %w", jwt.ErrTokenInvalidIssuer)
 	}
 
-	return true, nil
+	return claims.UserID, nil
 }
 
 // Get Bearer Token - Authorization
