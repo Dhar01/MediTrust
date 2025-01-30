@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
     role TEXT NOT NULL,
 
     email VARCHAR(255) NOT NULL UNIQUE,
+    verified BOOLEAN NOT NULL DEFAULT FALSE,
     phone TEXT NOT NULL UNIQUE,
 
     password_hash TEXT NOT NULL,
