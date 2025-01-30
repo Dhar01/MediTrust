@@ -45,6 +45,13 @@ SET
 WHERE id = $6
 RETURNING *;
 
+-- name: SetVerified :exec
+UPDATE users
+SET
+    verified = TRUE,
+    updated_at = NOW()
+WHERE id = $1;
+
 -- name: DeleteUser :exec
 DELETE FROM users
 WHERE id = $1;
