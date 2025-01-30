@@ -5,6 +5,7 @@ import (
 	"errors"
 	"medicine-app/internal/auth"
 	"medicine-app/models"
+	"medicine-app/utils"
 	"time"
 
 	"github.com/google/uuid"
@@ -76,6 +77,15 @@ func (us *userService) SignUpUser(ctx context.Context, user models.SignUpUser) (
 		return wrapSignUpError(err)
 	}
 
+	verifyToken, err := auth.GenerateVerificationToken(newUser.ID, newUser.Role, us.Secret)
+	if err != nil {
+		return wrapSignUpError(err)
+	}
+
+	if err := utils.SendVerificationEmail(newUser.Email, verifyToken); err != nil {
+		return wrapSignUpError(err)
+	}
+
 	return models.SignUpResponse{
 		ID: newUser.ID,
 	}, nil
@@ -120,8 +130,15 @@ func (us *userService) LogInUser(ctx context.Context, login models.LogIn) (model
 	}, nil
 }
 
-func(us *userService) SetVerifiedUser(ctx, token string) error {
+func (us *userService) SetVerifiedUser(ctx context.Context, token string) error {
+	id, err := auth.ValidateVerificationToken(token, us.Secret)
+	if err != nil {
+		return err
+	}
 
+	if err = us.Repo.SetVerification(ctx, id); err != nil {
+		return err
+	}
 
 	return nil
 }
