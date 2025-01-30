@@ -175,6 +175,23 @@ func (ur *userRepository) GetUserRole(ctx context.Context, id uuid.UUID) (string
 	return role, nil
 }
 
+func (ur *userRepository) GetVerification(ctx context.Context, id uuid.UUID) (bool, error) {
+	ok, err := ur.DB.GetVerified(ctx, id)
+	if err != nil {
+		return ok, err
+	}
+
+	return ok, nil
+}
+
+func (ur *userRepository) SetVerification(ctx context.Context, id uuid.UUID) error {
+	if err := ur.DB.SetVerified(ctx, id); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (ur *userRepository) userWithAddress(ctx context.Context, user database.User) (models.User, error) {
 	address, err := ur.DB.GetAddress(ctx, user.ID)
 	if err != nil {
