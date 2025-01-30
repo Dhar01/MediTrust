@@ -15,10 +15,11 @@ import (
 )
 
 var (
-	errNoTokenProvided    = errors.New("token secret not provided")
+	errNoSecretProvided   = errors.New("token secret not provided")
 	errAuthHeaderNotFound = errors.New("authorization header not found")
 	errNoRoleProvided     = errors.New("no role provided")
 	errNoUUIDProvided     = errors.New("no user ID provided")
+	errNoTimeProvided     = errors.New("time not provided")
 )
 
 type Claims struct {
@@ -29,16 +30,8 @@ type Claims struct {
 
 // Generate Access Token
 func GenerateAccessToken(userID uuid.UUID, role, tokenSecret string, expiresIn time.Duration) (string, error) {
-	if tokenSecret == "" {
-		return wrapEmptyError(fmt.Errorf("MakeJWT: %w", errNoTokenProvided))
-	}
-
-	if role == "" {
-		return wrapEmptyError(fmt.Errorf("MakeJWT: %w", errNoRoleProvided))
-	}
-
-	if userID == uuid.Nil {
-		return wrapEmptyError(fmt.Errorf("MakeJWT: %w", errNoUUIDProvided))
+	if err := inputChecker(userID, role, tokenSecret, expiresIn); err != nil {
+		return wrapEmptyError(fmt.Errorf("GenerateAccessToken: %w", err))
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims{
@@ -61,17 +54,7 @@ func GenerateAccessToken(userID uuid.UUID, role, tokenSecret string, expiresIn t
 
 // Validate Access Token
 func ValidateAccessToken(tokenString, tokenSecret string) (uuid.UUID, string, error) {
-	token, err := jwt.ParseWithClaims(
-		tokenString,
-		&Claims{},
-		func(t *jwt.Token) (interface{}, error) {
-			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
-			}
-			return []byte(tokenSecret), nil
-		},
-	)
-
+	token, err := getToken(tokenString, tokenSecret)
 	if err != nil {
 		return wrapUUIDError(fmt.Errorf("ValidateJWT: failed to parse token - %w", err))
 	}
@@ -86,6 +69,52 @@ func ValidateAccessToken(tokenString, tokenSecret string) (uuid.UUID, string, er
 	}
 
 	return claims.UserID, claims.Role, nil
+}
+
+/*
+Generate Verification Token - generates verification token to verify user.
+By default, it expires in 10 minutes.
+*/
+func GenerateVerificationToken(userid uuid.UUID, role, tokenSecret string) (string, error) {
+	if err := inputChecker(userid, role, tokenSecret, time.Minute); err != nil {
+		return wrapEmptyError(fmt.Errorf("GenerateVerificationToken: %w", err))
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodES256, Claims{
+		UserID: userid,
+		Role:   role,
+		RegisteredClaims: jwt.RegisteredClaims{
+			Issuer:    models.CompanyName,
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 10)),
+		},
+	})
+
+	signedToken, err := token.SignedString(([]byte(tokenSecret)))
+	if err != nil {
+		return wrapEmptyError(fmt.Errorf("GenerateVerificationToken: failed to sign token - %w", err))
+	}
+
+	return signedToken, nil
+}
+
+// Validate Verification Token
+func ValidateVerificationToken(tokenString, tokenSecret string) (bool, error) {
+	token, err := getToken(tokenString, tokenSecret)
+	if err != nil {
+		return false, fmt.Errorf("ValidateVerificationToken: %w", err)
+	}
+
+	claims, ok := token.Claims.(*Claims)
+	if !ok || !token.Valid {
+		return false, fmt.Errorf("ValidateVerificationToken: %w", jwt.ErrSignatureInvalid)
+	}
+
+	if claims.Issuer != models.CompanyName {
+		return false, fmt.Errorf("ValidateVerificationToken: %w", jwt.ErrTokenInvalidIssuer)
+	}
+
+	return true, nil
 }
 
 // Get Bearer Token - Authorization
@@ -108,6 +137,45 @@ func GenerateRefreshToken() (string, error) {
 	}
 
 	return hex.EncodeToString(b), nil
+}
+
+func getToken(tokenString, tokenSecret string) (*jwt.Token, error) {
+	token, err := jwt.ParseWithClaims(
+		tokenString,
+		&Claims{},
+		func(t *jwt.Token) (interface{}, error) {
+			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
+			}
+			return []byte(tokenSecret), nil
+		},
+	)
+
+	if err != nil {
+		return &jwt.Token{}, err
+	}
+
+	return token, nil
+}
+
+func inputChecker(id uuid.UUID, role, tokenSecret string, expiresIn time.Duration) error {
+	if tokenSecret == "" {
+		return errNoSecretProvided
+	}
+
+	if role == "" {
+		return errNoRoleProvided
+	}
+
+	if id == uuid.Nil {
+		return errNoUUIDProvided
+	}
+
+	if expiresIn < 0 {
+		return errNoTimeProvided
+	}
+
+	return nil
 }
 
 func wrapUUIDError(err error) (uuid.UUID, string, error) {
