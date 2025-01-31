@@ -29,6 +29,23 @@ func NewUserService(repo models.UserRepository, secret string) models.UserServic
 	}
 }
 
+// NewUser constructor
+func NewUser(signUp models.SignUpUser, role string) (models.User, error) {
+	hashedPass, err := auth.HashPassword(signUp.Password)
+	if err != nil {
+		return models.User{}, err
+	}
+
+	return models.User{
+		Name:         signUp.Name,
+		Email:        signUp.Email,
+		Age:          signUp.Age,
+		Phone:        signUp.Phone,
+		HashPassword: hashedPass,
+		Role:         role,
+	}, nil
+}
+
 func (us *userService) SignUpUser(ctx context.Context, user models.SignUpUser) (models.SignUpResponse, error) {
 	// check if the user exists with the associated email
 	available, _ := us.Repo.FindUser(ctx, models.Email, user.Email)
@@ -36,13 +53,7 @@ func (us *userService) SignUpUser(ctx context.Context, user models.SignUpUser) (
 		return wrapSignUpError(errUserExist)
 	}
 
-	// if not exist, then...
-	pass, err := auth.HashPassword(user.Password)
-	if err != nil {
-		return models.SignUpResponse{}, err
-	}
-
-	// first user will always be admin
+	// * first user will always be admin
 	count, err := us.Repo.CountAvailableUsers(ctx)
 	if err != nil {
 		return wrapSignUpError(err)
@@ -55,21 +66,16 @@ func (us *userService) SignUpUser(ctx context.Context, user models.SignUpUser) (
 	}
 
 	/*
-		above piece of code need to be replaced later. For the MVP, I wanted create the first
-		user as Admin. I'm planning to create a cmd to create admin.
+		TODO: above piece of code need to be replaced later.
+		* For the MVP, I wanted create the first user as Admin.
+		TODO: I'm planning to create a cmd to create admin.
 	*/
 
-	person := models.User{
-		Name: models.Name{
-			FirstName: user.Name.FirstName,
-			LastName:  user.Name.LastName,
-		},
-		Email:        user.Email,
-		Exist:        true,
-		Role:         role,
-		HashPassword: pass,
-		Age:          user.Age,
-		Phone:        user.Phone,
+	// TODO: need to work on field validation of users (below)
+
+	person, err := NewUser(user, role)
+	if err != nil {
+		return wrapSignUpError(err)
 	}
 
 	newUser, err := us.Repo.SignUp(ctx, person)
