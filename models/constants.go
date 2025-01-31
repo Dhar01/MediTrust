@@ -7,18 +7,25 @@ var (
 	Email string = "email"
 	Phone string = "phone"
 
-	// Change these two name
-	DomainName  string = "localhost"
-	CompanyName string = "company"
-
 	RootPath     string = "/"
 	TokenRefresh string = "refresh_token"
 	TokenNull    string = ""
 
+	/*
+		TODO: A cmd app to insert the value below or manually edit this file or move it to config
+	*/
+	DomainName  string = "localhost"
+	CompanyName string = "company"
+
 	BackendEmail string = "test@example.com"
 
-	Host     string = "smtp.example.com"
-	Port     int    = 587
-	Username        = "user"
-	Password        = "123456"
+	DomainPort int = 8080
+
+	SMTPPort       int    = 587
+	SMTPServer     string = ""
+	EmailAdmin     string = ""
+	EmailAdminPass string = ""
+
+	// Username string = "user"
+	// Password string = "123456"
 )
