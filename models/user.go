@@ -74,6 +74,7 @@ type Name struct {
 	FirstName string `json:"firstname,omitempty" binding:"omitempty,min=4"`
 	LastName  string `json:"lastname,omitempty" binding:"omitempty,min=4"`
 }
+
 type Address struct {
 	Country       string `json:"country,omitempty" binding:"omitempty"`
 	City          string `json:"city,omitempty" binding:"omitempty"`
