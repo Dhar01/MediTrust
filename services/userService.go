@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
+	"log"
 	"medicine-app/internal/auth"
 	"medicine-app/models"
 	"medicine-app/utils"
@@ -88,13 +90,18 @@ func (us *userService) SignUpUser(ctx context.Context, user models.SignUpUser) (
 		return wrapSignUpError(err)
 	}
 
-	if err := utils.SendVerificationEmail(newUser.Email, verifyToken); err != nil {
-		return wrapSignUpError(err)
-	}
+	// TODO: getting slow response for this.
+	sendEmail(newUser, verifyToken)
 
 	return models.SignUpResponse{
 		ID: newUser.ID,
 	}, nil
+}
+
+func sendEmail(user models.User, token string) {
+	if err := utils.SendVerificationEmail(user.Email, user.Name.FirstName, models.DomainName, token, models.DomainPort); err != nil {
+		log.Println(err)
+	}
 }
 
 func (us *userService) LogInUser(ctx context.Context, login models.LogIn) (models.TokenResponseDTO, error) {
@@ -103,8 +110,13 @@ func (us *userService) LogInUser(ctx context.Context, login models.LogIn) (model
 		return wrapTokenResponseError(err)
 	}
 
-	if _, err := us.Repo.GetVerification(ctx, user.ID); err != nil {
+	ok, err := us.Repo.GetVerification(ctx, user.ID)
+	if err != nil {
 		return wrapTokenResponseError(err)
+	}
+
+	if !ok {
+		return wrapTokenResponseError(fmt.Errorf("not verified"))
 	}
 
 	if err = auth.CheckPasswordHash(login.Password, user.HashPassword); err != nil {
