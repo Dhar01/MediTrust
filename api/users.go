@@ -19,12 +19,12 @@ func UserRoutes(router *gin.RouterGroup, cfg *config.Config) {
 
 	// GET route for users
 	router.GET(usersBase+"/:userID", middleware.AdminAuth(cfg.SecretKey), userCtrl.HandlerGetUserByID)
+	router.GET("/verify", userCtrl.HandlerVerify)
 
 	// POST route for users
 	router.POST(usersBase, userCtrl.HandlerSignUp)
 	router.POST("/signup", userCtrl.HandlerSignUp)
 	router.POST("/login", userCtrl.HandlerLogIn)
-	router.POST("/verify", userCtrl.HandlerVerify)
 
 	// PUT route for users
 	router.PUT(usersBase, middleware.IsLoggedIn(cfg.SecretKey), userCtrl.HandlerUpdateUser)
