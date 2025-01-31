@@ -40,7 +40,8 @@ Find `db_migration.sh` in the `scripts` to automate DB migration.
 
 ## To-Do
 
-- [ ] Explore more security options (mostly encryption on cookies and tokens)
+- [ ] Explore more security options (mostly encryption on cookies and tokens).
+- [ ] Build cmd or use config file for the variable setup in `constants.go`.
 
 # API-endpoints
 
@@ -61,6 +62,7 @@ Find `db_migration.sh` in the `scripts` to automate DB migration.
 | get user by ID | GET | /api/v1/users/:userID | *admin only* |
 | signup user | POST | /api/v1/signup |
 | login user | POST | /api/v1/login |
+| verify user | GET | /api/v1/verify?token=token | *auto-generated* |
 | update user | PUT | /api/v1/users |
 | logout user | POST | /api/v1/logout |
 | delete user | DELETE | /api/v1/users |
