@@ -24,6 +24,10 @@ func NewConfig() *Config {
 	platform := getEnvVariable("PLATFORM")
 	secretKey := getEnvVariable("SECRET_KEY")
 
+	// domainName := getEnvVariable("DOMAIN_NAME")
+	// companyName := getEnvVariable("COMPANY_NAME")
+	// backendEmail := getEnvVariable("EMAIL")
+
 	return &Config{
 		Platform:  platform,
 		DB:        connectDB(),
