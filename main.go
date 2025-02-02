@@ -6,6 +6,8 @@ import (
 	"medicine-app/config"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-swagno/swagno"
+	"github.com/go-swagno/swagno/components/endpoint"
 )
 
 const apiBase = "/api/v1"
@@ -18,6 +20,23 @@ func main() {
 
 	router := gin.Default()
 	router.SetTrustedProxies(nil)
+
+	// Serving Swagger docs
+	sw := swagno.New(swagno.Config{
+		Title:       "Online Medicine Store API",
+		Version:     "v1.0.0",
+		Description: "API for managing medicines and orders.",
+	})
+
+	endpoints := []*endpoint.EndPoint{
+		endpoint.New(
+			endpoint.GET,
+			"/medicines",
+			endpoint.WithTags("medicine"),
+		),
+	}
+
+	sw.AddEndpoints(endpoints)
 
 	// medicines
 	api.MedicineRoutes(router.Group(apiBase), cfg)
