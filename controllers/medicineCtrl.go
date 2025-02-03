@@ -19,6 +19,17 @@ func NewMedicineController(service models.MedicineService) *medicineController {
 	}
 }
 
+// CreateMedicine creates a medicine information - Admin only
+//	@Summary		Creates a medicine info - Admin only
+//	@Description	Create a new medicine on the store. Only an admin can create a medicine.
+//	@Tags			medicines
+//	@Accept			json
+//	@Produce		json
+//	@Param			medicine	body		models.CreateMedicineDTO	true	"Create medicine details"
+//	@Success		201			{object}	models.Medicine				"Medicine created successfully"
+//	@Failure		400			{object}	ErrorResponse				"Invalid input"
+//	@Failure		500			{object}	ErrorResponse				"Internal server error"
+//	@Router			/medicines [post]
 func (mc *medicineController) HandlerCreateMedicine(ctx *gin.Context) {
 	var newMedicine models.CreateMedicineDTO
 
@@ -36,6 +47,15 @@ func (mc *medicineController) HandlerCreateMedicine(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, medicine)
 }
 
+// GetMedicines retrieves a list of medicines
+//	@Summary		Get all medicines
+//	@Description	Fetch a list of available medicines
+//	@Tags			medicines
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	[]models.Medicine	"List of medicines"
+//	@Failure		500	{object}	ErrorResponse		"Internal server error"
+//	@Router			/medicines [get]
 func (mc *medicineController) HandlerGetMedicines(ctx *gin.Context) {
 	medicines, err := mc.MedicineService.GetMedicines(ctx.Request.Context())
 	if err != nil {
@@ -46,6 +66,17 @@ func (mc *medicineController) HandlerGetMedicines(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, medicines)
 }
 
+// GetMedicineByID retrieves a medicine by its ID
+//	@Summary		Get a medicine info by its ID
+//	@Description	Fetch information of a medicine by its ID
+//	@Tags			medicines
+//	@Accept			json
+//	@Produce		json
+//	@Param			medID	path		string			true	"Medicine ID"
+//	@Success		200		{object}	models.Medicine	"Medicine found"
+//	@Failure		400		{object}	ErrorResponse	"Invalid input"
+//	@Failure		500		{object}	ErrorResponse	"Internal server error"
+//	@Router			/medicines/{medID} [get]
 func (mc *medicineController) HandlerGetMedicineByID(ctx *gin.Context) {
 	id, ok := getMedicineID(ctx)
 	if !ok {
@@ -61,7 +92,19 @@ func (mc *medicineController) HandlerGetMedicineByID(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, medicine)
 }
 
-func (mc *medicineController) HandlerUpdateMedicine(ctx *gin.Context) {
+// UpdateMedicineByID updates a medicine information by its ID
+//	@Summary		Updates a medicine info by its ID
+//	@Description	Updates information of a medicine by its ID
+//	@Tags			medicines
+//	@Accept			json
+//	@Produce		json
+//	@Param			medID		path		string						true	"Medicine ID"
+//	@Param			medicine	body		models.UpdateMedicineDTO	true	"Updated medicine details"
+//	@Success		202			{object}	models.Medicine				"Medicine updated successfully"
+//	@Failure		400			{object}	ErrorResponse				"Invalid input"
+//	@Failure		500			{object}	ErrorResponse				"Internal server error"
+//	@Router			/medicines/{medID} [put]
+func (mc *medicineController) HandlerUpdateMedicineByID(ctx *gin.Context) {
 	id, ok := getMedicineID(ctx)
 	if !ok {
 		return
@@ -83,7 +126,19 @@ func (mc *medicineController) HandlerUpdateMedicine(ctx *gin.Context) {
 	ctx.JSON(http.StatusAccepted, medicine)
 }
 
-func (mc *medicineController) HandlerDeleteMedicine(ctx *gin.Context) {
+
+// Delete a medicine by its ID
+//	@Summary		Deletes a medicine info by its ID
+//	@Description	Deletes information of a medicine by its ID
+//	@Tags			medicines
+//	@Accept			json
+//	@Produce		json
+//	@Param			medID	path		string	true	"Medicine ID"
+//	@Success		204		{}			"Medicine deleted successfully"
+//	@Failure		400		{object}	ErrorResponse	"Invalid input"
+//	@Failure		500		{object}	ErrorResponse	"Internal server error"
+//	@Router			/medicines/{medID} [delete]
+func (mc *medicineController) HandlerDeleteMedicineByID(ctx *gin.Context) {
 	id, ok := getMedicineID(ctx)
 	if !ok {
 		return
