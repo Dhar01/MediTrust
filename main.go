@@ -5,12 +5,32 @@ import (
 	"medicine-app/api"
 	"medicine-app/config"
 
+	_ "medicine-app/docs"
+
 	"github.com/gin-gonic/gin"
-	"github.com/go-swagno/swagno"
-	"github.com/go-swagno/swagno/components/endpoint"
 )
 
 const apiBase = "/api/v1"
+
+//	@title			Online Medicine Store API
+//	@version		1.0
+//	@description	Documentation of api of online medicine store.
+//	@termsOfService	http://swagger.io/terms/
+
+//	@contact.name	API Support
+//	@contact.url	http://www.swagger.io/support
+//	@contact.email	support@swagger.io
+
+//	@license.name	Apache 2.0
+//	@license.url	http://www.apache.org/licenses/LICENSE-2.0.html
+
+//	@host		localhost:8080
+//	@BasePath	/api/v1
+
+//	@securityDefinitions.basic	BasicAuth
+
+//	@externalDocs.description	OpenAPI
+//	@externalDocs.url			https://swagger.io/resources/open-api/
 
 func main() {
 	cfg := config.NewConfig()
@@ -20,23 +40,6 @@ func main() {
 
 	router := gin.Default()
 	router.SetTrustedProxies(nil)
-
-	// Serving Swagger docs
-	sw := swagno.New(swagno.Config{
-		Title:       "Online Medicine Store API",
-		Version:     "v1.0.0",
-		Description: "API for managing medicines and orders.",
-	})
-
-	endpoints := []*endpoint.EndPoint{
-		endpoint.New(
-			endpoint.GET,
-			"/medicines",
-			endpoint.WithTags("medicine"),
-		),
-	}
-
-	sw.AddEndpoints(endpoints)
 
 	// medicines
 	api.MedicineRoutes(router.Group(apiBase), cfg)
@@ -49,6 +52,9 @@ func main() {
 
 	// general routes
 	api.GeneralRoutes(router.Group(apiBase), cfg)
+
+	// documentation routes
+	api.DocumentationRoute(router.Group(apiBase))
 
 	port := ":8080"
 
