@@ -15,22 +15,18 @@ const apiBase = "/api/v1"
 //	@title			Online Medicine Store API
 //	@version		1.0
 //	@description	Documentation of api of online medicine store.
-//	@termsOfService	http://swagger.io/terms/
 
 //	@contact.name	API Support
-//	@contact.url	http://www.swagger.io/support
-//	@contact.email	support@swagger.io
+//	@contact.url	http://t.me/Dhar01
+//	@contact.email	loknathdhar66@gmail.com
 
-//	@license.name	Apache 2.0
-//	@license.url	http://www.apache.org/licenses/LICENSE-2.0.html
+//	@license.name	GPL v3
+//	@license.url	https://www.gnu.org/licenses/gpl-3.0.html
 
 //	@host		localhost:8080
 //	@BasePath	/api/v1
 
 //	@securityDefinitions.basic	BasicAuth
-
-//	@externalDocs.description	OpenAPI
-//	@externalDocs.url			https://swagger.io/resources/open-api/
 
 func main() {
 	cfg := config.NewConfig()
