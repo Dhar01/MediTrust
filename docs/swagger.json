@@ -32,7 +32,7 @@
                 "summary": "Get all medicines",
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "List of medicines",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -41,12 +41,190 @@
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a new medicine on the store. Only an admin can create a medicine.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "medicines"
+                ],
+                "summary": "Creates a medicine info - Admin only",
+                "parameters": [
+                    {
+                        "description": "Create medicine details",
+                        "name": "medicine",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateMedicineDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Medicine created successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.Medicine"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/medicines/{medID}": {
+            "get": {
+                "description": "Fetch information of a medicine by its ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "medicines"
+                ],
+                "summary": "Get a medicine info by its ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Medicine ID",
+                        "name": "medID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Medicine found",
+                        "schema": {
+                            "$ref": "#/definitions/models.Medicine"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Updates information of a medicine by its ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "medicines"
+                ],
+                "summary": "Updates a medicine info by its ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Medicine ID",
+                        "name": "medID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated medicine details",
+                        "name": "medicine",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdateMedicineDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Medicine updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.Medicine"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Deletes information of a medicine by its ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "medicines"
+                ],
+                "summary": "Deletes a medicine info by its ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Medicine ID",
+                        "name": "medID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Medicine deleted successfully",
+                        "schema": {
+                            "type": ""
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
                 }
@@ -54,6 +232,53 @@
         }
     },
     "definitions": {
+        "models.CreateMedicineDTO": {
+            "description": "DTO for creating a new medicine",
+            "type": "object",
+            "required": [
+                "description",
+                "dosage",
+                "manufacturer",
+                "name",
+                "price",
+                "stock"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "dosage": {
+                    "type": "string"
+                },
+                "manufacturer": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "stock": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        "models.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "HTTP status code",
+                    "type": "integer"
+                },
+                "message": {
+                    "description": "Human-readable error message",
+                    "type": "string"
+                }
+            }
+        },
         "models.Medicine": {
             "description": "Medicine entity contains details about a medicine",
             "type": "object",
@@ -93,6 +318,30 @@
                 "updated_at": {
                     "description": "Medicine update time - auto-generated by the database",
                     "type": "string"
+                }
+            }
+        },
+        "models.UpdateMedicineDTO": {
+            "description": "DTO for updating a medicine information",
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "dosage": {
+                    "type": "string"
+                },
+                "manufacturer": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "integer"
+                },
+                "stock": {
+                    "type": "integer"
                 }
             }
         }
