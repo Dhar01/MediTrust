@@ -10,6 +10,12 @@ type ReqToken struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
+// ErrorResponse defines the structure of an error response
+type ErrorResponse struct {
+	Message string `json:"message"` // Human-readable error message
+	Code    int    `json:"code"` // HTTP status code
+}
+
 type GeneralService interface {
 	ResetMedicineService(ctx context.Context) error
 	ResetUserService(ctx context.Context) error
