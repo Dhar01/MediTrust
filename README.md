@@ -75,6 +75,12 @@ Find `db_migration.sh` in the `scripts` to automate DB migration.
 |------|--------|-------|------|
 | reset DB | POST | /api/v1/reset | *dev* environment only |
 
+# Documentation
+
+> Experimental
+
+Run the project and see the documentation at `http://localhost:8080/api/v1/swagger/index.html`.
+
 # Status
 
 ![code coverage badge](https://github.com/Dhar01/medicine-app/actions/workflows/ci.yml/badge.svg)
