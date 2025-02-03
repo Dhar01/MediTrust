@@ -104,5 +104,8 @@ func getRefreshToken(ctx *gin.Context) (string, bool) {
 
 func errorResponse(ctx *gin.Context, code int, err error) {
 	ctx.Error(err)
-	ctx.JSON(code, gin.H{"error": err.Error()})
+	ctx.JSON(code, models.ErrorResponse{
+		Message: err.Error(),
+		Code:    code,
+	})
 }
