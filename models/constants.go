@@ -11,6 +11,8 @@ var (
 	TokenRefresh string = "refresh_token"
 	TokenNull    string = ""
 
+	Dev string = "dev"
+
 	/*
 		TODO: A cmd app to insert the value below or manually edit this file or move it to config
 	*/

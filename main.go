@@ -4,6 +4,7 @@ import (
 	"log"
 	"medicine-app/api"
 	"medicine-app/config"
+	"medicine-app/models"
 
 	_ "medicine-app/docs"
 
@@ -31,8 +32,9 @@ const apiBase = "/api/v1"
 func main() {
 	cfg := config.NewConfig()
 
-	// uncomment this line for production
-	// gin.SetMode(gin.ReleaseMode)
+	if cfg.Platform != models.Dev {
+		gin.SetMode(gin.ReleaseMode)
+	}
 
 	router := gin.Default()
 	router.SetTrustedProxies(nil)
