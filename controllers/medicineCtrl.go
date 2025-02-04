@@ -20,6 +20,7 @@ func NewMedicineController(service models.MedicineService) *medicineController {
 }
 
 // CreateMedicine creates a medicine information - Admin only
+//
 //	@Summary		Creates a medicine info - Admin only
 //	@Description	Create a new medicine on the store. Only an admin can create a medicine.
 //	@Tags			medicines
@@ -48,6 +49,7 @@ func (mc *medicineController) HandlerCreateMedicine(ctx *gin.Context) {
 }
 
 // GetMedicines retrieves a list of medicines
+//
 //	@Summary		Get all medicines
 //	@Description	Fetch a list of available medicines
 //	@Tags			medicines
@@ -67,6 +69,7 @@ func (mc *medicineController) HandlerGetMedicines(ctx *gin.Context) {
 }
 
 // GetMedicineByID retrieves a medicine by its ID
+//
 //	@Summary		Get a medicine info by its ID
 //	@Description	Fetch information of a medicine by its ID
 //	@Tags			medicines
@@ -77,7 +80,8 @@ func (mc *medicineController) HandlerGetMedicines(ctx *gin.Context) {
 //	@Failure		400		{object}	models.ErrorResponse	"Invalid input"
 //	@Failure		500		{object}	models.ErrorResponse	"Internal server error"
 //	@Router			/medicines/{medID} [get]
-// @example 
+//
+// @example
 func (mc *medicineController) HandlerGetMedicineByID(ctx *gin.Context) {
 	id, ok := getMedicineID(ctx)
 	if !ok {
@@ -94,6 +98,7 @@ func (mc *medicineController) HandlerGetMedicineByID(ctx *gin.Context) {
 }
 
 // UpdateMedicineByID updates a medicine information by its ID
+//
 //	@Summary		Updates a medicine info by its ID
 //	@Description	Updates information of a medicine by its ID
 //	@Tags			medicines
@@ -127,8 +132,8 @@ func (mc *medicineController) HandlerUpdateMedicineByID(ctx *gin.Context) {
 	ctx.JSON(http.StatusAccepted, medicine)
 }
 
-
-// Delete a medicine by its ID
+// DeleteMedicineByID deletes a medicine by its ID
+//
 //	@Summary		Deletes a medicine info by its ID
 //	@Description	Deletes information of a medicine by its ID
 //	@Tags			medicines
