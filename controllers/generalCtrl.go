@@ -9,8 +9,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var dev = "dev"
-
 type controller struct {
 	GeneralService models.GeneralService
 	Platform       string
@@ -26,7 +24,7 @@ func NewController(service models.GeneralService, platform string) *controller {
 func (ctrl *controller) HandlerReset(ctx *gin.Context) {
 	log.Println(ctrl.Platform)
 
-	if ctrl.Platform != dev {
+	if ctrl.Platform != models.Dev {
 		ctx.Status(http.StatusForbidden)
 		return
 	}
