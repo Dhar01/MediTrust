@@ -286,11 +286,15 @@ const docTemplate = `{
             "properties": {
                 "code": {
                     "description": "HTTP status code",
-                    "type": "integer"
+                    "type": "integer",
+                    "format": "int",
+                    "example": 500
                 },
                 "message": {
                     "description": "Human-readable error message",
-                    "type": "string"
+                    "type": "string",
+                    "format": "string",
+                    "example": "Internal server error"
                 }
             }
         },

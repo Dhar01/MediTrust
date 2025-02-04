@@ -11,11 +11,12 @@ type ReqToken struct {
 }
 
 // ErrorResponse defines the structure of an error response
+//
 //	@description	This struct represents the response structure for error handling.
 //	@example		{ "code": 500, "message": "Internal server error"}
 type ErrorResponse struct {
-	Message string `json:"message"` // Human-readable error message
-	Code    int    `json:"code"` // HTTP status code
+	Message string `json:"message" example:"Internal server error" format:"string"` // Human-readable error message
+	Code    int    `json:"code" example:"500" format:"int"`                         // HTTP status code
 }
 
 type GeneralService interface {
