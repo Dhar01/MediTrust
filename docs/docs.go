@@ -273,6 +273,7 @@ const docTemplate = `{
             }
         },
         "models.ErrorResponse": {
+            "description": "This struct represents the response structure for error handling.",
             "type": "object",
             "properties": {
                 "code": {
@@ -314,11 +315,11 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "price": {
-                    "description": "Medicine Price",
+                    "description": "Medicine price",
                     "type": "integer"
                 },
                 "stock": {
-                    "description": "Medicine Quantity",
+                    "description": "Medicine stock",
                     "type": "integer"
                 },
                 "updated_at": {
