@@ -38,9 +38,13 @@ definitions:
     properties:
       code:
         description: HTTP status code
+        example: 500
+        format: int
         type: integer
       message:
         description: Human-readable error message
+        example: Internal server error
+        format: string
         type: string
     type: object
   models.Medicine:
