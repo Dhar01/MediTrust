@@ -27,8 +27,8 @@ func NewMedicineController(service models.MedicineService) *medicineController {
 //	@Produce		json
 //	@Param			medicine	body		models.CreateMedicineDTO	true	"Create medicine details"
 //	@Success		201			{object}	models.Medicine				"Medicine created successfully"
-//	@Failure		400			{object}	models.ErrorResponse				"Invalid input"
-//	@Failure		500			{object}	models.ErrorResponse				"Internal server error"
+//	@Failure		400			{object}	models.ErrorResponse		"Invalid input"
+//	@Failure		500			{object}	models.ErrorResponse		"Internal server error"
 //	@Router			/medicines [post]
 func (mc *medicineController) HandlerCreateMedicine(ctx *gin.Context) {
 	var newMedicine models.CreateMedicineDTO
@@ -53,8 +53,8 @@ func (mc *medicineController) HandlerCreateMedicine(ctx *gin.Context) {
 //	@Tags			medicines
 //	@Accept			json
 //	@Produce		json
-//	@Success		200	{object}	[]models.Medicine	"List of medicines"
-//	@Failure		500	{object}	models.ErrorResponse		"Internal server error"
+//	@Success		200	{object}	[]models.Medicine		"List of medicines"
+//	@Failure		500	{object}	models.ErrorResponse	"Internal server error"
 //	@Router			/medicines [get]
 func (mc *medicineController) HandlerGetMedicines(ctx *gin.Context) {
 	medicines, err := mc.MedicineService.GetMedicines(ctx.Request.Context())
@@ -72,11 +72,12 @@ func (mc *medicineController) HandlerGetMedicines(ctx *gin.Context) {
 //	@Tags			medicines
 //	@Accept			json
 //	@Produce		json
-//	@Param			medID	path		string			true	"Medicine ID"
-//	@Success		200		{object}	models.Medicine	"Medicine found"
+//	@Param			medID	path		string					true	"Medicine ID"
+//	@Success		200		{object}	models.Medicine			"Medicine found"
 //	@Failure		400		{object}	models.ErrorResponse	"Invalid input"
 //	@Failure		500		{object}	models.ErrorResponse	"Internal server error"
 //	@Router			/medicines/{medID} [get]
+// @example 
 func (mc *medicineController) HandlerGetMedicineByID(ctx *gin.Context) {
 	id, ok := getMedicineID(ctx)
 	if !ok {
@@ -101,8 +102,8 @@ func (mc *medicineController) HandlerGetMedicineByID(ctx *gin.Context) {
 //	@Param			medID		path		string						true	"Medicine ID"
 //	@Param			medicine	body		models.UpdateMedicineDTO	true	"Updated medicine details"
 //	@Success		202			{object}	models.Medicine				"Medicine updated successfully"
-//	@Failure		400			{object}	models.ErrorResponse				"Invalid input"
-//	@Failure		500			{object}	models.ErrorResponse				"Internal server error"
+//	@Failure		400			{object}	models.ErrorResponse		"Invalid input"
+//	@Failure		500			{object}	models.ErrorResponse		"Internal server error"
 //	@Router			/medicines/{medID} [put]
 func (mc *medicineController) HandlerUpdateMedicineByID(ctx *gin.Context) {
 	id, ok := getMedicineID(ctx)
