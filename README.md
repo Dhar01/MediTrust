@@ -1,9 +1,8 @@
-# medicine-app
+# 🏥 MediTrust
 
-A medicine e-commerce backend in Go.
+Fast and reliable backend for an online pharmacy, powered by Go and PostgreSQL.
 
-
-## SetUp
+## ⚙️ SetUp
 
 This project uses Go and PostgresSQL. Please ensure to set them up before proceeding.
 
@@ -24,7 +23,7 @@ This project uses Go and PostgresSQL. Please ensure to set them up before procee
     ````
 
 
-## Environment Variables
+## 🔐 Environment Variables
 
 Create a `.env` file in the root directory with the following variables:
 
@@ -38,14 +37,9 @@ PLATFORM="<environment>"
 
 Find `db_migration.sh` in the `scripts` to automate DB migration.
 
-## To-Do
+# 📌 API-endpoints
 
-- [ ] Explore more security options (mostly encryption on cookies and tokens).
-- [ ] Build cmd or use config file for the variable setup in `constants.go`.
-
-# API-endpoints
-
-### Medicine
+### 💊 Medicine
 
 | name | method | route | note |
 |:-----|:------:|:------|------|
@@ -55,7 +49,7 @@ Find `db_migration.sh` in the `scripts` to automate DB migration.
 | update medicine by ID | PUT | /api/v1/medicines/:medID | *admin only* |
 | delete medicine by ID | DELETE | /api/v1/medicines/:medID | *admin only* |
 
-### Users
+### 👤 Users
 
 | name | method | route | note |
 |:-----|:------:|-------|------|
@@ -69,18 +63,25 @@ Find `db_migration.sh` in the `scripts` to automate DB migration.
 | refresh token | POST | /api/v1/refresh |
 | revoke token | POST | /api/v1/revoke |
 
-### General
+### 🔄 General
 
 | name | method | route | note |
 |------|--------|-------|------|
 | reset DB | POST | /api/v1/reset | *dev* environment only |
 
-# Documentation
+
+## ✅ To-Do
+
+- [ ] Explore more security options (mostly encryption on cookies and tokens).
+- [ ] Build cmd or use config file for the variable setup in `constants.go`.
+
+
+# 📖 Documentation
 
 > Experimental
 
 Run the project and see the documentation at `http://localhost:8080/api/v1/swagger/index.html`.
 
-# Status
+# 🚀 Status
 
 ![code coverage badge](https://github.com/Dhar01/medicine-app/actions/workflows/ci.yml/badge.svg)
