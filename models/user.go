@@ -9,6 +9,8 @@ import (
 
 // planning to use gin's default binding for validation
 
+// User represents the user entity stored in the database
+// @Description User entity contains details about a user
 type User struct {
 	ID           uuid.UUID
 	Name         Name
@@ -23,9 +25,6 @@ type User struct {
 	UpdatedAt    time.Time
 }
 
-/*
-DTO's for interacting with external request and responses
-*/
 type SignUpUser struct {
 	Name     Name   `json:"name" binding:"required"`
 	Email    string `json:"email" binding:"required,email"`
@@ -82,6 +81,8 @@ type Address struct {
 	PostalCode    string `json:"postal_code,omitempty" binding:"omitempty"`
 }
 
+// UserService defines the business logic interface for user management
+// @Description Interface for user-related business logic
 type UserService interface {
 	SignUpUser(ctx context.Context, user SignUpUser) (SignUpResponse, error) // should act as CreateUser
 	LogInUser(ctx context.Context, login LogIn) (TokenResponseDTO, error)
@@ -93,6 +94,8 @@ type UserService interface {
 	SetVerifiedUser(ctx context.Context, token string) error
 }
 
+// UserRepository defines the DB operations for users
+// @Description Interface for user database transactions
 type UserRepository interface {
 	SignUp(ctx context.Context, user User) (User, error) // should act as CreateUser
 	Delete(ctx context.Context, userID uuid.UUID) error
