@@ -229,6 +229,100 @@
                     }
                 }
             }
+        },
+        "/refresh": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "This endpoint retrieves the refresh token from the cookie and generates a new access token.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "authentication"
+                ],
+                "summary": "Generate a new access token",
+                "responses": {
+                    "201": {
+                        "description": "Access token generated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.ServerResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/reset": {
+            "post": {
+                "description": "This endpoint resets the medicine, address, and user databases.",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "general"
+                ],
+                "summary": "Reset all databases (development only)",
+                "responses": {
+                    "204": {
+                        "description": "Database reset successfully"
+                    },
+                    "403": {
+                        "description": "Forbidden – Not allowed outside development environment",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/revoke": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "This endpoint revokes the user's refresh token, effectively logging them out.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "authentication"
+                ],
+                "summary": "Revoke refresh token",
+                "responses": {
+                    "204": {
+                        "description": "Refresh token revoked successfully"
+                    },
+                    "401": {
+                        "description": "Unauthorized – Invalid or missing refresh token",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -344,6 +438,14 @@
                 }
             }
         },
+        "models.ServerResponse": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string"
+                }
+            }
+        },
         "models.UpdateMedicineDTO": {
             "description": "DTO for updating a medicine information",
             "type": "object",
@@ -378,8 +480,10 @@
         }
     },
     "securityDefinitions": {
-        "BasicAuth": {
-            "type": "basic"
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "name": "refresh-token",
+            "in": "cookie"
         }
     }
 }
