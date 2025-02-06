@@ -21,6 +21,17 @@ func NewController(service models.GeneralService, platform string) *controller {
 	}
 }
 
+// HandlerReset resets the databases in the development environment.
+//
+//	@Summary		Reset all databases (development only)
+//	@Description	This endpoint resets the medicine, address, and user databases.
+//              It is restricted to the development environment only.
+//	@Tags			general
+//	@Accept			json
+//	@Success		204	"Database reset successfully"
+//	@Failure		403	{object}	models.ErrorResponse	"Forbidden – Not allowed outside development environment"
+//	@Failure		500	{object}	models.ErrorResponse	"Internal server error"
+//	@Router			/reset [post]
 func (ctrl *controller) HandlerReset(ctx *gin.Context) {
 	log.Println(ctrl.Platform)
 
