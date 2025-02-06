@@ -53,6 +53,19 @@ func (ctrl *controller) HandlerReset(ctx *gin.Context) {
 	ctx.Status(http.StatusNoContent)
 }
 
+
+// HandlerRefresh generates a new access token using a refresh token.
+//
+//	@Summary		Generate a new access token
+//	@Description	This endpoint retrieves the refresh token from the cookie and generates a new access token.
+//	@Tags			authentication
+//	@Accept			json
+//	@Produce		json
+//	@Param			refresh-token	cookie		string					true	"Refresh token stored in the cookie"
+//	@Success		201				{object}	models.ServerResponse	"Access token generated successfully"
+//	@Failure		401				{object}	models.ErrorResponse	"Unauthorized request"
+//	@Router			/refresh [post]
+
 func (ctrl *controller) HandlerRefresh(ctx *gin.Context) {
 	refreshToken, ok := getRefreshToken(ctx)
 	if !ok {
