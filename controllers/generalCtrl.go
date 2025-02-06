@@ -72,11 +72,10 @@ func (ctrl *controller) HandlerReset(ctx *gin.Context) {
 //	@Tags			authentication
 //	@Accept			json
 //	@Produce		json
-//	@Param			refresh-token	cookie		string					true	"Refresh token stored in the cookie"
-//	@Success		201				{object}	models.ServerResponse	"Access token generated successfully"
-//	@Failure		401				{object}	models.ErrorResponse	"Unauthorized request"
+//	@Success		201	{object}	models.ServerResponse	"Access token generated successfully"
+//	@Failure		401	{object}	models.ErrorResponse	"Unauthorized request"
 //	@Router			/refresh [post]
-
+//	@Security		ApiKeyAuth
 func (ctrl *controller) HandlerRefresh(ctx *gin.Context) {
 	refreshToken, ok := getRefreshToken(ctx)
 	if !ok {
@@ -96,6 +95,18 @@ func (ctrl *controller) HandlerRefresh(ctx *gin.Context) {
 	})
 }
 
+// HandlerRevoke revokes the refresh token and logs the user out.
+//
+//	@Summary		Revoke refresh token
+//	@Description	This endpoint revokes the user's refresh token, effectively logging them out.
+//              The refresh token is retrieved from the cookie and invalidated.
+//	@Tags			authentication
+//	@Accept			json
+//	@Produce		json
+//	@Success		204	"Refresh token revoked successfully"
+//	@Failure		401	{object}	models.ErrorResponse	"Unauthorized – Invalid or missing refresh token"
+//	@Router			/revoke [post]
+//	@Security		ApiKeyAuth
 func (ctrl *controller) HandlerRevoke(ctx *gin.Context) {
 	refreshToken, ok := getRefreshToken(ctx)
 	if !ok {
