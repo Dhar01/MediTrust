@@ -62,12 +62,14 @@ type UserResponseDTO struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+// UpdateUserDTO represents the request body required for updating a user
+// @Description DTO for updating a user information
 type UpdateUserDTO struct {
 	Name    Name     `json:"name,omitempty" binding:"omitempty"`
-	Email   string   `json:"email,omitempty" binding:"omitempty,email"`
-	Age     int32    `json:"age,omitempty" binding:"omitempty,gte=18"`
-	Phone   string   `json:"phone,omitempty" binding:"omitempty,len=11"`
-	Address *Address `json:"address,omitempty" binding:"omitempty"`
+	Email   string   `json:"email,omitempty" binding:"omitempty,email" example:"user@example.com"`
+	Age     int32    `json:"age,omitempty" binding:"omitempty,gte=18" example:"18"`
+	Phone   string   `json:"phone,omitempty" binding:"omitempty,len=11" example:"01234567891"`
+	Address *Address `json:"address,omitempty" binding:"omitempty" `
 }
 type Name struct {
 	FirstName string `json:"firstname,omitempty" binding:"omitempty,min=4"`
