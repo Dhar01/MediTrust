@@ -27,7 +27,9 @@ const apiBase = "/api/v1"
 //	@host		localhost:8080
 //	@BasePath	/api/v1
 
-//	@securityDefinitions.basic	BasicAuth
+//	@securityDefinitions.apikey	ApiKeyAuth
+//	@in							cookie
+//	@name						refresh-token
 
 func main() {
 	cfg := config.NewConfig()
