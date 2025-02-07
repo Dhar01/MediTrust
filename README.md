@@ -41,39 +41,104 @@ Find `db_migration.sh` in the `scripts` to automate DB migration.
 
 ### 💊 Medicine
 
-| name | method | route | note |
-|:-----|:------:|:------|------|
-| create medicine | POST | /api/v1/medicines | *admin only* |
-| get all medicine | GET | /api/v1/medicines |
-| get medicine by ID | GET | /api/v1/medicines/:medID |
-| update medicine by ID | PUT | /api/v1/medicines/:medID | *admin only* |
+| name                  | method | route                    | note         |
+| :-------------------- | :----: | :----------------------- | ------------ |
+| create medicine       |  POST  | /api/v1/medicines        | *admin only* |
+| get all medicine      |  GET   | /api/v1/medicines        |
+| get medicine by ID    |  GET   | /api/v1/medicines/:medID |
+| update medicine by ID |  PUT   | /api/v1/medicines/:medID | *admin only* |
 | delete medicine by ID | DELETE | /api/v1/medicines/:medID | *admin only* |
 
 ### 👤 Users
 
-| name | method | route | note |
-|:-----|:------:|-------|------|
-| get user by ID | GET | /api/v1/users/:userID | *admin only* |
-| signup user | POST | /api/v1/signup |
-| login user | POST | /api/v1/login |
-| verify user | GET | /api/v1/verify?token=token | *auto-generated* |
-| update user | PUT | /api/v1/users |
-| logout user | POST | /api/v1/logout |
-| delete user | DELETE | /api/v1/users |
-| refresh token | POST | /api/v1/refresh |
-| revoke token | POST | /api/v1/revoke |
+| name           | method | route                      | note             |
+| :------------- | :----: | -------------------------- | ---------------- |
+| get user by ID |  GET   | /api/v1/users/:userID      | *admin only*     |
+| signup user    |  POST  | /api/v1/signup             |
+| login user     |  POST  | /api/v1/login              |
+| verify user    |  GET   | /api/v1/verify?token=token | *auto-generated* |
+| update user    |  PUT   | /api/v1/users              |
+| logout user    |  POST  | /api/v1/logout             |
+| delete user    | DELETE | /api/v1/users              |
+| refresh token  |  POST  | /api/v1/refresh            |
+| revoke token   |  POST  | /api/v1/revoke             |
 
 ### 🔄 General
 
-| name | method | route | note |
-|------|--------|-------|------|
-| reset DB | POST | /api/v1/reset | *dev* environment only |
+| name     | method | route         | note                   |
+| -------- | ------ | ------------- | ---------------------- |
+| reset DB | POST   | /api/v1/reset | *dev* environment only |
 
 
-## ✅ To-Do
 
-- [ ] Explore more security options (mostly encryption on cookies and tokens).
-- [ ] Build cmd or use config file for the variable setup in `constants.go`.
+# ✅ To-Do
+
+> Goal is to achieve MVP
+
+### Authentication & Authorization
+
+- [x] User Signup
+- [x] User Login
+- [x] Email verification
+- [x] User Logout
+- [x] Token Refresh
+- [x] Token Revoke
+- [ ] Password Reset (*via email*)
+- [ ] Role-based Access control (*User/Admin*)
+
+### Product Management (Medicines)
+
+- [x] Create medicine (*admin*)
+- [x] Get all medicine
+- [x] Get medicine by ID
+- [x] Update medicine by ID (*admin*)
+- [x] Delete medicine by ID (*admin*)
+- [ ] Medicine categories & Tags
+- [ ] Search & Filter medicines
+- [ ] Pagination for large medicine lists
+
+### User Profile & Management
+
+- [x] Get user by ID (*admin*)
+- [x] Update user profile
+- [x] Delete user
+- [ ] View order history
+
+### Cart & Wishlist
+
+- [ ] Add medicine to cart
+- [ ] Remove medicine from cart
+- [ ] Save medicine to wishlist
+- [ ] Remove medicine from wishlist
+
+### Checkout & Payment
+
+- [ ] Order placement (*store order details*)
+- [ ] Integrate Payment Gateway
+- [ ] Discounts & Promo codes
+
+### Order Management
+
+- [ ] Order Tracking
+- [ ] Cancel Orders
+- [ ] Return & Refund System
+
+### Admin Panel
+
+- [x] Manage users (*Get, Delete*)
+- [x] Manage medicines (CRUD)
+- [ ] Manage orders (CRUD)
+- [ ] Generate Reports & Statistics
+
+### Security & Compliance
+
+- [ ] implement Rate Limiting & Throttling
+- [ ] implement Logging & Monitoring
+- [ ] Ensure GDPR & Data Protection Compliance
+
+### General
+
+- [x] Reset DB (*DEV environment only*)
 
 
 # 📖 Documentation
