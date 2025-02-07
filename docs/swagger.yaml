@@ -89,20 +89,26 @@ definitions:
         type: string
     type: object
   models.Name:
+    description: Contains first and last name fields
     properties:
       firstname:
+        example: John
         minLength: 4
         type: string
       lastname:
+        example: Doe
         minLength: 4
         type: string
     type: object
   models.ServerResponse:
+    description: Used for authentication responses
     properties:
       access_token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
         type: string
     type: object
   models.SignUpResponse:
+    description: Contains the unique ID of the newly created user
     properties:
       id:
         description: unique ID of the user
@@ -111,19 +117,24 @@ definitions:
         type: string
     type: object
   models.SignUpUser:
+    description: Contains required fields for creating a new user
     properties:
       age:
+        example: 25
         minimum: 18
         type: integer
       email:
+        example: user@example.com
         type: string
       name:
         $ref: '#/definitions/models.Name'
       password:
+        example: SecurePass123
         minLength: 8
         type: string
       phone:
         description: for BD phone
+        example: "01234567891"
         type: string
     required:
     - age
