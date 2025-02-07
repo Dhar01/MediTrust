@@ -13,9 +13,9 @@ import (
 
 const apiBase = "/api/v1"
 
-//	@title			Online Medicine Store API
+//	@title			MediTrust Backend API
 //	@version		1.0
-//	@description	Documentation of api of online medicine store.
+//	@description	Documentation of api of online medicine pharmacy - MediTrust
 
 //	@contact.name	API Support
 //	@contact.url	http://t.me/Dhar01

@@ -173,11 +173,11 @@ info:
     email: loknathdhar66@gmail.com
     name: API Support
     url: http://t.me/Dhar01
-  description: Documentation of api of online medicine store.
+  description: Documentation of api of online medicine pharmacy - MediTrust
   license:
     name: GPL v3
     url: https://www.gnu.org/licenses/gpl-3.0.html
-  title: Online Medicine Store API
+  title: MediTrust Backend API
   version: "1.0"
 paths:
   /medicines:
