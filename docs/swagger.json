@@ -1,8 +1,8 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "Documentation of api of online medicine store.",
-        "title": "Online Medicine Store API",
+        "description": "Documentation of api of online medicine pharmacy - MediTrust",
+        "title": "MediTrust Backend API",
         "contact": {
             "name": "API Support",
             "url": "http://t.me/Dhar01",
