@@ -12,12 +12,14 @@ import (
 )
 
 type userController struct {
-	UserService models.UserService
+	UserService models.UserProfileService
+	AuthService models.Authservice
 }
 
-func NewUserController(service models.UserService) *userController {
+func NewUserController(userService models.UserProfileService, authService models.Authservice) *userController {
 	return &userController{
-		UserService: service,
+		UserService: userService,
+		AuthService: authService,
 	}
 }
 
@@ -41,7 +43,7 @@ func (uc *userController) HandlerSignUp(ctx *gin.Context) {
 		return
 	}
 
-	signUp, err := uc.UserService.SignUpUser(ctx.Request.Context(), newUser)
+	signUp, err := uc.AuthService.SignUpUser(ctx.Request.Context(), newUser)
 	if err != nil {
 		errorResponse(ctx, http.StatusInternalServerError, err)
 		return
@@ -58,7 +60,7 @@ func (uc *userController) HandlerLogIn(ctx *gin.Context) {
 		return
 	}
 
-	token, err := uc.UserService.LogInUser(ctx.Request.Context(), login)
+	token, err := uc.AuthService.LogInUser(ctx.Request.Context(), login)
 	if err != nil {
 		errorResponse(ctx, http.StatusNotFound, err)
 		return
@@ -77,7 +79,7 @@ func (uc *userController) HandlerLogout(ctx *gin.Context) {
 		return
 	}
 
-	if err := uc.UserService.LogoutUser(ctx.Request.Context(), id); err != nil {
+	if err := uc.AuthService.LogoutUser(ctx.Request.Context(), id); err != nil {
 		errorResponse(ctx, http.StatusInternalServerError, err)
 		return
 	}
@@ -165,7 +167,7 @@ func (uc *userController) HandlerGetUserByID(ctx *gin.Context) {
 func (us *userController) HandlerVerify(ctx *gin.Context) {
 	token := ctx.DefaultQuery("token", "")
 
-	if err := us.UserService.SetVerifiedUser(ctx.Request.Context(), token); err != nil {
+	if err := us.AuthService.SetVerifiedUser(ctx.Request.Context(), token); err != nil {
 		errorResponse(ctx, http.StatusBadRequest, err)
 		return
 	}
