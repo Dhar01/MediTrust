@@ -21,6 +21,18 @@ func NewUserController(service models.UserService) *userController {
 	}
 }
 
+// HandlerSignUp will use to sign up a user
+//
+//	@Summary		Sign up a user
+//	@Description	Register a new user with email and password.
+//	@Tags			user
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		models.SignUpUser		true	"User signup request"
+//	@Success		201		{object}	models.SignUpResponse	"ID: uuid"
+//	@Failure		400		{object}	models.ErrorResponse	"Bad request received"
+//	@Failure		500		{object}	models.ErrorResponse	"Internal server error"
+//	@Router			/signup [post]
 func (uc *userController) HandlerSignUp(ctx *gin.Context) {
 	var newUser models.SignUpUser
 
