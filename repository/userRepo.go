@@ -133,30 +133,6 @@ func (ur *userRepository) FindByID(ctx context.Context, userID uuid.UUID) (model
 	return toUser(user), nil
 }
 
-func (ur *userRepository) CreateRefreshToken(ctx context.Context, token string, id uuid.UUID) error {
-	return ur.DB.CreateRefreshToken(ctx, database.CreateRefreshTokenParams{
-		Refreshtoken: token,
-		UserID:       id,
-	})
-}
-
-func (ur *userRepository) FindUserFromToken(ctx context.Context, token string) (models.User, error) {
-	user, err := ur.DB.GetUserFromRefreshToken(ctx, token)
-	if err != nil {
-		return wrapUserError(err)
-	}
-
-	return ur.userWithAddress(ctx, user)
-}
-
-func (ur *userRepository) Logout(ctx context.Context, id uuid.UUID) error {
-	if err := ur.DB.RevokeTokenByID(ctx, id); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (ur *userRepository) CountAvailableUsers(ctx context.Context) (int, error) {
 	count, err := ur.DB.CountUsers(ctx)
 	if err != nil {
@@ -164,41 +140,6 @@ func (ur *userRepository) CountAvailableUsers(ctx context.Context) (int, error) 
 	}
 
 	return int(count), nil
-}
-
-func (ur *userRepository) GetUserRole(ctx context.Context, id uuid.UUID) (string, error) {
-	role, err := ur.DB.GetRole(ctx, id)
-	if err != nil {
-		return "", err
-	}
-
-	return role, nil
-}
-
-func (ur *userRepository) GetVerification(ctx context.Context, id uuid.UUID) (bool, error) {
-	ok, err := ur.DB.GetVerified(ctx, id)
-	if err != nil {
-		return ok, err
-	}
-
-	return ok, nil
-}
-
-func (ur *userRepository) SetVerification(ctx context.Context, id uuid.UUID) error {
-	if err := ur.DB.SetVerified(ctx, id); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (ur *userRepository) userWithAddress(ctx context.Context, user database.User) (models.User, error) {
-	address, err := ur.DB.GetAddress(ctx, user.ID)
-	if err != nil {
-		return wrapUserError(err)
-	}
-
-	return toUserDomain(user, address), nil
 }
 
 func toUserDomain(dbUser database.User, address database.UserAddress) models.User {
