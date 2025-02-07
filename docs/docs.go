@@ -491,27 +491,33 @@ const docTemplate = `{
             }
         },
         "models.Name": {
+            "description": "Contains first and last name fields",
             "type": "object",
             "properties": {
                 "firstname": {
                     "type": "string",
-                    "minLength": 4
+                    "minLength": 4,
+                    "example": "John"
                 },
                 "lastname": {
                     "type": "string",
-                    "minLength": 4
+                    "minLength": 4,
+                    "example": "Doe"
                 }
             }
         },
         "models.ServerResponse": {
+            "description": "Used for authentication responses",
             "type": "object",
             "properties": {
                 "access_token": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
                 }
             }
         },
         "models.SignUpResponse": {
+            "description": "Contains the unique ID of the newly created user",
             "type": "object",
             "properties": {
                 "id": {
@@ -523,6 +529,7 @@ const docTemplate = `{
             }
         },
         "models.SignUpUser": {
+            "description": "Contains required fields for creating a new user",
             "type": "object",
             "required": [
                 "age",
@@ -534,21 +541,25 @@ const docTemplate = `{
             "properties": {
                 "age": {
                     "type": "integer",
-                    "minimum": 18
+                    "minimum": 18,
+                    "example": 25
                 },
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "user@example.com"
                 },
                 "name": {
                     "$ref": "#/definitions/models.Name"
                 },
                 "password": {
                     "type": "string",
-                    "minLength": 8
+                    "minLength": 8,
+                    "example": "SecurePass123"
                 },
                 "phone": {
                     "description": "for BD phone",
-                    "type": "string"
+                    "type": "string",
+                    "example": "01234567891"
                 }
             }
         },
