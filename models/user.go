@@ -100,18 +100,27 @@ type Address struct {
 	PostalCode    string `json:"postal_code,omitempty" binding:"omitempty" example:"1207"`
 }
 
+// * SERVICE LAYER * //
+
 // UserService defines the business logic interface for user management
 // @Description Interface for user-related business logic
-type UserService interface {
-	SignUpUser(ctx context.Context, user SignUpUser) (SignUpResponse, error) // should act as CreateUser
-	LogInUser(ctx context.Context, login LogIn) (TokenResponseDTO, error)
+type UserProfileService interface {
 	FindUserByID(ctx context.Context, userID uuid.UUID) (UserResponseDTO, error)
 	FindUserByKey(ctx context.Context, key, value string) (UserResponseDTO, error)
 	UpdateUser(ctx context.Context, userID uuid.UUID, user UpdateUserDTO) (UserResponseDTO, error)
 	DeleteUser(ctx context.Context, userID uuid.UUID) error
+}
+
+// AuthService defines the business logic interface for authentication management
+// @Description Interface for authentication-authorization related business logic
+type Authservice interface {
+	SignUpUser(ctx context.Context, user SignUpUser) (SignUpResponse, error) // should act as CreateUser
+	LogInUser(ctx context.Context, login LogIn) (TokenResponseDTO, error)
 	LogoutUser(ctx context.Context, id uuid.UUID) error
 	SetVerifiedUser(ctx context.Context, token string) error
 }
+
+// * REPOSITORY LAYER * //
 
 // UserRepository defines the DB operations for users
 // @Description Interface for user database transactions
@@ -121,11 +130,17 @@ type UserRepository interface {
 	Update(ctx context.Context, user User) (User, error)
 	FindByID(ctx context.Context, userID uuid.UUID) (User, error)
 	FindUser(ctx context.Context, key, value string) (User, error)
+	CountAvailableUsers(ctx context.Context) (int, error)
+}
+
+type AuthRepository interface {
 	CreateRefreshToken(ctx context.Context, token string, id uuid.UUID) error
 	FindUserFromToken(ctx context.Context, token string) (User, error)
-	CountAvailableUsers(ctx context.Context) (int, error)
-	GetUserRole(ctx context.Context, id uuid.UUID) (string, error)
 	Logout(ctx context.Context, id uuid.UUID) error
+}
+
+type VerificationRepository interface {
 	GetVerification(ctx context.Context, id uuid.UUID) (bool, error)
 	SetVerification(ctx context.Context, id uuid.UUID) error
+	GetUserRole(ctx context.Context, id uuid.UUID) (string, error)
 }
