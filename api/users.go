@@ -14,8 +14,12 @@ var usersBase = "/users"
 
 func UserRoutes(router *gin.RouterGroup, cfg *config.Config) {
 	userRepo := repo.NewUserRepository(cfg.DB)
-	userService := service.NewUserService(userRepo, cfg.SecretKey)
-	userCtrl := controllers.NewUserController(userService)
+	authRepo := repo.NewAuthRepository(cfg.DB)
+	verificationRepo := repo.NewVerificationRepository(cfg.DB)
+
+	userService := service.NewUserProfileService(userRepo, cfg.SecretKey)
+	authService := service.NewAuthService(authRepo, userRepo, verificationRepo, cfg.SecretKey)
+	userCtrl := controllers.NewUserController(userService, authService)
 
 	// GET route for users
 	router.GET(usersBase+"/:userID", middleware.AdminAuth(cfg.SecretKey), userCtrl.HandlerGetUserByID)
