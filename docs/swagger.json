@@ -300,7 +300,7 @@
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "This endpoint revokes the user's refresh token, effectively logging them out.",
+                "description": "This endpoint revokes the refresh token, effectively logging them out.",
                 "consumes": [
                     "application/json"
                 ],
@@ -317,6 +317,52 @@
                     },
                     "401": {
                         "description": "Unauthorized – Invalid or missing refresh token",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/signup": {
+            "post": {
+                "description": "Register a new user with email and password.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Sign up a user",
+                "parameters": [
+                    {
+                        "description": "User signup request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.SignUpUser"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "ID: uuid",
+                        "schema": {
+                            "$ref": "#/definitions/models.SignUpResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request received",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
                         "schema": {
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
@@ -438,10 +484,64 @@
                 }
             }
         },
+        "models.Name": {
+            "type": "object",
+            "properties": {
+                "firstname": {
+                    "type": "string",
+                    "minLength": 4
+                },
+                "lastname": {
+                    "type": "string",
+                    "minLength": 4
+                }
+            }
+        },
         "models.ServerResponse": {
             "type": "object",
             "properties": {
                 "access_token": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.SignUpResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "description": "unique ID of the user",
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                }
+            }
+        },
+        "models.SignUpUser": {
+            "type": "object",
+            "required": [
+                "age",
+                "email",
+                "name",
+                "password",
+                "phone"
+            ],
+            "properties": {
+                "age": {
+                    "type": "integer",
+                    "minimum": 18
+                },
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "$ref": "#/definitions/models.Name"
+                },
+                "password": {
+                    "type": "string",
+                    "minLength": 8
+                },
+                "phone": {
+                    "description": "for BD phone",
                     "type": "string"
                 }
             }
