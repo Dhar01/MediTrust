@@ -98,7 +98,7 @@ func (ctrl *controller) HandlerRefresh(ctx *gin.Context) {
 // HandlerRevoke revokes the refresh token and logs the user out.
 //
 //	@Summary		Revoke refresh token
-//	@Description	This endpoint revokes the user's refresh token, effectively logging them out.
+//	@Description	This endpoint revokes the refresh token, effectively logging them out.
 //              The refresh token is retrieved from the cookie and invalidated.
 //	@Tags			authentication
 //	@Accept			json
