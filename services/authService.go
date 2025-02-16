@@ -148,3 +148,7 @@ func (as *authService) SetVerifiedUser(ctx context.Context, token string) error 
 
 	return nil
 }
+
+func (as *authService) ResetPassEmail(ctx context.Context, email string) error {
+	return nil
+}
