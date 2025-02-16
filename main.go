@@ -60,9 +60,7 @@ func main() {
 	// documentation routes
 	api.DocumentationRoute(router.Group(apiBase))
 
-	port := ":8080"
-
-	if err := router.Run(port); err != nil {
-		log.Fatalf("can't run in port %s: %v", port, err)
+	if err := router.Run(cfg.Port); err != nil {
+		log.Fatalf("can't run in port %s: %v", cfg.Port, err)
 	}
 }
