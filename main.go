@@ -32,7 +32,11 @@ const apiBase = "/api/v1"
 //	@name						refresh-token
 
 func main() {
-	cfg := config.NewConfig()
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		log.Fatalf("Failed to load configuration: %v", err)
+	}
+	defer cfg.DBConn.Close()
 
 	if cfg.Platform != models.Dev {
 		gin.SetMode(gin.ReleaseMode)
