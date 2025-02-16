@@ -14,38 +14,53 @@ import (
 
 type Config struct {
 	DB          *database.Queries
+	DBConn      *sql.DB
 	Platform    string
 	SecretKey   string
 	EmailSender *utils.EmailSender
 }
 
-func NewConfig() *Config {
+// LoadConfig initializes and returns the application configuration
+func LoadConfig() (*Config, error) {
 	if err := godotenv.Load(); err != nil {
 		log.Fatalf("error loading .env file: %v\n", err)
 	}
 
-	platform := getEnvVariable("PLATFORM")
-	secretKey := getEnvVariable("SECRET_KEY")
+	platform := mustGetEnv("PLATFORM")
+	secretKey := mustGetEnv("SECRET_KEY")
+
+	dbConn, dbQueries, err := connectDB()
+	if err != nil {
+		return nil, err
+	}
+
+	emailSender, err := initEmailSender()
+	if err != nil {
+		return nil, err
+	}
 
 	return &Config{
 		Platform:    platform,
-		DB:          connectDB(),
 		SecretKey:   secretKey,
-		EmailSender: initEmailSender(),
-	}
+		DB:          dbQueries,
+		DBConn:      dbConn,
+		EmailSender: emailSender,
+	}, nil
 }
 
-func initEmailSender() *utils.EmailSender {
-	smtpHost := os.Getenv("SMTP_HOST")
-	smtpPort, err := strconv.Atoi(os.Getenv("SMTP_PORT"))
-	if err != nil {
-		log.Fatalf("can't get SMTP PORT")
-	}
+// initEmailSender initializes and returns an EmailSender instance.
+func initEmailSender() (*utils.EmailSender, error) {
+	smtpHost := mustGetEnv("SMTP_HOST")
+	smtpPortStr := mustGetEnv("SMTP_PORT")
+	smtpUser := mustGetEnv("SMTP_USER")
+	smtpPass := mustGetEnv("SMTP_PASS")
+	emailFrom := mustGetEnv("EMAIL_FROM")
+	domain := mustGetEnv("DOMAIN")
 
-	smtpUser := os.Getenv("SMTP_USER")
-	smtpPass := os.Getenv("SMTP_PASS")
-	emailFrom := os.Getenv("EMAIL_FROM")
-	domain := os.Getenv("DOMAIN")
+	smtpPort, err := strconv.Atoi(smtpPortStr)
+	if err != nil {
+		return nil, err
+	}
 
 	return utils.NewEmailSender(
 		smtpUser,
@@ -54,29 +69,32 @@ func initEmailSender() *utils.EmailSender {
 		domain,
 		smtpHost,
 		smtpPort,
-	)
+	), nil
 }
 
-func connectDB() *database.Queries {
-	dbURL := getEnvVariable("DB_URL")
+// connectDB initializes and returns a database connection
+func connectDB() (*sql.DB, *database.Queries, error) {
+	dbURL := mustGetEnv("DB_URL")
+
 	dbConn, err := sql.Open("postgres", dbURL)
 	if err != nil {
-		log.Fatalf("can't connect to database: %v", err)
+		return nil, nil, err
 	}
-	// defer dbConn.Close()
 
 	if err := dbConn.Ping(); err != nil {
-		log.Fatalf("Database not reachable: %v", err)
+		dbConn.Close()
+		return nil, nil, err
 	}
 
-	return database.New(dbConn)
+	return dbConn, database.New(dbConn), nil
 }
 
-func getEnvVariable(env string) string {
-	envVar := os.Getenv(env)
-	if envVar == "" {
-		log.Fatalf("%s must be set", env)
+// mustGetEnv retrieves an environment variable or logs a fatal error if missing.
+func mustGetEnv(key string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		log.Fatalf("Environment variable %s required but not set", key)
 	}
 
-	return envVar
+	return value
 }
