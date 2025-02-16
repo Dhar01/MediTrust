@@ -16,6 +16,8 @@ type authService struct {
 	UserRepo         models.UserRepository
 	VerificationRepo models.VerificationRepository
 	Secret           string
+	Domain           string
+	Port             string
 	emailSender      *utils.EmailSender
 }
 
@@ -23,7 +25,7 @@ func NewAuthService(
 	authRepo models.AuthRepository,
 	userRepo models.UserRepository,
 	verificationRepo models.VerificationRepository,
-	secret string,
+	secret, domain, port string,
 	emailSender *utils.EmailSender,
 ) models.Authservice {
 	if authRepo == nil || userRepo == nil || verificationRepo == nil {
@@ -35,6 +37,8 @@ func NewAuthService(
 		UserRepo:         userRepo,
 		VerificationRepo: verificationRepo,
 		Secret:           secret,
+		Domain:           domain,
+		Port:             port,
 		emailSender:      emailSender,
 	}
 }
@@ -88,6 +92,8 @@ func (as *authService) SignUpUser(ctx context.Context, user models.SignUpUser) (
 		Verification: true,
 		FirstName:    newUser.Name.FirstName,
 		Token:        verifyToken,
+		Domain:       as.Domain,
+		DomainPort:   as.Port,
 	}
 
 	if err := as.emailSender.SendEmail(emailOpts); err != nil {
@@ -161,7 +167,44 @@ func (as *authService) SetVerifiedUser(ctx context.Context, token string) error 
 }
 
 func (as *authService) ResetPassEmail(ctx context.Context, email string) error {
-	if _, err := as.UserRepo.FindUser(ctx, models.Email, email); err != nil {
+	user, err := as.UserRepo.FindUser(ctx, models.Email, email)
+	if err != nil {
+		return err
+	}
+
+	token, err := auth.GenerateVerificationToken(user.ID, user.Role, as.Secret)
+	if err != nil {
+		return err
+	}
+
+	emailOpts := utils.EmailOptions{
+		To:            user.Email,
+		ResetPassword: true,
+		FirstName:     user.Name.FirstName,
+		Token:         token,
+		Domain:        as.Domain,
+		DomainPort:    as.Port,
+	}
+
+	if err := as.emailSender.SendEmail(emailOpts); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (as *authService) ResetPassword(ctx context.Context, token, password string) error {
+	id, err := auth.ValidateVerificationToken(token, as.Secret)
+	if err != nil {
+		return err
+	}
+
+	pass, err := auth.HashPassword(password)
+	if err != nil {
+		return err
+	}
+
+	if err := as.UserRepo.UpdatePassword(ctx, pass, id); err != nil {
 		return err
 	}
 
