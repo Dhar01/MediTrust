@@ -2,6 +2,7 @@ package config
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"medicine-app/internal/database"
 	"medicine-app/utils"
@@ -16,6 +17,8 @@ type Config struct {
 	DB          *database.Queries
 	DBConn      *sql.DB
 	Platform    string
+	Domain      string
+	Port        string
 	SecretKey   string
 	EmailSender *utils.EmailSender
 }
@@ -28,6 +31,17 @@ func LoadConfig() (*Config, error) {
 
 	platform := mustGetEnv("PLATFORM")
 	secretKey := mustGetEnv("SECRET_KEY")
+	port := mustGetEnv("PORT")
+	domain := mustGetEnv("DOMAIN")
+
+	checkPort, err := strconv.Atoi(port)
+	if err != nil {
+		return nil, err
+	}
+
+	if checkPort < 5000 || checkPort > 10000 {
+		return nil, fmt.Errorf("Invalid port number")
+	}
 
 	dbConn, dbQueries, err := connectDB()
 	if err != nil {
@@ -44,6 +58,8 @@ func LoadConfig() (*Config, error) {
 		SecretKey:   secretKey,
 		DB:          dbQueries,
 		DBConn:      dbConn,
+		Domain:      domain,
+		Port:        port,
 		EmailSender: emailSender,
 	}, nil
 }
@@ -55,7 +71,6 @@ func initEmailSender() (*utils.EmailSender, error) {
 	smtpUser := mustGetEnv("SMTP_USER")
 	smtpPass := mustGetEnv("SMTP_PASS")
 	emailFrom := mustGetEnv("EMAIL_FROM")
-	domain := mustGetEnv("DOMAIN")
 
 	smtpPort, err := strconv.Atoi(smtpPortStr)
 	if err != nil {
@@ -66,7 +81,6 @@ func initEmailSender() (*utils.EmailSender, error) {
 		smtpUser,
 		smtpPass,
 		emailFrom,
-		domain,
 		smtpHost,
 		smtpPort,
 	), nil
