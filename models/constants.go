@@ -18,16 +18,5 @@ var (
 	*/
 	DomainName  string = "localhost"
 	CompanyName string = "company"
-
-	BackendEmail string = "test@example.com"
-
-	DomainPort int = 8080
-
-	SMTPPort       int    = 587
-	SMTPServer     string = ""
-	EmailAdmin     string = ""
-	EmailAdminPass string = ""
-
-	// Username string = "user"
-	// Password string = "123456"
+	DomainPort  int    = 8080
 )
