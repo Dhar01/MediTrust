@@ -56,6 +56,13 @@ WHERE id = $1;
 SELECT verified FROM users
 WHERE id = $1;
 
+-- name: ResetPassword :exec
+UPDATE users
+SET
+    password_hash = $1,
+    updated_at = NOW()
+WHERE id = $2;
+
 -- name: DeleteUser :exec
 DELETE FROM users
 WHERE id = $1;
