@@ -18,7 +18,7 @@ func UserRoutes(router *gin.RouterGroup, cfg *config.Config) {
 	verificationRepo := repo.NewVerificationRepository(cfg.DB)
 
 	userService := service.NewUserProfileService(userRepo, cfg.SecretKey)
-	authService := service.NewAuthService(authRepo, userRepo, verificationRepo, cfg.SecretKey)
+	authService := service.NewAuthService(authRepo, userRepo, verificationRepo, cfg.SecretKey, cfg.EmailSender)
 	userCtrl := controllers.NewUserController(userService, authService)
 
 	// GET route for users
@@ -29,7 +29,7 @@ func UserRoutes(router *gin.RouterGroup, cfg *config.Config) {
 	router.POST(usersBase, userCtrl.HandlerSignUp)
 	router.POST("/signup", userCtrl.HandlerSignUp)
 	router.POST("/login", userCtrl.HandlerLogIn)
-	router.POST(usersBase + "/reset", userCtrl.HandlerResetPassword)
+	router.POST(usersBase+"/reset", userCtrl.HandlerResetPassword)
 
 	// PUT route for users
 	router.PUT(usersBase, middleware.IsLoggedIn(cfg.SecretKey), userCtrl.HandlerUpdateUser)
