@@ -18,7 +18,7 @@ func UserRoutes(router *gin.RouterGroup, cfg *config.Config) {
 	verificationRepo := repo.NewVerificationRepository(cfg.DB)
 
 	userService := service.NewUserProfileService(userRepo, cfg.SecretKey)
-	authService := service.NewAuthService(authRepo, userRepo, verificationRepo, cfg.SecretKey, cfg.EmailSender)
+	authService := service.NewAuthService(authRepo, userRepo, verificationRepo, cfg.SecretKey, cfg.Domain, cfg.Port, cfg.EmailSender)
 	userCtrl := controllers.NewUserController(userService, authService)
 
 	// GET route for users
