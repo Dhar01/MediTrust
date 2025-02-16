@@ -48,6 +48,12 @@ type LogIn struct {
 	Password string `json:"password" binding:"required,min=8" example:"SecurePass123"`
 }
 
+// ResetPass represents the request body for password reset
+// @Description when a user forgets his/her password, they can hit this endpoint to reset
+type ResetPass struct {
+	Email string `json:"email" binding:"required,email" example:"user@example.com"`
+}
+
 // TokenResponseDTO represents the access and refresh tokens returned upon login
 // @Description Contains JWT tokens used for authentication
 type TokenResponseDTO struct {
@@ -118,6 +124,7 @@ type Authservice interface {
 	LogInUser(ctx context.Context, login LogIn) (TokenResponseDTO, error)
 	LogoutUser(ctx context.Context, id uuid.UUID) error
 	SetVerifiedUser(ctx context.Context, token string) error
+	ResetPassEmail(ctx context.Context, email string) error
 }
 
 // * REPOSITORY LAYER * //
