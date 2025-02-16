@@ -195,6 +195,24 @@ func (q *Queries) GetVerified(ctx context.Context, id uuid.UUID) (bool, error) {
 	return verified, err
 }
 
+const resetPassword = `-- name: ResetPassword :exec
+UPDATE users
+SET
+    password_hash = $1,
+    updated_at = NOW()
+WHERE id = $2
+`
+
+type ResetPasswordParams struct {
+	PasswordHash string
+	ID           uuid.UUID
+}
+
+func (q *Queries) ResetPassword(ctx context.Context, arg ResetPasswordParams) error {
+	_, err := q.db.ExecContext(ctx, resetPassword, arg.PasswordHash, arg.ID)
+	return err
+}
+
 const resetUsers = `-- name: ResetUsers :exec
 DELETE FROM users
 `
