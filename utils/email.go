@@ -9,15 +9,13 @@ import (
 type EmailSender struct {
 	dialer *gomail.Dialer
 	from   string
-	domain string
 }
 
-func NewEmailSender(username, password, from, domain, host string, port int) *EmailSender {
+func NewEmailSender(username, password, from, host string, port int) *EmailSender {
 	dialer := gomail.NewDialer(host, port, username, password)
 	return &EmailSender{
 		dialer: dialer,
 		from:   from,
-		domain: domain,
 	}
 }
 
@@ -26,6 +24,8 @@ type EmailOptions struct {
 	Verification  bool
 	ResetPassword bool
 	FirstName     string
+	Domain        string
+	DomainPort    string
 	Token         string
 }
 
@@ -33,6 +33,8 @@ func (e *EmailSender) SendEmail(opts EmailOptions) error {
 	switch {
 	case opts.Verification:
 		return e.SendVerificationEmail(opts)
+	case opts.ResetPassword:
+		return e.SendResetPasswordEmail(opts)
 	default:
 		return fmt.Errorf("invalid email type")
 	}
@@ -42,8 +44,18 @@ func (e *EmailSender) SendVerificationEmail(opts EmailOptions) error {
 	subject := "User Verification Email - MediTrust"
 	body := fmt.Sprintf(`
 		<h3>Hello %s,</h3>
-		<p>To verify your email, click here: <a href="http://%s:%d/api/v1/verify?token=%s">Verify Email</a></p>
-	`, opts.FirstName, e.domain, e.dialer.Port, opts.Token)
+		<p>To verify your email, click here: <a href="http://%s:%s/api/v1/verify?token=%s">Verify Email</a></p>
+	`, opts.FirstName, opts.Domain, opts.DomainPort, opts.Token)
+
+	return e.sendEmail(opts.To, subject, body)
+}
+
+func (e *EmailSender) SendResetPasswordEmail(opts EmailOptions) error {
+	subject := "Reset your password"
+	body := fmt.Sprintf(`
+<h3>Hello %s,</h3>
+<p>To reset your password, click here: <a href="http://%s:%s/api/v1/users/reset?token=%s">Reset password</a></p>
+	`, opts.FirstName, opts.Domain, opts.DomainPort, opts.Token)
 
 	return e.sendEmail(opts.To, subject, body)
 }
