@@ -175,8 +175,8 @@ func (us *userController) HandlerVerify(ctx *gin.Context) {
 	ctx.Status(http.StatusAccepted)
 }
 
-func (us *userController) HandlerResetPassword(ctx *gin.Context) {
-	var newResetPass models.ResetPass
+func (us *userController) HandlerRequestPasswordReset(ctx *gin.Context) {
+	var newResetPass models.RequestResetPass
 
 	if err := ctx.ShouldBindBodyWithJSON(&newResetPass); err != nil {
 		errorResponse(ctx, http.StatusBadRequest, err)
@@ -185,6 +185,24 @@ func (us *userController) HandlerResetPassword(ctx *gin.Context) {
 
 	if err := us.AuthService.ResetPassEmail(ctx.Request.Context(), newResetPass.Email); err != nil {
 		errorResponse(ctx, http.StatusInternalServerError, err)
+		return
+	}
+
+	ctx.Status(http.StatusAccepted)
+}
+
+func (us *userController) HandlerResetUpdatePass(ctx *gin.Context) {
+	token := ctx.DefaultQuery("token", "")
+
+	var password models.ResetPass
+
+	if err := ctx.ShouldBindBodyWithJSON(&password); err != nil {
+		errorResponse(ctx, http.StatusBadRequest, err)
+		return
+	}
+
+	if err := us.AuthService.ResetPassword(ctx.Request.Context(), token, password.Password); err != nil {
+		errorResponse(ctx, http.StatusBadRequest, err)
 		return
 	}
 
