@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"log"
 	"medicine-app/internal/auth"
 	"medicine-app/models"
 	"medicine-app/utils"
@@ -17,9 +16,16 @@ type authService struct {
 	UserRepo         models.UserRepository
 	VerificationRepo models.VerificationRepository
 	Secret           string
+	emailSender      *utils.EmailSender
 }
 
-func NewAuthService(authRepo models.AuthRepository, userRepo models.UserRepository, verificationRepo models.VerificationRepository, secret string) models.Authservice {
+func NewAuthService(
+	authRepo models.AuthRepository,
+	userRepo models.UserRepository,
+	verificationRepo models.VerificationRepository,
+	secret string,
+	emailSender *utils.EmailSender,
+) models.Authservice {
 	if authRepo == nil || userRepo == nil || verificationRepo == nil {
 		panic("repo can't be nil")
 	}
@@ -29,17 +35,18 @@ func NewAuthService(authRepo models.AuthRepository, userRepo models.UserReposito
 		UserRepo:         userRepo,
 		VerificationRepo: verificationRepo,
 		Secret:           secret,
+		emailSender:      emailSender,
 	}
 }
 
 func (as *authService) SignUpUser(ctx context.Context, user models.SignUpUser) (models.SignUpResponse, error) {
-	// check if the aser exists with the associated email
+	// check if the user exists with the associated email
 	available, _ := as.UserRepo.FindUser(ctx, models.Email, user.Email)
 	if available.Exist {
 		return wrapSignUpError(errUserExist)
 	}
 
-	// * first aser will always be admin
+	// * first user will always be admin
 	count, err := as.UserRepo.CountAvailableUsers(ctx)
 	if err != nil {
 		return wrapSignUpError(err)
@@ -53,11 +60,11 @@ func (as *authService) SignUpUser(ctx context.Context, user models.SignUpUser) (
 
 	/*
 		TODO: above piece of code need to be replaced later.
-		* For the MVP, I wanted create the first aser as Admin.
+		* For the MVP, I wanted create the first user as Admin.
 		TODO: I'm planning to create a cmd to create admin.
 	*/
 
-	// TODO: need to work on field validation of asers (below)
+	// TODO: need to work on field validation of users (below)
 
 	person, err := NewUser(user, role)
 	if err != nil {
@@ -75,17 +82,21 @@ func (as *authService) SignUpUser(ctx context.Context, user models.SignUpUser) (
 	}
 
 	// TODO: getting slow response for this.
-	sendEmail(newUser, verifyToken)
+
+	emailOpts := utils.EmailOptions{
+		To:           newUser.Email,
+		Verification: true,
+		FirstName:    newUser.Name.FirstName,
+		Token:        verifyToken,
+	}
+
+	if err := as.emailSender.SendEmail(emailOpts); err != nil {
+		return wrapSignUpError(err)
+	}
 
 	return models.SignUpResponse{
 		ID: newUser.ID,
 	}, nil
-}
-
-func sendEmail(user models.User, token string) {
-	if err := utils.SendVerificationEmail(user.Email, user.Name.FirstName, models.DomainName, token, models.DomainPort); err != nil {
-		log.Println(err)
-	}
 }
 
 func (as *authService) LogInUser(ctx context.Context, login models.LogIn) (models.TokenResponseDTO, error) {
@@ -150,5 +161,9 @@ func (as *authService) SetVerifiedUser(ctx context.Context, token string) error 
 }
 
 func (as *authService) ResetPassEmail(ctx context.Context, email string) error {
+	if _, err := as.UserRepo.FindUser(ctx, models.Email, email); err != nil {
+		return err
+	}
+
 	return nil
 }
