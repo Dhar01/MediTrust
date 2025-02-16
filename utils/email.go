@@ -2,27 +2,58 @@ package utils
 
 import (
 	"fmt"
-	"medicine-app/models"
 
 	"gopkg.in/gomail.v2"
 )
 
-func SendVerificationEmail(userEmail, firstName, domain, token string, port int) error {
-	m := gomail.NewMessage()
-	m.SetHeader("From", models.EmailAdmin)
-	m.SetHeader("To", userEmail)
-	m.SetHeader("Subject", "User Verification Email")
+type EmailSender struct {
+	dialer *gomail.Dialer
+	from   string
+	domain string
+}
 
-	m.SetBody("text/html", fmt.Sprintf(`
+func NewEmailSender(username, password, from, domain, host string, port int) *EmailSender {
+	dialer := gomail.NewDialer(host, port, username, password)
+	return &EmailSender{
+		dialer: dialer,
+		from:   from,
+		domain: domain,
+	}
+}
+
+type EmailOptions struct {
+	To            string
+	Verification  bool
+	ResetPassword bool
+	FirstName     string
+	Token         string
+}
+
+func (e *EmailSender) SendEmail(opts EmailOptions) error {
+	switch {
+	case opts.Verification:
+		return e.SendVerificationEmail(opts)
+	default:
+		return fmt.Errorf("invalid email type")
+	}
+}
+
+func (e *EmailSender) SendVerificationEmail(opts EmailOptions) error {
+	subject := "User Verification Email - MediTrust"
+	body := fmt.Sprintf(`
 		<h3>Hello %s,</h3>
 		<p>To verify your email, click here: <a href="http://%s:%d/api/v1/verify?token=%s">Verify Email</a></p>
-	`, firstName, domain, port, token))
+	`, opts.FirstName, e.domain, e.dialer.Port, opts.Token)
 
-	d := gomail.NewDialer(models.SMTPServer, models.SMTPPort, models.EmailAdmin, models.EmailAdminPass)
+	return e.sendEmail(opts.To, subject, body)
+}
 
-	if err := d.DialAndSend(m); err != nil {
-		return err
-	}
+func (e *EmailSender) sendEmail(to, subject, body string) error {
+	m := gomail.NewMessage()
+	m.SetHeader("From", e.from)
+	m.SetHeader("To", to)
+	m.SetHeader("Subject", subject)
+	m.SetBody("text/html", body)
 
-	return nil
+	return e.dialer.DialAndSend(m)
 }
