@@ -101,6 +101,17 @@ func (ur *userRepository) Update(ctx context.Context, user models.User) (models.
 	// return toUser(person), nil
 }
 
+func (ur *userRepository) UpdatePassword(ctx context.Context, password string, id uuid.UUID) error {
+	if err := ur.DB.ResetPassword(ctx, database.ResetPasswordParams{
+		PasswordHash: password,
+		ID:           id,
+	}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // FindUser by KEY. Key should be either Email or Phone.
 func (ur *userRepository) FindUser(ctx context.Context, key, value string) (models.User, error) {
 	var user database.User
