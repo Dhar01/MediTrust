@@ -31,6 +31,15 @@ Create a `.env` file in the root directory with the following variables:
 DB_URL="postgres://<username>:<password>@<host>:<port>/<database_name>"
 SECRET_KEY="Your Secret Key here"
 PLATFORM="<environment>"
+
+SMTP_HOST="<SMTP server host>"
+SMTP_PORT="<SMTP server port>"
+SMTP_USER="<SMTP username>"
+SMTP_PASS="<SMTP password>"
+
+EMAIL_FROM="example.localhost.com"
+DOMAIN="localhost"
+PORT="<preferred-port>"
 ```
 - Replace the `DB_URL` values with your database connection string.
 - Currently available platform is `"deb"`.
@@ -83,7 +92,7 @@ Find `db_migration.sh` in the `scripts` to automate DB migration.
 - [x] User Logout
 - [x] Token Refresh
 - [x] Token Revoke
-- [ ] Password Reset (*via email*)
+- [x] Password Reset (*via email*)
 - [ ] Role-based Access control (*User/Admin*)
 
 ### Product Management (Medicines)
