@@ -175,6 +175,22 @@ func (us *userController) HandlerVerify(ctx *gin.Context) {
 	ctx.Status(http.StatusAccepted)
 }
 
+func (us *userController) HandlerResetPassword(ctx *gin.Context) {
+	var newResetPass models.ResetPass
+
+	if err := ctx.ShouldBindBodyWithJSON(&newResetPass); err != nil {
+		errorResponse(ctx, http.StatusBadRequest, err)
+		return
+	}
+
+	if err := us.AuthService.ResetPassEmail(ctx.Request.Context(), newResetPass.Email); err != nil {
+		errorResponse(ctx, http.StatusInternalServerError, err)
+		return
+	}
+
+	ctx.Status(http.StatusAccepted)
+}
+
 func getUserID(ctx *gin.Context) (uuid.UUID, bool) {
 	userID, exists := ctx.Get("user_id")
 	if !exists {
