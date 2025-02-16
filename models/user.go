@@ -48,10 +48,16 @@ type LogIn struct {
 	Password string `json:"password" binding:"required,min=8" example:"SecurePass123"`
 }
 
-// ResetPass represents the request body for password reset
+// RequestResetPass represents the request body for password reset
 // @Description when a user forgets his/her password, they can hit this endpoint to reset
-type ResetPass struct {
+type RequestResetPass struct {
 	Email string `json:"email" binding:"required,email" example:"user@example.com"`
+}
+
+
+
+type ResetPass struct {
+	Password string `json:"password" binding:"required,min=8" example:"SecurePass123"`
 }
 
 // TokenResponseDTO represents the access and refresh tokens returned upon login
@@ -125,6 +131,7 @@ type Authservice interface {
 	LogoutUser(ctx context.Context, id uuid.UUID) error
 	SetVerifiedUser(ctx context.Context, token string) error
 	ResetPassEmail(ctx context.Context, email string) error
+	ResetPassword(ctx context.Context, token, password string) error
 }
 
 // * REPOSITORY LAYER * //
@@ -135,6 +142,7 @@ type UserRepository interface {
 	SignUp(ctx context.Context, user User) (User, error) // should act as CreateUser
 	Delete(ctx context.Context, userID uuid.UUID) error
 	Update(ctx context.Context, user User) (User, error)
+	UpdatePassword(ctx context.Context, password string, id uuid.UUID) error
 	FindByID(ctx context.Context, userID uuid.UUID) (User, error)
 	FindUser(ctx context.Context, key, value string) (User, error)
 	CountAvailableUsers(ctx context.Context) (int, error)
