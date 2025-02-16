@@ -4,16 +4,19 @@ import (
 	"database/sql"
 	"log"
 	"medicine-app/internal/database"
+	"medicine-app/utils"
 	"os"
+	"strconv"
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
 type Config struct {
-	DB        *database.Queries
-	Platform  string
-	SecretKey string
+	DB          *database.Queries
+	Platform    string
+	SecretKey   string
+	EmailSender *utils.EmailSender
 }
 
 func NewConfig() *Config {
@@ -24,15 +27,34 @@ func NewConfig() *Config {
 	platform := getEnvVariable("PLATFORM")
 	secretKey := getEnvVariable("SECRET_KEY")
 
-	// domainName := getEnvVariable("DOMAIN_NAME")
-	// companyName := getEnvVariable("COMPANY_NAME")
-	// backendEmail := getEnvVariable("EMAIL")
-
 	return &Config{
-		Platform:  platform,
-		DB:        connectDB(),
-		SecretKey: secretKey,
+		Platform:    platform,
+		DB:          connectDB(),
+		SecretKey:   secretKey,
+		EmailSender: initEmailSender(),
 	}
+}
+
+func initEmailSender() *utils.EmailSender {
+	smtpHost := os.Getenv("SMTP_HOST")
+	smtpPort, err := strconv.Atoi(os.Getenv("SMTP_PORT"))
+	if err != nil {
+		log.Fatalf("can't get SMTP PORT")
+	}
+
+	smtpUser := os.Getenv("SMTP_USER")
+	smtpPass := os.Getenv("SMTP_PASS")
+	emailFrom := os.Getenv("EMAIL_FROM")
+	domain := os.Getenv("DOMAIN")
+
+	return utils.NewEmailSender(
+		smtpUser,
+		smtpPass,
+		emailFrom,
+		domain,
+		smtpHost,
+		smtpPort,
+	)
 }
 
 func connectDB() *database.Queries {
