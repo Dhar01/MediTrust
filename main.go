@@ -60,6 +60,9 @@ func main() {
 	// documentation routes
 	api.DocumentationRoute(router.Group(apiBase))
 
+	// cart routes
+	api.CartRoute(router.Group(apiBase))
+
 	port := ":" + cfg.Port
 
 	if err := router.Run(port); err != nil {
