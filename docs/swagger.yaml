@@ -47,6 +47,20 @@ definitions:
         format: string
         type: string
     type: object
+  models.LogIn:
+    description: Contains credentials required for authentication
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      password:
+        example: SecurePass123
+        minLength: 8
+        type: string
+    required:
+    - email
+    - password
+    type: object
   models.Medicine:
     description: Medicine entity contains details about a medicine
     properties:
@@ -180,6 +194,41 @@ info:
   title: MediTrust Backend API
   version: "1.0"
 paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate a user with email and password to obtain an access
+        token
+      parameters:
+      - description: User log in request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.LogIn'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'access_token: token'
+          schema:
+            $ref: '#/definitions/models.ServerResponse'
+        "400":
+          description: Bad request received
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized - Invalid credentials
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: User Login
+      tags:
+      - user
   /medicines:
     get:
       consumes:
