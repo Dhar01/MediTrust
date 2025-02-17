@@ -61,7 +61,7 @@ func main() {
 	api.DocumentationRoute(router.Group(apiBase))
 
 	// cart routes
-	api.CartRoute(router.Group(apiBase))
+	api.CartRoute(router.Group(apiBase), cfg)
 
 	port := ":" + cfg.Port
 
