@@ -52,6 +52,19 @@ func (uc *userController) HandlerSignUp(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, signUp)
 }
 
+// HandlerLogIn authenticates a user and returns an access token
+//
+//	@Summary		User Login
+//	@Description	Authenticate a user with email and password to obtain an access token
+//	@Tags			user
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		models.LogIn			true	"User log in request"
+//	@Success		200		{object}	models.ServerResponse	"access_token: token"
+//	@Failure		400		{object}	models.ErrorResponse	"Bad request received"
+//	@Failure		401		{object}	models.ErrorResponse	"Unauthorized - Invalid credentials"
+//	@Failure		500		{object}	models.ErrorResponse	"Internal server error"
+//	@Router			/login [post]
 func (uc *userController) HandlerLogIn(ctx *gin.Context) {
 	var login models.LogIn
 
@@ -62,7 +75,7 @@ func (uc *userController) HandlerLogIn(ctx *gin.Context) {
 
 	token, err := uc.AuthService.LogInUser(ctx.Request.Context(), login)
 	if err != nil {
-		errorResponse(ctx, http.StatusNotFound, err)
+		errorResponse(ctx, http.StatusUnauthorized, err)
 		return
 	}
 
