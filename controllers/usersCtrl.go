@@ -55,12 +55,13 @@ func (uc *userController) HandlerSignUp(ctx *gin.Context) {
 // HandlerLogIn authenticates a user and returns an access token
 //
 //	@Summary		User Login
-//	@Description	Authenticate a user with email and password to obtain an access token
+//	@Description	Authenticate a user with email and password to obtain an access token in the response body, while the refresh token is set as a secure HTTP-only cookie.
 //	@Tags			user
 //	@Accept			json
 //	@Produce		json
 //	@Param			request	body		models.LogIn			true	"User log in request"
 //	@Success		200		{object}	models.ServerResponse	"access_token: token"
+//	@Success		200		{string}	string					"Set-Cookie: refresh_token=<token>; HttpOnly; Secure; Path=/; Domain=<your-domain.com>"
 //	@Failure		400		{object}	models.ErrorResponse	"Bad request received"
 //	@Failure		401		{object}	models.ErrorResponse	"Unauthorized - Invalid credentials"
 //	@Failure		500		{object}	models.ErrorResponse	"Internal server error"
@@ -84,6 +85,12 @@ func (uc *userController) HandlerLogIn(ctx *gin.Context) {
 		AccessToken: token.AccessToken,
 	})
 }
+
+// HandlerLogOout logs out a user and revoked the access token.
+//
+// @Sumarry User Logout
+// D@Descritpion
+// @Tags user
 
 func (uc *userController) HandlerLogout(ctx *gin.Context) {
 	id, ok := getUserID(ctx)
