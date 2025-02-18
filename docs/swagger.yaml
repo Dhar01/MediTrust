@@ -199,7 +199,8 @@ paths:
       consumes:
       - application/json
       description: Authenticate a user with email and password to obtain an access
-        token
+        token in the response body, while the refresh token is set as a secure HTTP-only
+        cookie.
       parameters:
       - description: User log in request
         in: body
@@ -211,9 +212,10 @@ paths:
       - application/json
       responses:
         "200":
-          description: 'access_token: token'
+          description: 'Set-Cookie: refresh_token=<token>; HttpOnly; Secure; Path=/;
+            Domain=<your-domain.com>'
           schema:
-            $ref: '#/definitions/models.ServerResponse'
+            type: string
         "400":
           description: Bad request received
           schema:
