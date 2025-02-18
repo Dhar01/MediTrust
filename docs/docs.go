@@ -25,7 +25,7 @@ const docTemplate = `{
     "paths": {
         "/login": {
             "post": {
-                "description": "Authenticate a user with email and password to obtain an access token",
+                "description": "Authenticate a user with email and password to obtain an access token in the response body, while the refresh token is set as a secure HTTP-only cookie.",
                 "consumes": [
                     "application/json"
                 ],
@@ -49,9 +49,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "access_token: token",
+                        "description": "Set-Cookie: refresh_token=\u003ctoken\u003e; HttpOnly; Secure; Path=/; Domain=\u003cyour-domain.com\u003e",
                         "schema": {
-                            "$ref": "#/definitions/models.ServerResponse"
+                            "type": "string"
                         }
                     },
                     "400": {
