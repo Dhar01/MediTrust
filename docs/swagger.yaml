@@ -231,6 +231,31 @@ paths:
       summary: User Login
       tags:
       - user
+  /logout:
+    post:
+      consumes:
+      - application/json
+      description: logs out the authenticated user by invalidating the refresh token.
+        The refresh token is cleared by setting an expired cookie.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'Set-Cookie: refresh_token=; HttpOnly; Secure; Path=/; Domain=<your-domain.com>;
+            Max-Age=0'
+          schema:
+            type: string
+        "401":
+          description: Unauthorized - Invalid or expired token
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: User Logout
+      tags:
+      - user
   /medicines:
     get:
       consumes:
