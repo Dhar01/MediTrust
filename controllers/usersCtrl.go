@@ -86,16 +86,17 @@ func (uc *userController) HandlerLogIn(ctx *gin.Context) {
 	})
 }
 
-// HandlerLogOout logs out a user and revoked the access token.
+// HandlerLogout logs out a user and revokes the access token.
 //
-// @Sumarry User Logout
-// D@Descritpion
-// @Tags user
-// @Accept userID
-// @Produce null
-// @Success 200 {object}
-// @Failure 500 {object} models.ErrorResponse "Internal server error"
-
+//	@Summary		User Logout
+//	@Description	logs out the authenticated user by invalidating the refresh token. The refresh token is cleared by setting an expired cookie.
+//	@Tags			user
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{string}	string					"Set-Cookie: refresh_token=; HttpOnly; Secure; Path=/; Domain=<your-domain.com>; Max-Age=0"
+//	@Failure		401	{object}	models.ErrorResponse	"Unauthorized - Invalid or expired token"
+//	@Failure		500	{object}	models.ErrorResponse	"Internal server error"
+//	@Router			/logout [post]
 func (uc *userController) HandlerLogout(ctx *gin.Context) {
 	id, ok := getUserID(ctx)
 	if !ok {
