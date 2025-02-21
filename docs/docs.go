@@ -75,6 +75,41 @@ const docTemplate = `{
                 }
             }
         },
+        "/logout": {
+            "post": {
+                "description": "logs out the authenticated user by invalidating the refresh token. The refresh token is cleared by setting an expired cookie.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "User Logout",
+                "responses": {
+                    "200": {
+                        "description": "Set-Cookie: refresh_token=; HttpOnly; Secure; Path=/; Domain=\u003cyour-domain.com\u003e; Max-Age=0",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - Invalid or expired token",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/medicines": {
             "get": {
                 "description": "Fetch a list of available medicines",
