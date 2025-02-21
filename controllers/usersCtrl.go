@@ -91,6 +91,10 @@ func (uc *userController) HandlerLogIn(ctx *gin.Context) {
 // @Sumarry User Logout
 // D@Descritpion
 // @Tags user
+// @Accept userID
+// @Produce null
+// @Success 200 {object}
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
 
 func (uc *userController) HandlerLogout(ctx *gin.Context) {
 	id, ok := getUserID(ctx)
