@@ -113,6 +113,19 @@ func (uc *userController) HandlerLogout(ctx *gin.Context) {
 	ctx.Status(http.StatusOK)
 }
 
+// HandlerUpdateUser will updates the information of user, takes partial update.
+//
+//	@Summary		User information update
+//	@Description	updates user information for the logged in user, takes partial information update. request comes through isLoggedIn middleware.
+//	@Tags			user
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		models.UpdateUserDTO	true	"user update information request"
+//	@Success		202		{object}	models.UpdateResponseDTO
+//	@Failure		400		{object}	models.ErrorResponse	"Bad request received"
+//	@Failure		401		{object}	models.ErrorResponse	"Unauthorized - Invalid or expired token"
+//	@Failure		500		{object}	models.ErrorResponse	"Internal server error"
+//	@Router			/users [put]
 func (uc *userController) HandlerUpdateUser(ctx *gin.Context) {
 	id, ok := getUserID(ctx)
 	if !ok {
