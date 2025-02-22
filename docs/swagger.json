@@ -456,9 +456,83 @@
                     }
                 }
             }
+        },
+        "/users": {
+            "put": {
+                "description": "updates user information for the logged in user, takes partial information update. request comes through isLoggedIn middleware.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "User information update",
+                "parameters": [
+                    {
+                        "description": "user update information request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdateUserDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "user update response data",
+                        "schema": {
+                            "$ref": "#/definitions/models.UserResponseDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request received",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - Invalid or expired token",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "models.Address": {
+            "description": "Contains details of the user's location",
+            "type": "object",
+            "properties": {
+                "city": {
+                    "type": "string",
+                    "example": "Dhaka"
+                },
+                "country": {
+                    "type": "string",
+                    "example": "Bangladesh"
+                },
+                "postal_code": {
+                    "type": "string",
+                    "example": "1207"
+                },
+                "street_address": {
+                    "type": "string",
+                    "example": "123 Main Street"
+                }
+            }
+        },
         "models.CreateMedicineDTO": {
             "description": "DTO for creating a new medicine",
             "type": "object",
@@ -692,6 +766,61 @@
                     "type": "integer",
                     "format": "int32",
                     "example": 75
+                }
+            }
+        },
+        "models.UpdateUserDTO": {
+            "description": "Contains optional fields for updating user information",
+            "type": "object",
+            "properties": {
+                "address": {
+                    "$ref": "#/definitions/models.Address"
+                },
+                "age": {
+                    "type": "integer",
+                    "minimum": 18,
+                    "example": 18
+                },
+                "email": {
+                    "type": "string",
+                    "example": "user@example.com"
+                },
+                "name": {
+                    "$ref": "#/definitions/models.Name"
+                },
+                "phone": {
+                    "type": "string",
+                    "example": "01234567891"
+                }
+            }
+        },
+        "models.UserResponseDTO": {
+            "description": "Contains user profile information returned from API",
+            "type": "object",
+            "properties": {
+                "address": {
+                    "$ref": "#/definitions/models.Address"
+                },
+                "age": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "$ref": "#/definitions/models.Name"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
                 }
             }
         }
