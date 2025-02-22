@@ -507,6 +507,39 @@
                         }
                     }
                 }
+            },
+            "delete": {
+                "description": "delete the logged in user, request comes through isLoggedIn middleware.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Delete user data",
+                "responses": {
+                    "204": {
+                        "description": "status no content",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - Invalid or expired token",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "not found error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
             }
         }
     },
