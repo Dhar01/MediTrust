@@ -544,6 +544,28 @@ paths:
       tags:
       - user
   /users:
+    delete:
+      consumes:
+      - application/json
+      description: delete the logged in user, request comes through isLoggedIn middleware.
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: status no content
+          schema:
+            type: string
+        "401":
+          description: Unauthorized - Invalid or expired token
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: not found error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Delete user data
+      tags:
+      - user
     put:
       consumes:
       - application/json
