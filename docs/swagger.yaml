@@ -1,5 +1,21 @@
 basePath: /api/v1
 definitions:
+  models.Address:
+    description: Contains details of the user's location
+    properties:
+      city:
+        example: Dhaka
+        type: string
+      country:
+        example: Bangladesh
+        type: string
+      postal_code:
+        example: "1207"
+        type: string
+      street_address:
+        example: 123 Main Street
+        type: string
+    type: object
   models.CreateMedicineDTO:
     description: DTO for creating a new medicine
     properties:
@@ -180,6 +196,44 @@ definitions:
         example: 75
         format: int32
         type: integer
+    type: object
+  models.UpdateUserDTO:
+    description: Contains optional fields for updating user information
+    properties:
+      address:
+        $ref: '#/definitions/models.Address'
+      age:
+        example: 18
+        minimum: 18
+        type: integer
+      email:
+        example: user@example.com
+        type: string
+      name:
+        $ref: '#/definitions/models.Name'
+      phone:
+        example: "01234567891"
+        type: string
+    type: object
+  models.UserResponseDTO:
+    description: Contains user profile information returned from API
+    properties:
+      address:
+        $ref: '#/definitions/models.Address'
+      age:
+        type: integer
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        $ref: '#/definitions/models.Name'
+      phone:
+        type: string
+      updated_at:
+        type: string
     type: object
 host: localhost:8080
 info:
@@ -487,6 +541,41 @@ paths:
           schema:
             $ref: '#/definitions/models.ErrorResponse'
       summary: Sign up a user
+      tags:
+      - user
+  /users:
+    put:
+      consumes:
+      - application/json
+      description: updates user information for the logged in user, takes partial
+        information update. request comes through isLoggedIn middleware.
+      parameters:
+      - description: user update information request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateUserDTO'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: user update response data
+          schema:
+            $ref: '#/definitions/models.UserResponseDTO'
+        "400":
+          description: Bad request received
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized - Invalid or expired token
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: User information update
       tags:
       - user
 securityDefinitions:

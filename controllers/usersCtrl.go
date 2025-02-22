@@ -121,7 +121,7 @@ func (uc *userController) HandlerLogout(ctx *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			request	body		models.UpdateUserDTO	true	"user update information request"
-//	@Success		202		{object}	models.UpdateResponseDTO
+//	@Success		202		{object}	models.UserResponseDTO "user update response data"
 //	@Failure		400		{object}	models.ErrorResponse	"Bad request received"
 //	@Failure		401		{object}	models.ErrorResponse	"Unauthorized - Invalid or expired token"
 //	@Failure		500		{object}	models.ErrorResponse	"Internal server error"
