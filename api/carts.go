@@ -17,5 +17,5 @@ func CartRoute(router *gin.RouterGroup, cfg *config.Config) {
 	cartService := service.NewCartService(cartRepo)
 	cartCtrl := controllers.NewCartController(cartService)
 
-	router.POST(cartBase, middleware.AdminAuth(cfg.SecretKey), cartCtrl.HandlerCreateCart)
+	router.POST(cartBase, middleware.IsLoggedIn(cfg.SecretKey), cartCtrl.HandlerCreateCart)
 }
