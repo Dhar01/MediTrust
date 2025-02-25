@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"fmt"
-	"log"
 	"medicine-app/models"
 	"net/http"
 	"time"
@@ -188,21 +187,24 @@ func (uc *userController) HandlerDeleteUser(ctx *gin.Context) {
 	ctx.Status(http.StatusNoContent)
 }
 
+// HandlerGetUserByID will find a user information by the userID [admin only]
+//
+//	@Summary		Get user data by ID
+//	@Description	to handler a user for admin, this handler will be used.
+//	@Tags			admin
+//	@Accept			json
+//	@Produce		json
+//	@Success		302	{object}	models.UserResponseDTO	"status found"
+//	@Failure		400	{object}	models.ErrorResponse	"bad request status"
+//	@Failure		404	{object}	models.ErrorResponse	"not found error"
+//	@Router			/users [get]
 func (uc *userController) HandlerGetUserByID(ctx *gin.Context) {
-
-	// id, ok := getUserID(ctx)
-	// if !ok {
-	// 	return
-	// }
-
 	userID := ctx.Param("userID")
 	id, err := uuid.Parse(userID)
 	if err != nil {
 		errorResponse(ctx, http.StatusBadRequest, err)
 		return
 	}
-
-	log.Println(userID)
 
 	user, err := uc.UserService.FindUserByID(ctx.Request.Context(), id)
 	if err != nil {
