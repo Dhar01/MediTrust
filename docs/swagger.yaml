@@ -566,6 +566,28 @@ paths:
       summary: Delete user data
       tags:
       - user
+    get:
+      consumes:
+      - application/json
+      description: to handler a user for admin, this handler will be used.
+      produces:
+      - application/json
+      responses:
+        "302":
+          description: status found
+          schema:
+            $ref: '#/definitions/models.UserResponseDTO'
+        "400":
+          description: bad request status
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: not found error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get user data by ID
+      tags:
+      - admin
     put:
       consumes:
       - application/json
