@@ -464,6 +464,39 @@ const docTemplate = `{
             }
         },
         "/users": {
+            "get": {
+                "description": "to handler a user for admin, this handler will be used.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Get user data by ID",
+                "responses": {
+                    "302": {
+                        "description": "status found",
+                        "schema": {
+                            "$ref": "#/definitions/models.UserResponseDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "bad request status",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "not found error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "put": {
                 "description": "updates user information for the logged in user, takes partial information update. request comes through isLoggedIn middleware.",
                 "consumes": [
