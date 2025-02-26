@@ -222,7 +222,7 @@ func (uc *userController) HandlerGetUserByID(ctx *gin.Context) {
 //	@Tags			user
 //	@Accept			json
 //	@Produce		json
-//	@Success		202	{string}	"status accepted"
+//	@Success		202	{string}	string					"status accepted"
 //	@Failure		400	{object}	models.ErrorResponse	"bad request status"
 //	@Router			/verify [get]
 func (us *userController) HandlerVerify(ctx *gin.Context) {
@@ -236,6 +236,17 @@ func (us *userController) HandlerVerify(ctx *gin.Context) {
 	ctx.Status(http.StatusAccepted)
 }
 
+// HnadlerRequestPasswordReset will receive the request to reset password & send password reset link
+//
+//	@Summary		Request for password reset
+//	@Description	if a user forget his/her password, they will request for password reset. A password reset link will be sent to the account email
+//	@Tags			user
+//	@Accept			json
+//	@Produce		json
+//	@Success		202	{string}	string					"status accepted"
+//	@Failure		400	{object}	models.ErrorResponse	"bad request sent"
+//	@Failure		500	{object}	models.ErrorResponse	"Internal server error"
+//	@Router			/users/reset [post]
 func (us *userController) HandlerRequestPasswordReset(ctx *gin.Context) {
 	var newResetPass models.RequestResetPass
 
