@@ -236,7 +236,7 @@ func (us *userController) HandlerVerify(ctx *gin.Context) {
 	ctx.Status(http.StatusAccepted)
 }
 
-// HnadlerRequestPasswordReset will receive the request to reset password & send password reset link
+// HandlerRequestPasswordReset will receive the request to reset password & send password reset link
 //
 //	@Summary		Request for password reset
 //	@Description	if a user forget his/her password, they will request for password reset. A password reset link will be sent to the account email
@@ -263,6 +263,17 @@ func (us *userController) HandlerRequestPasswordReset(ctx *gin.Context) {
 	ctx.Status(http.StatusAccepted)
 }
 
+// HandlerRequestUpdatePass will receive the request to update password and will update password on the database
+//
+//	@Summary		Updating user password
+//	@Description	user will submit update password and this handler will update the password on the database
+//	@Tags			user
+//	@Accept			json
+//	@Produce		json
+//	@Success		202	{string}	string					"status accepted"
+//	@Failure		400	{object}	models.ErrorResponse	"bad request received"
+//	@Failure		500	{object}	models.ErrorResponse	"Internal server error"
+//	@Router			/users/reset [put]
 func (us *userController) HandlerResetUpdatePass(ctx *gin.Context) {
 	token := ctx.DefaultQuery("token", "")
 
@@ -274,7 +285,7 @@ func (us *userController) HandlerResetUpdatePass(ctx *gin.Context) {
 	}
 
 	if err := us.AuthService.ResetPassword(ctx.Request.Context(), token, password.Password); err != nil {
-		errorResponse(ctx, http.StatusBadRequest, err)
+		errorResponse(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
