@@ -576,6 +576,39 @@
             }
         },
         "/users/reset": {
+            "put": {
+                "description": "user will submit update password and this handler will update the password on the database",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Updating user password",
+                "responses": {
+                    "202": {
+                        "description": "status accepted",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "bad request received",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "if a user forget his/her password, they will request for password reset. A password reset link will be sent to the account email",
                 "consumes": [

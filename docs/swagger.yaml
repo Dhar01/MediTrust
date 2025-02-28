@@ -646,6 +646,29 @@ paths:
       summary: Request for password reset
       tags:
       - user
+    put:
+      consumes:
+      - application/json
+      description: user will submit update password and this handler will update the
+        password on the database
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: status accepted
+          schema:
+            type: string
+        "400":
+          description: bad request received
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Updating user password
+      tags:
+      - user
   /verify:
     get:
       consumes:
