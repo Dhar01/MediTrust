@@ -21,9 +21,8 @@ func NewCartController(service models.CartService) *cartController {
 func (cc *cartController) HandlerCreateCart(ctx *gin.Context) {
 	_, ok := getUserID(ctx)
 	if !ok {
-		errorResponse(ctx, http.StatusUnauthorized, fmt.Errorf("UserID not found!"))
+		errorResponse(ctx, http.StatusUnauthorized, fmt.Errorf("userID not found"))
 		return
 	}
-
 
 }
