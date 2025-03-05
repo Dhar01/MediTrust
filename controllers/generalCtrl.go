@@ -25,15 +25,15 @@ func NewController(service service.GeneralService, platform string) *controller 
 
 // HandlerReset resets the databases in the development environment.
 //
-//		@Summary		Reset all databases (development only)
-//		@Description	This endpoint resets the medicine, address, and user databases.
-//	             It is restricted to the development environment only.
-//		@Tags			general
-//		@Accept			json
-//		@Success		204	"Database reset successfully"
-//		@Failure		403	{object}	models.ErrorResponse	"Forbidden – Not allowed outside development environment"
-//		@Failure		500	{object}	models.ErrorResponse	"Internal server error"
-//		@Router			/reset [post]
+//	@Summary		Reset all databases (development only)
+//	@Description	This endpoint resets the medicine, address, and user databases.
+//	             	It is restricted to the development environment only.
+//	@Tags			general
+//	@Accept			json
+//	@Success		204	"Database reset successfully"
+//	@Failure		403	{object}	dto.ErrorResponseDTO	"Forbidden – Not allowed outside development environment"
+//	@Failure		500	{object}	dto.ErrorResponseDTO	"Internal server error"
+//	@Router			/reset [post]
 func (ctrl *controller) HandlerReset(ctx *gin.Context) {
 	log.Println(ctrl.Platform)
 
@@ -73,8 +73,8 @@ func (ctrl *controller) HandlerReset(ctx *gin.Context) {
 //	@Tags			authentication
 //	@Accept			json
 //	@Produce		json
-//	@Success		201	{object}	models.ServerResponse	"Access token generated successfully"
-//	@Failure		401	{object}	models.ErrorResponse	"Unauthorized request"
+//	@Success		201	{object}	dto.ServerResponseDTO	"Access token generated successfully"
+//	@Failure		401	{object}	dto.ErrorResponseDTO	"Unauthorized request"
 //	@Router			/refresh [post]
 //	@Security		ApiKeyAuth
 func (ctrl *controller) HandlerRefresh(ctx *gin.Context) {
@@ -98,16 +98,16 @@ func (ctrl *controller) HandlerRefresh(ctx *gin.Context) {
 
 // HandlerRevoke revokes the refresh token and logs the user out.
 //
-//		@Summary		Revoke refresh token
-//		@Description	This endpoint revokes the refresh token, effectively logging them out.
+//	@Summary		Revoke refresh token
+//	@Description	This endpoint revokes the refresh token, effectively logging them out.
 //	             The refresh token is retrieved from the cookie and invalidated.
-//		@Tags			authentication
-//		@Accept			json
-//		@Produce		json
-//		@Success		204	"Refresh token revoked successfully"
-//		@Failure		401	{object}	models.ErrorResponse	"Unauthorized – Invalid or missing refresh token"
-//		@Router			/revoke [post]
-//		@Security		ApiKeyAuth
+//	@Tags			authentication
+//	@Accept			json
+//	@Produce		json
+//	@Success		204	"Refresh token revoked successfully"
+//	@Failure		401	{object}	dto.ErrorResponseDTO	"Unauthorized – Invalid or missing refresh token"
+//	@Router			/revoke [post]
+//	@Security		ApiKeyAuth
 func (ctrl *controller) HandlerRevoke(ctx *gin.Context) {
 	refreshToken, ok := getRefreshToken(ctx)
 	if !ok {
