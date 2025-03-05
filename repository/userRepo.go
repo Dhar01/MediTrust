@@ -7,6 +7,7 @@ import (
 	"log"
 	"medicine-app/internal/database"
 	"medicine-app/models"
+	"medicine-app/models/db"
 
 	"github.com/google/uuid"
 )
@@ -15,13 +16,13 @@ type userRepository struct {
 	DB *database.Queries
 }
 
-func NewUserRepository(db *database.Queries) models.UserRepository {
+func NewUserRepository(db *database.Queries) UserRepository {
 	return &userRepository{
 		DB: db,
 	}
 }
 
-func (ur *userRepository) SignUp(ctx context.Context, user models.User) (models.User, error) {
+func (ur *userRepository) SignUp(ctx context.Context, user db.User) (db.User, error) {
 	newUser, err := ur.DB.CreateUser(ctx, database.CreateUserParams{
 		FirstName:    user.Name.FirstName,
 		LastName:     user.Name.LastName,
@@ -47,7 +48,7 @@ func (ur *userRepository) Delete(ctx context.Context, userID uuid.UUID) error {
 	return nil
 }
 
-func (ur *userRepository) Update(ctx context.Context, user models.User) (models.User, error) {
+func (ur *userRepository) Update(ctx context.Context, user db.User) (db.User, error) {
 	log.Printf("User ID before update: %v", user.ID)
 
 	person, err := ur.DB.UpdateUser(ctx, database.UpdateUserParams{
@@ -113,7 +114,7 @@ func (ur *userRepository) UpdatePassword(ctx context.Context, password string, i
 }
 
 // FindUser by KEY. Key should be either Email or Phone.
-func (ur *userRepository) FindUser(ctx context.Context, key, value string) (models.User, error) {
+func (ur *userRepository) FindUser(ctx context.Context, key, value string) (db.User, error) {
 	var user database.User
 	var err error
 
@@ -123,7 +124,7 @@ func (ur *userRepository) FindUser(ctx context.Context, key, value string) (mode
 	case models.Phone:
 		user, err = ur.DB.GetUserByPhone(ctx, value)
 	default:
-		return models.User{}, fmt.Errorf("unsupported lookup key %s", key)
+		return db.User{}, fmt.Errorf("unsupported lookup key %s", key)
 	}
 
 	if err != nil {
@@ -133,7 +134,7 @@ func (ur *userRepository) FindUser(ctx context.Context, key, value string) (mode
 	return toUser(user), nil
 }
 
-func (ur *userRepository) FindByID(ctx context.Context, userID uuid.UUID) (models.User, error) {
+func (ur *userRepository) FindByID(ctx context.Context, userID uuid.UUID) (db.User, error) {
 	user, err := ur.DB.GetUserByID(ctx, userID)
 	if err != nil {
 		return wrapUserError(err)
@@ -153,10 +154,10 @@ func (ur *userRepository) CountAvailableUsers(ctx context.Context) (int, error) 
 	return int(count), nil
 }
 
-func toUserDomain(dbUser database.User, address database.UserAddress) models.User {
-	return models.User{
+func toUserDomain(dbUser database.User, address database.UserAddress) db.User {
+	return db.User{
 		ID: dbUser.ID,
-		Name: models.Name{
+		Name: db.Name{
 			FirstName: dbUser.FirstName,
 			LastName:  dbUser.LastName,
 		},
@@ -166,7 +167,7 @@ func toUserDomain(dbUser database.User, address database.UserAddress) models.Use
 		Role:      dbUser.Role,
 		CreatedAt: dbUser.CreatedAt,
 		UpdatedAt: dbUser.UpdatedAt,
-		Address: models.Address{
+		Address: db.Address{
 			Country:       address.Country,
 			City:          address.City,
 			StreetAddress: address.StreetAddress,
@@ -175,8 +176,8 @@ func toUserDomain(dbUser database.User, address database.UserAddress) models.Use
 	}
 }
 
-func wrapUserError(err error) (models.User, error) {
-	return models.User{}, err
+func wrapUserError(err error) (db.User, error) {
+	return db.User{}, err
 }
 
 func toNullString(value string) sql.NullString {
@@ -191,10 +192,10 @@ func toNullString(value string) sql.NullString {
 	}
 }
 
-func toUser(dbUser database.User) models.User {
-	return models.User{
+func toUser(dbUser database.User) db.User {
+	return db.User{
 		ID: dbUser.ID,
-		Name: models.Name{
+		Name: db.Name{
 			FirstName: dbUser.FirstName,
 			LastName:  dbUser.LastName,
 		},
