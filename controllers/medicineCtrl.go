@@ -3,17 +3,18 @@ package controllers
 import (
 	"net/http"
 
-	"medicine-app/models"
+	"medicine-app/models/dto"
+	service "medicine-app/services"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
 type medicineController struct {
-	MedicineService models.MedicineService
+	MedicineService service.MedicineService
 }
 
-func NewMedicineController(service models.MedicineService) *medicineController {
+func NewMedicineController(service service.MedicineService) *medicineController {
 	return &medicineController{
 		MedicineService: service,
 	}
@@ -32,7 +33,7 @@ func NewMedicineController(service models.MedicineService) *medicineController {
 //	@Failure		500			{object}	models.ErrorResponse		"Internal server error"
 //	@Router			/medicines [post]
 func (mc *medicineController) HandlerCreateMedicine(ctx *gin.Context) {
-	var newMedicine models.CreateMedicineDTO
+	var newMedicine dto.CreateMedicineDTO
 
 	if err := ctx.ShouldBindJSON(&newMedicine); err != nil {
 		errorResponse(ctx, http.StatusBadRequest, err)
@@ -116,7 +117,7 @@ func (mc *medicineController) HandlerUpdateMedicineByID(ctx *gin.Context) {
 		return
 	}
 
-	var updateMed models.UpdateMedicineDTO
+	var updateMed dto.UpdateMedicineDTO
 
 	if err := ctx.ShouldBindJSON(&updateMed); err != nil {
 		errorResponse(ctx, http.StatusBadRequest, err)

@@ -3,6 +3,8 @@ package controllers
 import (
 	"fmt"
 	"medicine-app/models"
+	"medicine-app/models/dto"
+	service "medicine-app/services"
 	"net/http"
 	"time"
 
@@ -11,11 +13,11 @@ import (
 )
 
 type userController struct {
-	UserService models.UserProfileService
-	AuthService models.AuthService
+	UserService service.UserProfileService
+	AuthService service.AuthService
 }
 
-func NewUserController(userService models.UserProfileService, authService models.AuthService) *userController {
+func NewUserController(userService service.UserProfileService, authService service.AuthService) *userController {
 	return &userController{
 		UserService: userService,
 		AuthService: authService,
@@ -35,7 +37,7 @@ func NewUserController(userService models.UserProfileService, authService models
 //	@Failure		500		{object}	models.ErrorResponse	"Internal server error"
 //	@Router			/signup [post]
 func (uc *userController) HandlerSignUp(ctx *gin.Context) {
-	var newUser models.SignUpUser
+	var newUser dto.SignUpUserDTO
 
 	if err := ctx.ShouldBindJSON(&newUser); err != nil {
 		errorResponse(ctx, http.StatusBadRequest, err)
@@ -66,7 +68,7 @@ func (uc *userController) HandlerSignUp(ctx *gin.Context) {
 //	@Failure		500		{object}	models.ErrorResponse	"Internal server error"
 //	@Router			/login [post]
 func (uc *userController) HandlerLogIn(ctx *gin.Context) {
-	var login models.LogIn
+	var login dto.LogInDTO
 
 	if err := ctx.ShouldBindJSON(&login); err != nil {
 		errorResponse(ctx, http.StatusBadRequest, err)
@@ -80,7 +82,7 @@ func (uc *userController) HandlerLogIn(ctx *gin.Context) {
 	}
 
 	ctx.SetCookie(models.TokenRefresh, token.RefreshToken, int(time.Hour*7*24), models.RootPath, models.DomainName, true, true)
-	ctx.JSON(http.StatusOK, models.ServerResponse{
+	ctx.JSON(http.StatusOK, dto.ServerResponseDTO{
 		AccessToken: token.AccessToken,
 	})
 }
@@ -143,7 +145,7 @@ func (uc *userController) HandlerUpdateUser(ctx *gin.Context) {
 		return
 	}
 
-	var updateUser models.UpdateUserDTO
+	var updateUser dto.UpdateUserDTO
 
 	if err := ctx.ShouldBindJSON(&updateUser); err != nil {
 		errorResponse(ctx, http.StatusBadRequest, err)
@@ -248,7 +250,7 @@ func (us *userController) HandlerVerify(ctx *gin.Context) {
 //	@Failure		500	{object}	models.ErrorResponse	"Internal server error"
 //	@Router			/users/reset [post]
 func (us *userController) HandlerRequestPasswordReset(ctx *gin.Context) {
-	var newResetPass models.RequestResetPass
+	var newResetPass dto.RequestResetPassDTO
 
 	if err := ctx.ShouldBindBodyWithJSON(&newResetPass); err != nil {
 		errorResponse(ctx, http.StatusBadRequest, err)
@@ -277,7 +279,7 @@ func (us *userController) HandlerRequestPasswordReset(ctx *gin.Context) {
 func (us *userController) HandlerResetUpdatePass(ctx *gin.Context) {
 	token := ctx.DefaultQuery("token", "")
 
-	var password models.ResetPass
+	var password dto.ResetPassDTO
 
 	if err := ctx.ShouldBindBodyWithJSON(&password); err != nil {
 		errorResponse(ctx, http.StatusBadRequest, err)

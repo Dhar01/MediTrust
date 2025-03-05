@@ -3,6 +3,8 @@ package controllers
 import (
 	"log"
 	"medicine-app/models"
+	"medicine-app/models/dto"
+	service "medicine-app/services"
 	"net/http"
 	"time"
 
@@ -10,11 +12,11 @@ import (
 )
 
 type controller struct {
-	GeneralService models.GeneralService
+	GeneralService service.GeneralService
 	Platform       string
 }
 
-func NewController(service models.GeneralService, platform string) *controller {
+func NewController(service service.GeneralService, platform string) *controller {
 	return &controller{
 		GeneralService: service,
 		Platform:       platform,
@@ -23,15 +25,15 @@ func NewController(service models.GeneralService, platform string) *controller {
 
 // HandlerReset resets the databases in the development environment.
 //
-//	@Summary		Reset all databases (development only)
-//	@Description	This endpoint resets the medicine, address, and user databases.
-//              It is restricted to the development environment only.
-//	@Tags			general
-//	@Accept			json
-//	@Success		204	"Database reset successfully"
-//	@Failure		403	{object}	models.ErrorResponse	"Forbidden – Not allowed outside development environment"
-//	@Failure		500	{object}	models.ErrorResponse	"Internal server error"
-//	@Router			/reset [post]
+//		@Summary		Reset all databases (development only)
+//		@Description	This endpoint resets the medicine, address, and user databases.
+//	             It is restricted to the development environment only.
+//		@Tags			general
+//		@Accept			json
+//		@Success		204	"Database reset successfully"
+//		@Failure		403	{object}	models.ErrorResponse	"Forbidden – Not allowed outside development environment"
+//		@Failure		500	{object}	models.ErrorResponse	"Internal server error"
+//		@Router			/reset [post]
 func (ctrl *controller) HandlerReset(ctx *gin.Context) {
 	log.Println(ctrl.Platform)
 
@@ -64,7 +66,6 @@ func (ctrl *controller) HandlerReset(ctx *gin.Context) {
 	ctx.Status(http.StatusNoContent)
 }
 
-
 // HandlerRefresh generates a new access token using a refresh token.
 //
 //	@Summary		Generate a new access token
@@ -90,23 +91,23 @@ func (ctrl *controller) HandlerRefresh(ctx *gin.Context) {
 	}
 
 	ctx.SetCookie(models.TokenRefresh, token.RefreshToken, int(time.Hour*7*24), models.RootPath, models.DomainName, true, true)
-	ctx.JSON(http.StatusCreated, models.ServerResponse{
+	ctx.JSON(http.StatusCreated, dto.ServerResponseDTO{
 		AccessToken: token.AccessToken,
 	})
 }
 
 // HandlerRevoke revokes the refresh token and logs the user out.
 //
-//	@Summary		Revoke refresh token
-//	@Description	This endpoint revokes the refresh token, effectively logging them out.
-//              The refresh token is retrieved from the cookie and invalidated.
-//	@Tags			authentication
-//	@Accept			json
-//	@Produce		json
-//	@Success		204	"Refresh token revoked successfully"
-//	@Failure		401	{object}	models.ErrorResponse	"Unauthorized – Invalid or missing refresh token"
-//	@Router			/revoke [post]
-//	@Security		ApiKeyAuth
+//		@Summary		Revoke refresh token
+//		@Description	This endpoint revokes the refresh token, effectively logging them out.
+//	             The refresh token is retrieved from the cookie and invalidated.
+//		@Tags			authentication
+//		@Accept			json
+//		@Produce		json
+//		@Success		204	"Refresh token revoked successfully"
+//		@Failure		401	{object}	models.ErrorResponse	"Unauthorized – Invalid or missing refresh token"
+//		@Router			/revoke [post]
+//		@Security		ApiKeyAuth
 func (ctrl *controller) HandlerRevoke(ctx *gin.Context) {
 	refreshToken, ok := getRefreshToken(ctx)
 	if !ok {
@@ -137,7 +138,7 @@ func getRefreshToken(ctx *gin.Context) (string, bool) {
 
 func errorResponse(ctx *gin.Context, code int, err error) {
 	ctx.Error(err)
-	ctx.JSON(code, models.ErrorResponse{
+	ctx.JSON(code, dto.ErrorResponseDTO{
 		Message: err.Error(),
 		Code:    code,
 	})
