@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"log"
+	"medicine-app/config"
 	"medicine-app/models"
 	"medicine-app/models/dto"
 	service "medicine-app/services"
@@ -12,14 +13,14 @@ import (
 )
 
 type controller struct {
-	GeneralService service.GeneralService
-	Platform       string
+	generalService service.GeneralService
+	conf           config.Config
 }
 
-func NewController(service service.GeneralService, platform string) *controller {
+func NewController(service service.GeneralService, cfg config.Config) *controller {
 	return &controller{
-		GeneralService: service,
-		Platform:       platform,
+		generalService: service,
+		conf:           cfg,
 	}
 }
 
@@ -35,28 +36,28 @@ func NewController(service service.GeneralService, platform string) *controller 
 //	@Failure		500	{object}	dto.ErrorResponseDTO	"Internal server error"
 //	@Router			/reset [post]
 func (ctrl *controller) HandlerReset(ctx *gin.Context) {
-	log.Println(ctrl.Platform)
+	log.Println(ctrl.conf.Platform)
 
-	if ctrl.Platform != models.Dev {
+	if ctrl.conf.Platform != models.Dev {
 		ctx.Status(http.StatusForbidden)
 		return
 	}
 
-	if err := ctrl.GeneralService.ResetMedicineService(ctx.Request.Context()); err != nil {
+	if err := ctrl.generalService.ResetMedicineService(ctx.Request.Context()); err != nil {
 		errorResponse(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
 	log.Println("Medicine database reset successfully!")
 
-	if err := ctrl.GeneralService.ResetAddressService(ctx.Request.Context()); err != nil {
+	if err := ctrl.generalService.ResetAddressService(ctx.Request.Context()); err != nil {
 		errorResponse(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
 	log.Println("Address database reset successfully!")
 
-	if err := ctrl.GeneralService.ResetUserService(ctx.Request.Context()); err != nil {
+	if err := ctrl.generalService.ResetUserService(ctx.Request.Context()); err != nil {
 		errorResponse(ctx, http.StatusInternalServerError, err)
 		return
 	}
@@ -84,13 +85,13 @@ func (ctrl *controller) HandlerRefresh(ctx *gin.Context) {
 		return
 	}
 
-	token, err := ctrl.GeneralService.GenerateToken(ctx.Request.Context(), refreshToken)
+	token, err := ctrl.generalService.GenerateToken(ctx.Request.Context(), refreshToken)
 	if err != nil {
 		errorResponse(ctx, http.StatusUnauthorized, err)
 		return
 	}
 
-	ctx.SetCookie(models.TokenRefresh, token.RefreshToken, int(time.Hour*7*24), models.RootPath, models.DomainName, true, true)
+	ctx.SetCookie(models.TokenRefresh, token.RefreshToken, int(time.Hour*7*24), models.RootPath, ctrl.conf.Domain, true, true)
 	ctx.JSON(http.StatusCreated, dto.ServerResponseDTO{
 		AccessToken: token.AccessToken,
 	})
@@ -114,12 +115,12 @@ func (ctrl *controller) HandlerRevoke(ctx *gin.Context) {
 		ctx.Status(http.StatusUnauthorized)
 		return
 	}
-	if err := ctrl.GeneralService.RevokeRefreshToken(ctx.Request.Context(), refreshToken); err != nil {
+	if err := ctrl.generalService.RevokeRefreshToken(ctx.Request.Context(), refreshToken); err != nil {
 		errorResponse(ctx, http.StatusUnauthorized, err)
 		return
 	}
 
-	ctx.SetCookie(models.TokenRefresh, models.TokenNull, -1, models.RootPath, models.DomainName, true, true)
+	ctx.SetCookie(models.TokenRefresh, models.TokenNull, -1, models.RootPath, ctrl.conf.Domain, true, true)
 	ctx.Status(http.StatusNoContent)
 }
 

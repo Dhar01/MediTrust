@@ -2,20 +2,29 @@ package service
 
 import (
 	"context"
-	"medicine-app/models"
+	"medicine-app/repository"
 )
 
 type cartService struct {
-	Repo models.CartRepository
+	repo repository.CartRepository
 }
 
-func NewCartService(repo models.CartRepository) models.CartService {
+// CartService defines the business logic interface for cart management
+// @Description Interface for cart-related business logic
+type CartService interface {
+	AddToCart(ctx context.Context) error
+	GetCart(ctx context.Context) error
+	UpdateCart(ctx context.Context) error
+	RemoveItemFromCart(ctx context.Context) error
+}
+
+func NewCartService(repo repository.CartRepository) CartService {
 	if repo == nil {
 		panic("repository can't be nil")
 	}
 
 	return &cartService{
-		Repo: repo,
+		repo: repo,
 	}
 }
 

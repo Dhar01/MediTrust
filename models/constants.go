@@ -13,10 +13,5 @@ var (
 
 	Dev string = "dev"
 
-	/*
-		TODO: A cmd app to insert the value below or manually edit this file or move it to config
-	*/
-	DomainName  string = "localhost"
 	CompanyName string = "company"
-	DomainPort  int    = 8080
 )

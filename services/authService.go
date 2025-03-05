@@ -14,12 +14,12 @@ import (
 )
 
 type authService struct {
-	AuthRepo         repo.AuthRepository
-	UserRepo         repo.UserRepository
-	VerificationRepo repo.VerificationRepository
-	Secret           string
-	Domain           string
-	Port             string
+	authRepo         repo.AuthRepository
+	userRepo         repo.UserRepository
+	verificationRepo repo.VerificationRepository
+	secret           string
+	domain           string
+	port             string
 	emailSender      *utils.EmailSender
 }
 
@@ -46,25 +46,25 @@ func NewAuthService(
 	}
 
 	return &authService{
-		AuthRepo:         authRepo,
-		UserRepo:         userRepo,
-		VerificationRepo: verificationRepo,
-		Secret:           secret,
-		Domain:           domain,
-		Port:             port,
+		authRepo:         authRepo,
+		userRepo:         userRepo,
+		verificationRepo: verificationRepo,
+		secret:           secret,
+		domain:           domain,
+		port:             port,
 		emailSender:      emailSender,
 	}
 }
 
 func (as *authService) SignUpUser(ctx context.Context, user dto.SignUpUserDTO) (dto.SignUpResponseDTO, error) {
 	// check if the user exists with the associated email
-	available, _ := as.UserRepo.FindUser(ctx, models.Email, user.Email)
+	available, _ := as.userRepo.FindUser(ctx, models.Email, user.Email)
 	if available.Exist {
 		return wrapSignUpError(errUserExist)
 	}
 
 	// * first user will always be admin
-	count, err := as.UserRepo.CountAvailableUsers(ctx)
+	count, err := as.userRepo.CountAvailableUsers(ctx)
 	if err != nil {
 		return wrapSignUpError(err)
 	}
@@ -88,12 +88,12 @@ func (as *authService) SignUpUser(ctx context.Context, user dto.SignUpUserDTO) (
 		return wrapSignUpError(err)
 	}
 
-	newUser, err := as.UserRepo.SignUp(ctx, person)
+	newUser, err := as.userRepo.SignUp(ctx, person)
 	if err != nil {
 		return wrapSignUpError(err)
 	}
 
-	verifyToken, err := auth.GenerateVerificationToken(newUser.ID, newUser.Role, as.Secret)
+	verifyToken, err := auth.GenerateVerificationToken(newUser.ID, newUser.Role, as.secret)
 	if err != nil {
 		return wrapSignUpError(err)
 	}
@@ -105,8 +105,8 @@ func (as *authService) SignUpUser(ctx context.Context, user dto.SignUpUserDTO) (
 		Verification: true,
 		FirstName:    newUser.Name.FirstName,
 		Token:        verifyToken,
-		Domain:       as.Domain,
-		DomainPort:   as.Port,
+		Domain:       as.domain,
+		DomainPort:   as.port,
 	}
 
 	if err := as.emailSender.SendEmail(emailOpts); err != nil {
@@ -119,12 +119,12 @@ func (as *authService) SignUpUser(ctx context.Context, user dto.SignUpUserDTO) (
 }
 
 func (as *authService) LogInUser(ctx context.Context, login dto.LogInDTO) (dto.TokenResponseDTO, error) {
-	user, err := as.UserRepo.FindUser(ctx, models.Email, login.Email)
+	user, err := as.userRepo.FindUser(ctx, models.Email, login.Email)
 	if err != nil {
 		return wrapTokenResponseError(err)
 	}
 
-	ok, err := as.VerificationRepo.GetVerification(ctx, user.ID)
+	ok, err := as.verificationRepo.GetVerification(ctx, user.ID)
 	if err != nil {
 		return wrapTokenResponseError(err)
 	}
@@ -137,12 +137,12 @@ func (as *authService) LogInUser(ctx context.Context, login dto.LogInDTO) (dto.T
 		return wrapTokenResponseError(err)
 	}
 
-	role, err := as.VerificationRepo.GetUserRole(ctx, user.ID)
+	role, err := as.verificationRepo.GetUserRole(ctx, user.ID)
 	if err != nil {
 		return wrapTokenResponseError(err)
 	}
 
-	accessToken, err := auth.GenerateAccessToken(user.ID, role, as.Secret, time.Minute*15)
+	accessToken, err := auth.GenerateAccessToken(user.ID, role, as.secret, time.Minute*15)
 	if err != nil {
 		return wrapTokenResponseError(err)
 	}
@@ -152,7 +152,7 @@ func (as *authService) LogInUser(ctx context.Context, login dto.LogInDTO) (dto.T
 		return wrapTokenResponseError(err)
 	}
 
-	if err = as.AuthRepo.CreateRefreshToken(ctx, refreshToken, user.ID); err != nil {
+	if err = as.authRepo.CreateRefreshToken(ctx, refreshToken, user.ID); err != nil {
 		return wrapTokenResponseError(err)
 	}
 
@@ -163,16 +163,16 @@ func (as *authService) LogInUser(ctx context.Context, login dto.LogInDTO) (dto.T
 }
 
 func (as *authService) LogoutUser(ctx context.Context, id uuid.UUID) error {
-	return as.AuthRepo.Logout(ctx, id)
+	return as.authRepo.Logout(ctx, id)
 }
 
 func (as *authService) SetVerifiedUser(ctx context.Context, token string) error {
-	id, err := auth.ValidateVerificationToken(token, as.Secret)
+	id, err := auth.ValidateVerificationToken(token, as.secret)
 	if err != nil {
 		return err
 	}
 
-	if err = as.VerificationRepo.SetVerification(ctx, id); err != nil {
+	if err = as.verificationRepo.SetVerification(ctx, id); err != nil {
 		return err
 	}
 
@@ -180,12 +180,12 @@ func (as *authService) SetVerifiedUser(ctx context.Context, token string) error 
 }
 
 func (as *authService) ResetPassEmail(ctx context.Context, email string) error {
-	user, err := as.UserRepo.FindUser(ctx, models.Email, email)
+	user, err := as.userRepo.FindUser(ctx, models.Email, email)
 	if err != nil {
 		return err
 	}
 
-	token, err := auth.GenerateVerificationToken(user.ID, user.Role, as.Secret)
+	token, err := auth.GenerateVerificationToken(user.ID, user.Role, as.secret)
 	if err != nil {
 		return err
 	}
@@ -195,8 +195,8 @@ func (as *authService) ResetPassEmail(ctx context.Context, email string) error {
 		ResetPassword: true,
 		FirstName:     user.Name.FirstName,
 		Token:         token,
-		Domain:        as.Domain,
-		DomainPort:    as.Port,
+		Domain:        as.domain,
+		DomainPort:    as.port,
 	}
 
 	if err := as.emailSender.SendEmail(emailOpts); err != nil {
@@ -207,7 +207,7 @@ func (as *authService) ResetPassEmail(ctx context.Context, email string) error {
 }
 
 func (as *authService) ResetPassword(ctx context.Context, token, password string) error {
-	id, err := auth.ValidateVerificationToken(token, as.Secret)
+	id, err := auth.ValidateVerificationToken(token, as.secret)
 	if err != nil {
 		return err
 	}
@@ -217,7 +217,7 @@ func (as *authService) ResetPassword(ctx context.Context, token, password string
 		return err
 	}
 
-	if err := as.UserRepo.UpdatePassword(ctx, pass, id); err != nil {
+	if err := as.userRepo.UpdatePassword(ctx, pass, id); err != nil {
 		return err
 	}
 

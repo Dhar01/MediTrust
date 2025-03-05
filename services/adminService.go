@@ -8,12 +8,12 @@ import (
 )
 
 type adminService struct {
-	Repo models.AdminRepository
+	repo models.AdminRepository
 }
 
 func NewAdminService(repo models.AdminRepository) models.AdminService {
 	return &adminService{
-		Repo: repo,
+		repo: repo,
 	}
 }
 

@@ -2,19 +2,19 @@ package controllers
 
 import (
 	"fmt"
-	"medicine-app/models"
+	service "medicine-app/services"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 type cartController struct {
-	CartService models.CartService
+	cartService service.CartService
 }
 
-func NewCartController(service models.CartService) *cartController {
+func NewCartController(service service.CartService) *cartController {
 	return &cartController{
-		CartService: service,
+		cartService: service,
 	}
 }
 
