@@ -14,22 +14,22 @@ const (
 	PermissionManageStore  Permission = "manage_store"
 )
 
-type Admin_i struct {
-	User
-	Role        string
-	Permissions []Permission
-}
+// type Admin_i struct {
+// 	User
+// 	Role        string
+// 	Permissions []Permission
+// }
 
 type CreateAdminDTO struct {
 	Role        string       `json:"role" binding:"required"`
 	Permissions []Permission `json:"permissions" binding:"required"`
 }
 
-type UpdateAdminDTO struct {
-	UpdateUserDTO
-	Role        *string      `json:"role,omitempty"`
-	Permissions []Permission `json:"permissions,omitempty"`
-}
+// type UpdateAdminDTO struct {
+// 	UpdateUserDTO
+// 	Role        *string      `json:"role,omitempty"`
+// 	Permissions []Permission `json:"permissions,omitempty"`
+// }
 
 type AdminService interface {
 	// UserService
