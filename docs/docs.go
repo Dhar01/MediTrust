@@ -43,7 +43,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.LogIn"
+                            "$ref": "#/definitions/dto.LogInDTO"
                         }
                     }
                 ],
@@ -57,19 +57,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad request received",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponseDTO"
                         }
                     },
                     "401": {
                         "description": "Unauthorized - Invalid credentials",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponseDTO"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponseDTO"
                         }
                     }
                 }
@@ -98,13 +98,13 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized - Invalid or expired token",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponseDTO"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponseDTO"
                         }
                     }
                 }
@@ -129,14 +129,14 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.Medicine"
+                                "$ref": "#/definitions/db.Medicine"
                             }
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponseDTO"
                         }
                     }
                 }
@@ -160,7 +160,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.CreateMedicineDTO"
+                            "$ref": "#/definitions/dto.CreateMedicineDTO"
                         }
                     }
                 ],
@@ -168,19 +168,19 @@ const docTemplate = `{
                     "201": {
                         "description": "Medicine created successfully",
                         "schema": {
-                            "$ref": "#/definitions/models.Medicine"
+                            "$ref": "#/definitions/db.Medicine"
                         }
                     },
                     "400": {
                         "description": "Invalid input",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponseDTO"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponseDTO"
                         }
                     }
                 }
@@ -212,19 +212,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Medicine found",
                         "schema": {
-                            "$ref": "#/definitions/models.Medicine"
+                            "$ref": "#/definitions/db.Medicine"
                         }
                     },
                     "400": {
                         "description": "Invalid input",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponseDTO"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponseDTO"
                         }
                     }
                 }
@@ -255,7 +255,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.UpdateMedicineDTO"
+                            "$ref": "#/definitions/dto.UpdateMedicineDTO"
                         }
                     }
                 ],
@@ -263,19 +263,19 @@ const docTemplate = `{
                     "202": {
                         "description": "Medicine updated successfully",
                         "schema": {
-                            "$ref": "#/definitions/models.Medicine"
+                            "$ref": "#/definitions/db.Medicine"
                         }
                     },
                     "400": {
                         "description": "Invalid input",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponseDTO"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponseDTO"
                         }
                     }
                 }
@@ -311,13 +311,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid input",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponseDTO"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponseDTO"
                         }
                     }
                 }
@@ -345,13 +345,13 @@ const docTemplate = `{
                     "201": {
                         "description": "Access token generated successfully",
                         "schema": {
-                            "$ref": "#/definitions/models.ServerResponse"
+                            "$ref": "#/definitions/dto.ServerResponseDTO"
                         }
                     },
                     "401": {
                         "description": "Unauthorized request",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponseDTO"
                         }
                     }
                 }
@@ -374,13 +374,13 @@ const docTemplate = `{
                     "403": {
                         "description": "Forbidden – Not allowed outside development environment",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponseDTO"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponseDTO"
                         }
                     }
                 }
@@ -411,7 +411,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized – Invalid or missing refresh token",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponseDTO"
                         }
                     }
                 }
@@ -437,7 +437,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.SignUpUser"
+                            "$ref": "#/definitions/dto.SignUpUserDTO"
                         }
                     }
                 ],
@@ -445,19 +445,19 @@ const docTemplate = `{
                     "201": {
                         "description": "ID: uuid",
                         "schema": {
-                            "$ref": "#/definitions/models.SignUpResponse"
+                            "$ref": "#/definitions/dto.SignUpResponseDTO"
                         }
                     },
                     "400": {
                         "description": "Bad request received",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponseDTO"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponseDTO"
                         }
                     }
                 }
@@ -480,19 +480,19 @@ const docTemplate = `{
                     "302": {
                         "description": "status found",
                         "schema": {
-                            "$ref": "#/definitions/models.UserResponseDTO"
+                            "$ref": "#/definitions/dto.UserResponseDTO"
                         }
                     },
                     "400": {
                         "description": "bad request status",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponseDTO"
                         }
                     },
                     "404": {
                         "description": "not found error",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponseDTO"
                         }
                     }
                 }
@@ -516,7 +516,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.UpdateUserDTO"
+                            "$ref": "#/definitions/dto.UpdateUserDTO"
                         }
                     }
                 ],
@@ -524,25 +524,25 @@ const docTemplate = `{
                     "202": {
                         "description": "user update response data",
                         "schema": {
-                            "$ref": "#/definitions/models.UserResponseDTO"
+                            "$ref": "#/definitions/dto.UserResponseDTO"
                         }
                     },
                     "400": {
                         "description": "Bad request received",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponseDTO"
                         }
                     },
                     "401": {
                         "description": "Unauthorized - Invalid or expired token",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponseDTO"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponseDTO"
                         }
                     }
                 }
@@ -569,13 +569,13 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized - Invalid or expired token",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponseDTO"
                         }
                     },
                     "404": {
                         "description": "not found error",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponseDTO"
                         }
                     }
                 }
@@ -604,13 +604,13 @@ const docTemplate = `{
                     "400": {
                         "description": "bad request received",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponseDTO"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponseDTO"
                         }
                     }
                 }
@@ -637,13 +637,13 @@ const docTemplate = `{
                     "400": {
                         "description": "bad request sent",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponseDTO"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponseDTO"
                         }
                     }
                 }
@@ -672,7 +672,7 @@ const docTemplate = `{
                     "400": {
                         "description": "bad request status",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponseDTO"
                         }
                     }
                 }
@@ -680,7 +680,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "models.Address": {
+        "db.Address": {
             "description": "Contains details of the user's location",
             "type": "object",
             "properties": {
@@ -702,86 +702,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.CreateMedicineDTO": {
-            "description": "DTO for creating a new medicine",
-            "type": "object",
-            "required": [
-                "description",
-                "dosage",
-                "manufacturer",
-                "name",
-                "price",
-                "stock"
-            ],
-            "properties": {
-                "description": {
-                    "type": "string",
-                    "example": "Pain reliever"
-                },
-                "dosage": {
-                    "type": "string",
-                    "example": "500mg"
-                },
-                "manufacturer": {
-                    "type": "string",
-                    "example": "XZY Pharma"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "Paracetamol"
-                },
-                "price": {
-                    "type": "integer",
-                    "format": "int32",
-                    "minimum": 0,
-                    "example": 50
-                },
-                "stock": {
-                    "type": "integer",
-                    "format": "int32",
-                    "minimum": 0,
-                    "example": 75
-                }
-            }
-        },
-        "models.ErrorResponse": {
-            "description": "This struct represents the response structure for error handling.",
-            "type": "object",
-            "properties": {
-                "code": {
-                    "description": "HTTP status code",
-                    "type": "integer",
-                    "format": "int",
-                    "example": 500
-                },
-                "message": {
-                    "description": "Human-readable error message",
-                    "type": "string",
-                    "format": "string",
-                    "example": "Internal server error"
-                }
-            }
-        },
-        "models.LogIn": {
-            "description": "Contains credentials required for authentication",
-            "type": "object",
-            "required": [
-                "email",
-                "password"
-            ],
-            "properties": {
-                "email": {
-                    "type": "string",
-                    "example": "user@example.com"
-                },
-                "password": {
-                    "type": "string",
-                    "minLength": 8,
-                    "example": "SecurePass123"
-                }
-            }
-        },
-        "models.Medicine": {
+        "db.Medicine": {
             "description": "Medicine entity contains details about a medicine",
             "type": "object",
             "properties": {
@@ -833,7 +754,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.Name": {
+        "db.Name": {
             "description": "Contains first and last name fields",
             "type": "object",
             "properties": {
@@ -849,7 +770,86 @@ const docTemplate = `{
                 }
             }
         },
-        "models.ServerResponse": {
+        "dto.CreateMedicineDTO": {
+            "description": "DTO for creating a new medicine",
+            "type": "object",
+            "required": [
+                "description",
+                "dosage",
+                "manufacturer",
+                "name",
+                "price",
+                "stock"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "example": "Pain reliever"
+                },
+                "dosage": {
+                    "type": "string",
+                    "example": "500mg"
+                },
+                "manufacturer": {
+                    "type": "string",
+                    "example": "XZY Pharma"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Paracetamol"
+                },
+                "price": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "example": 50
+                },
+                "stock": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "example": 75
+                }
+            }
+        },
+        "dto.ErrorResponseDTO": {
+            "description": "This struct represents the response structure for error handling.",
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "HTTP status code",
+                    "type": "integer",
+                    "format": "int",
+                    "example": 500
+                },
+                "message": {
+                    "description": "Human-readable error message",
+                    "type": "string",
+                    "format": "string",
+                    "example": "Internal server error"
+                }
+            }
+        },
+        "dto.LogInDTO": {
+            "description": "Contains credentials required for authentication",
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "user@example.com"
+                },
+                "password": {
+                    "type": "string",
+                    "minLength": 8,
+                    "example": "SecurePass123"
+                }
+            }
+        },
+        "dto.ServerResponseDTO": {
             "description": "Used for authentication responses",
             "type": "object",
             "properties": {
@@ -859,7 +859,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.SignUpResponse": {
+        "dto.SignUpResponseDTO": {
             "description": "Contains the unique ID of the newly created user",
             "type": "object",
             "properties": {
@@ -871,7 +871,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.SignUpUser": {
+        "dto.SignUpUserDTO": {
             "description": "Contains required fields for creating a new user",
             "type": "object",
             "required": [
@@ -892,7 +892,7 @@ const docTemplate = `{
                     "example": "user@example.com"
                 },
                 "name": {
-                    "$ref": "#/definitions/models.Name"
+                    "$ref": "#/definitions/db.Name"
                 },
                 "password": {
                     "type": "string",
@@ -906,7 +906,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.UpdateMedicineDTO": {
+        "dto.UpdateMedicineDTO": {
             "description": "DTO for updating a medicine information",
             "type": "object",
             "properties": {
@@ -938,12 +938,12 @@ const docTemplate = `{
                 }
             }
         },
-        "models.UpdateUserDTO": {
+        "dto.UpdateUserDTO": {
             "description": "Contains optional fields for updating user information",
             "type": "object",
             "properties": {
                 "address": {
-                    "$ref": "#/definitions/models.Address"
+                    "$ref": "#/definitions/db.Address"
                 },
                 "age": {
                     "type": "integer",
@@ -955,7 +955,7 @@ const docTemplate = `{
                     "example": "user@example.com"
                 },
                 "name": {
-                    "$ref": "#/definitions/models.Name"
+                    "$ref": "#/definitions/db.Name"
                 },
                 "phone": {
                     "type": "string",
@@ -963,12 +963,12 @@ const docTemplate = `{
                 }
             }
         },
-        "models.UserResponseDTO": {
+        "dto.UserResponseDTO": {
             "description": "Contains user profile information returned from API",
             "type": "object",
             "properties": {
                 "address": {
-                    "$ref": "#/definitions/models.Address"
+                    "$ref": "#/definitions/db.Address"
                 },
                 "age": {
                     "type": "integer"
@@ -983,7 +983,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
-                    "$ref": "#/definitions/models.Name"
+                    "$ref": "#/definitions/db.Name"
                 },
                 "phone": {
                     "type": "string"
