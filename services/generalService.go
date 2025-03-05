@@ -3,16 +3,25 @@ package service
 import (
 	"context"
 	"medicine-app/internal/auth"
-	"medicine-app/models"
+	"medicine-app/models/dto"
+	"medicine-app/repository"
 	"time"
 )
 
 type generalService struct {
-	Repo   models.GeneralRepository
+	Repo   repository.GeneralRepository
 	Secret string
 }
 
-func NewGeneralService(genRepo models.GeneralRepository, secret string) models.GeneralService {
+type GeneralService interface {
+	ResetMedicineService(ctx context.Context) error
+	ResetUserService(ctx context.Context) error
+	ResetAddressService(ctx context.Context) error
+	GenerateToken(ctx context.Context, refreshToken string) (dto.TokenResponseDTO, error)
+	RevokeRefreshToken(ctx context.Context, refreshToken string) error
+}
+
+func NewGeneralService(genRepo repository.GeneralRepository, secret string) GeneralService {
 	return &generalService{
 		Repo:   genRepo,
 		Secret: secret,
@@ -31,7 +40,7 @@ func (gs *generalService) ResetAddressService(ctx context.Context) error {
 	return gs.Repo.ResetAddressRepo(ctx)
 }
 
-func (gs *generalService) GenerateToken(ctx context.Context, refreshToken string) (models.TokenResponseDTO, error) {
+func (gs *generalService) GenerateToken(ctx context.Context, refreshToken string) (dto.TokenResponseDTO, error) {
 	user, err := gs.Repo.FindUserFromToken(ctx, refreshToken)
 	if err != nil {
 		return wrapTokenResponseError(err)
@@ -42,7 +51,7 @@ func (gs *generalService) GenerateToken(ctx context.Context, refreshToken string
 		return wrapTokenResponseError(err)
 	}
 
-	return models.TokenResponseDTO{
+	return dto.TokenResponseDTO{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	}, nil

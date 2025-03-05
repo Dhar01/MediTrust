@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"medicine-app/internal/auth"
 	"medicine-app/models"
+	"medicine-app/models/dto"
+	repo "medicine-app/repository"
 	"medicine-app/utils"
 	"time"
 
@@ -12,22 +14,33 @@ import (
 )
 
 type authService struct {
-	AuthRepo         models.AuthRepository
-	UserRepo         models.UserRepository
-	VerificationRepo models.VerificationRepository
+	AuthRepo         repo.AuthRepository
+	UserRepo         repo.UserRepository
+	VerificationRepo repo.VerificationRepository
 	Secret           string
 	Domain           string
 	Port             string
 	emailSender      *utils.EmailSender
 }
 
+// AuthService defines the business logic interface for authentication management
+// @Description Interface for authentication-authorization related business logic
+type AuthService interface {
+	SignUpUser(ctx context.Context, user dto.SignUpUserDTO) (dto.SignUpResponseDTO, error) // should act as CreateUser
+	LogInUser(ctx context.Context, login dto.LogInDTO) (dto.TokenResponseDTO, error)
+	LogoutUser(ctx context.Context, id uuid.UUID) error
+	SetVerifiedUser(ctx context.Context, token string) error
+	ResetPassEmail(ctx context.Context, email string) error
+	ResetPassword(ctx context.Context, token, password string) error
+}
+
 func NewAuthService(
-	authRepo models.AuthRepository,
-	userRepo models.UserRepository,
-	verificationRepo models.VerificationRepository,
+	authRepo repo.AuthRepository,
+	userRepo repo.UserRepository,
+	verificationRepo repo.VerificationRepository,
 	secret, domain, port string,
 	emailSender *utils.EmailSender,
-) models.AuthService {
+) AuthService {
 	if authRepo == nil || userRepo == nil || verificationRepo == nil {
 		panic("repo can't be nil")
 	}
@@ -43,7 +56,7 @@ func NewAuthService(
 	}
 }
 
-func (as *authService) SignUpUser(ctx context.Context, user models.SignUpUser) (models.SignUpResponse, error) {
+func (as *authService) SignUpUser(ctx context.Context, user dto.SignUpUserDTO) (dto.SignUpResponseDTO, error) {
 	// check if the user exists with the associated email
 	available, _ := as.UserRepo.FindUser(ctx, models.Email, user.Email)
 	if available.Exist {
@@ -100,12 +113,12 @@ func (as *authService) SignUpUser(ctx context.Context, user models.SignUpUser) (
 		return wrapSignUpError(err)
 	}
 
-	return models.SignUpResponse{
+	return dto.SignUpResponseDTO{
 		ID: newUser.ID,
 	}, nil
 }
 
-func (as *authService) LogInUser(ctx context.Context, login models.LogIn) (models.TokenResponseDTO, error) {
+func (as *authService) LogInUser(ctx context.Context, login dto.LogInDTO) (dto.TokenResponseDTO, error) {
 	user, err := as.UserRepo.FindUser(ctx, models.Email, login.Email)
 	if err != nil {
 		return wrapTokenResponseError(err)
@@ -143,7 +156,7 @@ func (as *authService) LogInUser(ctx context.Context, login models.LogIn) (model
 		return wrapTokenResponseError(err)
 	}
 
-	return models.TokenResponseDTO{
+	return dto.TokenResponseDTO{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	}, nil

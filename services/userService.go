@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"medicine-app/internal/auth"
-	"medicine-app/models"
+	"medicine-app/models/db"
+	"medicine-app/models/dto"
+	repo "medicine-app/repository"
 
 	"github.com/google/uuid"
 )
@@ -12,11 +14,22 @@ import (
 var errUserExist = errors.New("user exist")
 
 type userProfileService struct {
-	UserRepo models.UserRepository
+	UserRepo repo.UserRepository
 	Secret   string
 }
 
-func NewUserProfileService(userRepo models.UserRepository, secret string) models.UserProfileService {
+
+// UserService defines the business logic interface for user management
+// @Description Interface for user-related business logic
+type UserProfileService interface {
+	FindUserByID(ctx context.Context, userID uuid.UUID) (dto.UserResponseDTO, error)
+	FindUserByKey(ctx context.Context, key, value string) (dto.UserResponseDTO, error)
+	UpdateUser(ctx context.Context, userID uuid.UUID, user dto.UpdateUserDTO) (dto.UserResponseDTO, error)
+	DeleteUser(ctx context.Context, userID uuid.UUID) error
+}
+
+
+func NewUserProfileService(userRepo repo.UserRepository, secret string) UserProfileService {
 	if userRepo == nil {
 		panic("repo can't be nil")
 	}
@@ -28,13 +41,13 @@ func NewUserProfileService(userRepo models.UserRepository, secret string) models
 }
 
 // NewUser constructor
-func NewUser(signUp models.SignUpUser, role string) (models.User, error) {
+func NewUser(signUp dto.SignUpUserDTO, role string) (db.User, error) {
 	hashedPass, err := auth.HashPassword(signUp.Password)
 	if err != nil {
-		return models.User{}, err
+		return db.User{}, err
 	}
 
-	return models.User{
+	return db.User{
 		Name:         signUp.Name,
 		Email:        signUp.Email,
 		Age:          signUp.Age,
@@ -44,16 +57,16 @@ func NewUser(signUp models.SignUpUser, role string) (models.User, error) {
 	}, nil
 }
 
-func (us *userProfileService) UpdateUser(ctx context.Context, userID uuid.UUID, user models.UpdateUserDTO) (models.UserResponseDTO, error) {
+func (us *userProfileService) UpdateUser(ctx context.Context, userID uuid.UUID, user dto.UpdateUserDTO) (dto.UserResponseDTO, error) {
 	oldInfo, err := us.UserRepo.FindByID(ctx, userID)
 	// log.Printf("OLDINFO: %+v", oldInfo)
 	if err != nil {
 		return wrapUserError(err)
 	}
 
-	person := models.User{
+	person := db.User{
 		ID: userID,
-		Name: models.Name{
+		Name: db.Name{
 			FirstName: updateField(user.Name.FirstName, oldInfo.Name.FirstName),
 			LastName:  updateField(user.Name.LastName, oldInfo.Name.LastName),
 		},
@@ -79,7 +92,7 @@ func (us *userProfileService) DeleteUser(ctx context.Context, userID uuid.UUID) 
 	return us.UserRepo.Delete(ctx, userID)
 }
 
-func (us *userProfileService) FindUserByID(ctx context.Context, userID uuid.UUID) (models.UserResponseDTO, error) {
+func (us *userProfileService) FindUserByID(ctx context.Context, userID uuid.UUID) (dto.UserResponseDTO, error) {
 	user, err := us.UserRepo.FindByID(ctx, userID)
 	if err != nil {
 		return wrapUserError(err)
@@ -89,7 +102,7 @@ func (us *userProfileService) FindUserByID(ctx context.Context, userID uuid.UUID
 }
 
 // FindUser by KEY. Key should be either Email or Phone.
-func (us *userProfileService) FindUserByKey(ctx context.Context, key, value string) (models.UserResponseDTO, error) {
+func (us *userProfileService) FindUserByKey(ctx context.Context, key, value string) (dto.UserResponseDTO, error) {
 	person, err := us.UserRepo.FindUser(ctx, key, value)
 	if err != nil {
 		return wrapUserError(err)
@@ -103,10 +116,10 @@ func (us *userProfileService) FindUserByKey(ctx context.Context, key, value stri
 	return toUserDTODomain(user), nil
 }
 
-func toUserDTODomain(user models.User) models.UserResponseDTO {
-	return models.UserResponseDTO{
+func toUserDTODomain(user db.User) dto.UserResponseDTO {
+	return dto.UserResponseDTO{
 		ID: user.ID,
-		Name: models.Name{
+		Name: db.Name{
 			FirstName: user.Name.FirstName,
 			LastName:  user.Name.LastName,
 		},
@@ -115,7 +128,7 @@ func toUserDTODomain(user models.User) models.UserResponseDTO {
 		Phone:     user.Phone,
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,
-		Address: models.Address{
+		Address: db.Address{
 			Country:       user.Address.Country,
 			City:          user.Address.City,
 			StreetAddress: user.Address.StreetAddress,
@@ -140,24 +153,24 @@ func updateIntPointerField(newValue, oldValue *int32) *int32 {
 	return newValue
 }
 
-func wrapTokenResponseError(err error) (models.TokenResponseDTO, error) {
-	return models.TokenResponseDTO{}, err
+func wrapTokenResponseError(err error) (dto.TokenResponseDTO, error) {
+	return dto.TokenResponseDTO{}, err
 }
 
-func wrapUserError(err error) (models.UserResponseDTO, error) {
-	return models.UserResponseDTO{}, err
+func wrapUserError(err error) (dto.UserResponseDTO, error) {
+	return dto.UserResponseDTO{}, err
 }
 
-func wrapSignUpError(err error) (models.SignUpResponse, error) {
-	return models.SignUpResponse{}, err
+func wrapSignUpError(err error) (dto.SignUpResponseDTO, error) {
+	return dto.SignUpResponseDTO{}, err
 }
 
-func setAddress(address, oldAddress *models.Address) models.Address {
+func setAddress(address, oldAddress *db.Address) db.Address {
 	if address == nil {
 		address = oldAddress
 	}
 
-	return models.Address{
+	return db.Address{
 		Country:       address.Country,
 		City:          address.City,
 		StreetAddress: address.StreetAddress,
