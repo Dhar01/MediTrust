@@ -31,10 +31,10 @@ func NewUserController(userService service.UserProfileService, authService servi
 //	@Tags			user
 //	@Accept			json
 //	@Produce		json
-//	@Param			request	body		models.SignUpUser		true	"User signup request"
-//	@Success		201		{object}	models.SignUpResponse	"ID: uuid"
-//	@Failure		400		{object}	models.ErrorResponse	"Bad request received"
-//	@Failure		500		{object}	models.ErrorResponse	"Internal server error"
+//	@Param			request	body		dto.SignUpUserDTO		true	"User signup request"
+//	@Success		201		{object}	dto.SignUpResponseDTO	"ID: uuid"
+//	@Failure		400		{object}	dto.ErrorResponseDTO	"Bad request received"
+//	@Failure		500		{object}	dto.ErrorResponseDTO	"Internal server error"
 //	@Router			/signup [post]
 func (uc *userController) HandlerSignUp(ctx *gin.Context) {
 	var newUser dto.SignUpUserDTO
@@ -60,12 +60,12 @@ func (uc *userController) HandlerSignUp(ctx *gin.Context) {
 //	@Tags			user
 //	@Accept			json
 //	@Produce		json
-//	@Param			request	body		models.LogIn			true	"User log in request"
-//	@Success		200		{object}	models.ServerResponse	"access_token: token"
+//	@Param			request	body		dto.LogInDTO			true	"User log in request"
+//	@Success		200		{object}	dto.ServerResponseDTO	"access_token: token"
 //	@Success		200		{string}	string					"Set-Cookie: refresh_token=<token>; HttpOnly; Secure; Path=/; Domain=<your-domain.com>"
-//	@Failure		400		{object}	models.ErrorResponse	"Bad request received"
-//	@Failure		401		{object}	models.ErrorResponse	"Unauthorized - Invalid credentials"
-//	@Failure		500		{object}	models.ErrorResponse	"Internal server error"
+//	@Failure		400		{object}	dto.ErrorResponseDTO	"Bad request received"
+//	@Failure		401		{object}	dto.ErrorResponseDTO	"Unauthorized - Invalid credentials"
+//	@Failure		500		{object}	dto.ErrorResponseDTO	"Internal server error"
 //	@Router			/login [post]
 func (uc *userController) HandlerLogIn(ctx *gin.Context) {
 	var login dto.LogInDTO
@@ -95,8 +95,8 @@ func (uc *userController) HandlerLogIn(ctx *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Success		200	{string}	string					"Set-Cookie: refresh_token=; HttpOnly; Secure; Path=/; Domain=<your-domain.com>; Max-Age=0"
-//	@Failure		401	{object}	models.ErrorResponse	"Unauthorized - Invalid or expired token"
-//	@Failure		500	{object}	models.ErrorResponse	"Internal server error"
+//	@Failure		401	{object}	dto.ErrorResponseDTO	"Unauthorized - Invalid or expired token"
+//	@Failure		500	{object}	dto.ErrorResponseDTO	"Internal server error"
 //	@Router			/logout [post]
 func (uc *userController) HandlerLogout(ctx *gin.Context) {
 	id, ok := getUserID(ctx)
@@ -121,11 +121,11 @@ func (uc *userController) HandlerLogout(ctx *gin.Context) {
 //	@Tags			user
 //	@Accept			json
 //	@Produce		json
-//	@Param			request	body		models.UpdateUserDTO	true	"user update information request"
-//	@Success		202		{object}	models.UserResponseDTO	"user update response data"
-//	@Failure		400		{object}	models.ErrorResponse	"Bad request received"
-//	@Failure		401		{object}	models.ErrorResponse	"Unauthorized - Invalid or expired token"
-//	@Failure		500		{object}	models.ErrorResponse	"Internal server error"
+//	@Param			request	body		dto.UpdateUserDTO		true	"user update information request"
+//	@Success		202		{object}	dto.UserResponseDTO		"user update response data"
+//	@Failure		400		{object}	dto.ErrorResponseDTO	"Bad request received"
+//	@Failure		401		{object}	dto.ErrorResponseDTO	"Unauthorized - Invalid or expired token"
+//	@Failure		500		{object}	dto.ErrorResponseDTO	"Internal server error"
 //	@Router			/users [put]
 func (uc *userController) HandlerUpdateUser(ctx *gin.Context) {
 	id, ok := getUserID(ctx)
@@ -171,8 +171,8 @@ func (uc *userController) HandlerUpdateUser(ctx *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Success		204	{string}	string					"status no content"
-//	@Failure		401	{object}	models.ErrorResponse	"Unauthorized - Invalid or expired token"
-//	@Failure		404	{object}	models.ErrorResponse	"not found error"
+//	@Failure		401	{object}	dto.ErrorResponseDTO	"Unauthorized - Invalid or expired token"
+//	@Failure		404	{object}	dto.ErrorResponseDTO	"not found error"
 //	@Router			/users [delete]
 func (uc *userController) HandlerDeleteUser(ctx *gin.Context) {
 	id, ok := getUserID(ctx)
@@ -196,9 +196,9 @@ func (uc *userController) HandlerDeleteUser(ctx *gin.Context) {
 //	@Tags			admin
 //	@Accept			json
 //	@Produce		json
-//	@Success		302	{object}	models.UserResponseDTO	"status found"
-//	@Failure		400	{object}	models.ErrorResponse	"bad request status"
-//	@Failure		404	{object}	models.ErrorResponse	"not found error"
+//	@Success		302	{object}	dto.UserResponseDTO		"status found"
+//	@Failure		400	{object}	dto.ErrorResponseDTO	"bad request status"
+//	@Failure		404	{object}	dto.ErrorResponseDTO	"not found error"
 //	@Router			/users [get]
 func (uc *userController) HandlerGetUserByID(ctx *gin.Context) {
 	userID := ctx.Param("userID")
@@ -225,7 +225,7 @@ func (uc *userController) HandlerGetUserByID(ctx *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Success		202	{string}	string					"status accepted"
-//	@Failure		400	{object}	models.ErrorResponse	"bad request status"
+//	@Failure		400	{object}	dto.ErrorResponseDTO	"bad request status"
 //	@Router			/verify [get]
 func (us *userController) HandlerVerify(ctx *gin.Context) {
 	token := ctx.DefaultQuery("token", "")
@@ -246,8 +246,8 @@ func (us *userController) HandlerVerify(ctx *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Success		202	{string}	string					"status accepted"
-//	@Failure		400	{object}	models.ErrorResponse	"bad request sent"
-//	@Failure		500	{object}	models.ErrorResponse	"Internal server error"
+//	@Failure		400	{object}	dto.ErrorResponseDTO	"bad request sent"
+//	@Failure		500	{object}	dto.ErrorResponseDTO	"Internal server error"
 //	@Router			/users/reset [post]
 func (us *userController) HandlerRequestPasswordReset(ctx *gin.Context) {
 	var newResetPass dto.RequestResetPassDTO
@@ -273,8 +273,8 @@ func (us *userController) HandlerRequestPasswordReset(ctx *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Success		202	{string}	string					"status accepted"
-//	@Failure		400	{object}	models.ErrorResponse	"bad request received"
-//	@Failure		500	{object}	models.ErrorResponse	"Internal server error"
+//	@Failure		400	{object}	dto.ErrorResponseDTO	"bad request received"
+//	@Failure		500	{object}	dto.ErrorResponseDTO	"Internal server error"
 //	@Router			/users/reset [put]
 func (us *userController) HandlerResetUpdatePass(ctx *gin.Context) {
 	token := ctx.DefaultQuery("token", "")
