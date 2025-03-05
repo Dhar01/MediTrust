@@ -11,7 +11,7 @@ import (
 )
 
 type medicineService struct {
-	Repo repository.MedicineRepository
+	repo repository.MedicineRepository
 }
 
 // MedicineService defines the business logic interface for medicine management
@@ -30,7 +30,7 @@ func NewMedicineService(repo repository.MedicineRepository) MedicineService {
 	}
 
 	return &medicineService{
-		Repo: repo,
+		repo: repo,
 	}
 }
 
@@ -44,25 +44,25 @@ func (ms *medicineService) CreateMedicine(ctx context.Context, newMed dto.Create
 		Stock:        newMed.Stock,
 	}
 
-	return ms.Repo.Create(ctx, medicine)
+	return ms.repo.Create(ctx, medicine)
 }
 
 func (ms *medicineService) DeleteMedicine(ctx context.Context, medID uuid.UUID) error {
-	return ms.Repo.Delete(ctx, medID)
+	return ms.repo.Delete(ctx, medID)
 }
 
 func (ms *medicineService) GetMedicines(ctx context.Context) ([]db.Medicine, error) {
-	return ms.Repo.FindAll(ctx)
+	return ms.repo.FindAll(ctx)
 }
 
 func (ms *medicineService) GetMedicineByID(ctx context.Context, medID uuid.UUID) (db.Medicine, error) {
-	return ms.Repo.FindByID(ctx, medID)
+	return ms.repo.FindByID(ctx, medID)
 }
 
 func (ms *medicineService) UpdateMedicine(ctx context.Context, medID uuid.UUID, med dto.UpdateMedicineDTO) (db.Medicine, error) {
 	var emptyMed db.Medicine
 
-	oldMed, err := ms.Repo.FindByID(ctx, medID)
+	oldMed, err := ms.repo.FindByID(ctx, medID)
 	if err != nil {
 		return emptyMed, errors.New("cannot find medicine")
 	}
@@ -77,5 +77,5 @@ func (ms *medicineService) UpdateMedicine(ctx context.Context, medID uuid.UUID, 
 		Stock:        *updateIntPointerField(med.Stock, &oldMed.Stock),
 	}
 
-	return ms.Repo.Update(ctx, medicine)
+	return ms.repo.Update(ctx, medicine)
 }

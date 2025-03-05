@@ -9,8 +9,8 @@ import (
 )
 
 type generalService struct {
-	Repo   repository.GeneralRepository
-	Secret string
+	repo   repository.GeneralRepository
+	secret string
 }
 
 type GeneralService interface {
@@ -23,30 +23,30 @@ type GeneralService interface {
 
 func NewGeneralService(genRepo repository.GeneralRepository, secret string) GeneralService {
 	return &generalService{
-		Repo:   genRepo,
-		Secret: secret,
+		repo:   genRepo,
+		secret: secret,
 	}
 }
 
 func (gs *generalService) ResetMedicineService(ctx context.Context) error {
-	return gs.Repo.ResetMedicineRepo(ctx)
+	return gs.repo.ResetMedicineRepo(ctx)
 }
 
 func (gs *generalService) ResetUserService(ctx context.Context) error {
-	return gs.Repo.ResetUserRepo(ctx)
+	return gs.repo.ResetUserRepo(ctx)
 }
 
 func (gs *generalService) ResetAddressService(ctx context.Context) error {
-	return gs.Repo.ResetAddressRepo(ctx)
+	return gs.repo.ResetAddressRepo(ctx)
 }
 
 func (gs *generalService) GenerateToken(ctx context.Context, refreshToken string) (dto.TokenResponseDTO, error) {
-	user, err := gs.Repo.FindUserFromToken(ctx, refreshToken)
+	user, err := gs.repo.FindUserFromToken(ctx, refreshToken)
 	if err != nil {
 		return wrapTokenResponseError(err)
 	}
 
-	accessToken, err := auth.GenerateAccessToken(user.ID, user.Role, gs.Secret, time.Minute*15)
+	accessToken, err := auth.GenerateAccessToken(user.ID, user.Role, gs.secret, time.Minute*15)
 	if err != nil {
 		return wrapTokenResponseError(err)
 	}
@@ -58,5 +58,5 @@ func (gs *generalService) GenerateToken(ctx context.Context, refreshToken string
 }
 
 func (gs *generalService) RevokeRefreshToken(ctx context.Context, refreshToken string) error {
-	return gs.Repo.RevokeToken(ctx, refreshToken)
+	return gs.repo.RevokeToken(ctx, refreshToken)
 }

@@ -14,10 +14,9 @@ import (
 var errUserExist = errors.New("user exist")
 
 type userProfileService struct {
-	UserRepo repo.UserRepository
-	Secret   string
+	userRepo repo.UserRepository
+	secret   string
 }
-
 
 // UserService defines the business logic interface for user management
 // @Description Interface for user-related business logic
@@ -28,15 +27,14 @@ type UserProfileService interface {
 	DeleteUser(ctx context.Context, userID uuid.UUID) error
 }
 
-
 func NewUserProfileService(userRepo repo.UserRepository, secret string) UserProfileService {
 	if userRepo == nil {
 		panic("repo can't be nil")
 	}
 
 	return &userProfileService{
-		UserRepo: userRepo,
-		Secret:   secret,
+		userRepo: userRepo,
+		secret:   secret,
 	}
 }
 
@@ -58,8 +56,8 @@ func NewUser(signUp dto.SignUpUserDTO, role string) (db.User, error) {
 }
 
 func (us *userProfileService) UpdateUser(ctx context.Context, userID uuid.UUID, user dto.UpdateUserDTO) (dto.UserResponseDTO, error) {
-	oldInfo, err := us.UserRepo.FindByID(ctx, userID)
-	// log.Printf("OLDINFO: %+v", oldInfo)
+	oldInfo, err := us.userRepo.FindByID(ctx, userID)
+	// log.Printf("OldInfo: %+v", oldInfo)
 	if err != nil {
 		return wrapUserError(err)
 	}
@@ -77,10 +75,10 @@ func (us *userProfileService) UpdateUser(ctx context.Context, userID uuid.UUID, 
 		Address: setAddress(user.Address, &oldInfo.Address),
 	}
 
-	// log.Printf("UPDATEDUSER: %+v", person)
+	// log.Printf("UpdateUser: %+v", person)
 
-	userUpdate, err := us.UserRepo.Update(ctx, person)
-	// log.Printf("Userupdate Data: %v", userUpdate)
+	userUpdate, err := us.userRepo.Update(ctx, person)
+	// log.Printf("UserUpdate Data: %v", userUpdate)
 	if err != nil {
 		return wrapUserError(err)
 	}
@@ -89,11 +87,11 @@ func (us *userProfileService) UpdateUser(ctx context.Context, userID uuid.UUID, 
 }
 
 func (us *userProfileService) DeleteUser(ctx context.Context, userID uuid.UUID) error {
-	return us.UserRepo.Delete(ctx, userID)
+	return us.userRepo.Delete(ctx, userID)
 }
 
 func (us *userProfileService) FindUserByID(ctx context.Context, userID uuid.UUID) (dto.UserResponseDTO, error) {
-	user, err := us.UserRepo.FindByID(ctx, userID)
+	user, err := us.userRepo.FindByID(ctx, userID)
 	if err != nil {
 		return wrapUserError(err)
 	}
@@ -103,12 +101,12 @@ func (us *userProfileService) FindUserByID(ctx context.Context, userID uuid.UUID
 
 // FindUser by KEY. Key should be either Email or Phone.
 func (us *userProfileService) FindUserByKey(ctx context.Context, key, value string) (dto.UserResponseDTO, error) {
-	person, err := us.UserRepo.FindUser(ctx, key, value)
+	person, err := us.userRepo.FindUser(ctx, key, value)
 	if err != nil {
 		return wrapUserError(err)
 	}
 
-	user, err := us.UserRepo.FindByID(ctx, person.ID)
+	user, err := us.userRepo.FindByID(ctx, person.ID)
 	if err != nil {
 		return wrapUserError(err)
 	}

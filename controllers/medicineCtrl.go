@@ -11,12 +11,12 @@ import (
 )
 
 type medicineController struct {
-	MedicineService service.MedicineService
+	medicineService service.MedicineService
 }
 
 func NewMedicineController(service service.MedicineService) *medicineController {
 	return &medicineController{
-		MedicineService: service,
+		medicineService: service,
 	}
 }
 
@@ -40,7 +40,7 @@ func (mc *medicineController) HandlerCreateMedicine(ctx *gin.Context) {
 		return
 	}
 
-	medicine, err := mc.MedicineService.CreateMedicine(ctx.Request.Context(), newMedicine)
+	medicine, err := mc.medicineService.CreateMedicine(ctx.Request.Context(), newMedicine)
 	if err != nil {
 		errorResponse(ctx, http.StatusInternalServerError, err)
 		return
@@ -60,7 +60,7 @@ func (mc *medicineController) HandlerCreateMedicine(ctx *gin.Context) {
 //	@Failure		500	{object}	dto.ErrorResponseDTO	"Internal server error"
 //	@Router			/medicines [get]
 func (mc *medicineController) HandlerGetMedicines(ctx *gin.Context) {
-	medicines, err := mc.MedicineService.GetMedicines(ctx.Request.Context())
+	medicines, err := mc.medicineService.GetMedicines(ctx.Request.Context())
 	if err != nil {
 		errorResponse(ctx, http.StatusInternalServerError, err)
 		return
@@ -89,7 +89,7 @@ func (mc *medicineController) HandlerGetMedicineByID(ctx *gin.Context) {
 		return
 	}
 
-	medicine, err := mc.MedicineService.GetMedicineByID(ctx.Request.Context(), id)
+	medicine, err := mc.medicineService.GetMedicineByID(ctx.Request.Context(), id)
 	if err != nil {
 		errorResponse(ctx, http.StatusInternalServerError, err)
 		return
@@ -124,7 +124,7 @@ func (mc *medicineController) HandlerUpdateMedicineByID(ctx *gin.Context) {
 		return
 	}
 
-	medicine, err := mc.MedicineService.UpdateMedicine(ctx.Request.Context(), id, updateMed)
+	medicine, err := mc.medicineService.UpdateMedicine(ctx.Request.Context(), id, updateMed)
 	if err != nil {
 		errorResponse(ctx, http.StatusInternalServerError, err)
 		return
@@ -151,7 +151,7 @@ func (mc *medicineController) HandlerDeleteMedicineByID(ctx *gin.Context) {
 		return
 	}
 
-	if err := mc.MedicineService.DeleteMedicine(ctx.Request.Context(), id); err != nil {
+	if err := mc.medicineService.DeleteMedicine(ctx.Request.Context(), id); err != nil {
 		errorResponse(ctx, http.StatusInternalServerError, err)
 		return
 	}
