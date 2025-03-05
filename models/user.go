@@ -54,8 +54,6 @@ type RequestResetPass struct {
 	Email string `json:"email" binding:"required,email" example:"user@example.com"`
 }
 
-
-
 type ResetPass struct {
 	Password string `json:"password" binding:"required,min=8" example:"SecurePass123"`
 }
@@ -125,7 +123,7 @@ type UserProfileService interface {
 
 // AuthService defines the business logic interface for authentication management
 // @Description Interface for authentication-authorization related business logic
-type Authservice interface {
+type AuthService interface {
 	SignUpUser(ctx context.Context, user SignUpUser) (SignUpResponse, error) // should act as CreateUser
 	LogInUser(ctx context.Context, login LogIn) (TokenResponseDTO, error)
 	LogoutUser(ctx context.Context, id uuid.UUID) error

@@ -27,7 +27,7 @@ func NewAuthService(
 	verificationRepo models.VerificationRepository,
 	secret, domain, port string,
 	emailSender *utils.EmailSender,
-) models.Authservice {
+) models.AuthService {
 	if authRepo == nil || userRepo == nil || verificationRepo == nil {
 		panic("repo can't be nil")
 	}

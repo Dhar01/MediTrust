@@ -12,10 +12,10 @@ import (
 
 type userController struct {
 	UserService models.UserProfileService
-	AuthService models.Authservice
+	AuthService models.AuthService
 }
 
-func NewUserController(userService models.UserProfileService, authService models.Authservice) *userController {
+func NewUserController(userService models.UserProfileService, authService models.AuthService) *userController {
 	return &userController{
 		UserService: userService,
 		AuthService: authService,
