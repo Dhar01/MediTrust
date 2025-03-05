@@ -19,7 +19,7 @@ func UserRoutes(router *gin.RouterGroup, cfg *config.Config) {
 
 	userService := service.NewUserProfileService(userRepo, cfg.SecretKey)
 	authService := service.NewAuthService(authRepo, userRepo, verificationRepo, cfg.SecretKey, cfg.Domain, cfg.Port, cfg.EmailSender)
-	userCtrl := controllers.NewUserController(userService, authService)
+	userCtrl := controllers.NewUserController(userService, authService, cfg.Domain)
 
 	// GET route for users
 	router.GET(usersBase+"/:userID", middleware.AdminAuth(cfg.SecretKey), userCtrl.HandlerGetUserByID)
