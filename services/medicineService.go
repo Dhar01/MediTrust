@@ -3,16 +3,28 @@ package service
 import (
 	"context"
 	"errors"
-	"medicine-app/models"
+	"medicine-app/models/db"
+	"medicine-app/models/dto"
+	"medicine-app/repository"
 
 	"github.com/google/uuid"
 )
 
 type medicineService struct {
-	Repo models.MedicineRepository
+	Repo repository.MedicineRepository
 }
 
-func NewMedicineService(repo models.MedicineRepository) models.MedicineService {
+// MedicineService defines the business logic interface for medicine management
+// @Description Interface for medicine-related business logic
+type MedicineService interface {
+	CreateMedicine(ctx context.Context, medicine dto.CreateMedicineDTO) (db.Medicine, error)
+	DeleteMedicine(ctx context.Context, medID uuid.UUID) error
+	UpdateMedicine(ctx context.Context, medID uuid.UUID, med dto.UpdateMedicineDTO) (db.Medicine, error)
+	GetMedicines(ctx context.Context) ([]db.Medicine, error)
+	GetMedicineByID(ctx context.Context, medID uuid.UUID) (db.Medicine, error)
+}
+
+func NewMedicineService(repo repository.MedicineRepository) MedicineService {
 	if repo == nil {
 		panic("repository can't be nil")
 	}
@@ -22,8 +34,8 @@ func NewMedicineService(repo models.MedicineRepository) models.MedicineService {
 	}
 }
 
-func (ms *medicineService) CreateMedicine(ctx context.Context, newMed models.CreateMedicineDTO) (models.Medicine, error) {
-	medicine := models.Medicine{
+func (ms *medicineService) CreateMedicine(ctx context.Context, newMed dto.CreateMedicineDTO) (db.Medicine, error) {
+	medicine := db.Medicine{
 		Name:         newMed.Name,
 		Dosage:       newMed.Dosage,
 		Description:  newMed.Description,
@@ -39,23 +51,23 @@ func (ms *medicineService) DeleteMedicine(ctx context.Context, medID uuid.UUID) 
 	return ms.Repo.Delete(ctx, medID)
 }
 
-func (ms *medicineService) GetMedicines(ctx context.Context) ([]models.Medicine, error) {
+func (ms *medicineService) GetMedicines(ctx context.Context) ([]db.Medicine, error) {
 	return ms.Repo.FindAll(ctx)
 }
 
-func (ms *medicineService) GetMedicineByID(ctx context.Context, medID uuid.UUID) (models.Medicine, error) {
+func (ms *medicineService) GetMedicineByID(ctx context.Context, medID uuid.UUID) (db.Medicine, error) {
 	return ms.Repo.FindByID(ctx, medID)
 }
 
-func (ms *medicineService) UpdateMedicine(ctx context.Context, medID uuid.UUID, med models.UpdateMedicineDTO) (models.Medicine, error) {
-	var emptyMed models.Medicine
+func (ms *medicineService) UpdateMedicine(ctx context.Context, medID uuid.UUID, med dto.UpdateMedicineDTO) (db.Medicine, error) {
+	var emptyMed db.Medicine
 
 	oldMed, err := ms.Repo.FindByID(ctx, medID)
 	if err != nil {
 		return emptyMed, errors.New("cannot find medicine")
 	}
 
-	medicine := models.Medicine{
+	medicine := db.Medicine{
 		ID:           medID,
 		Name:         updateField(med.Name, oldMed.Name),
 		Description:  updateField(med.Description, oldMed.Description),
