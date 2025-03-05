@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 	"medicine-app/internal/database"
-	"medicine-app/models"
+	"medicine-app/models/db"
 
 	"github.com/google/uuid"
 )
@@ -12,7 +12,16 @@ type generalRepository struct {
 	DB *database.Queries
 }
 
-func NewGeneralRepository(db *database.Queries) models.GeneralRepository {
+type GeneralRepository interface {
+	ResetMedicineRepo(ctx context.Context) error
+	ResetUserRepo(ctx context.Context) error
+	ResetAddressRepo(ctx context.Context) error
+	RevokeToken(ctx context.Context, token string) error
+	CreateRefreshToken(ctx context.Context, token string, id uuid.UUID) error
+	FindUserFromToken(ctx context.Context, token string) (db.User, error)
+}
+
+func NewGeneralRepository(db *database.Queries) GeneralRepository {
 	return &generalRepository{
 		DB: db,
 	}
@@ -41,7 +50,7 @@ func (gr *generalRepository) CreateRefreshToken(ctx context.Context, token strin
 	})
 }
 
-func (gr *generalRepository) FindUserFromToken(ctx context.Context, token string) (models.User, error) {
+func (gr *generalRepository) FindUserFromToken(ctx context.Context, token string) (db.User, error) {
 	user, err := gr.DB.GetUserFromRefreshToken(ctx, token)
 	if err != nil {
 		return wrapUserError(err)

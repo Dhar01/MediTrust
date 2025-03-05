@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 	"medicine-app/internal/database"
-	"medicine-app/models"
+	"medicine-app/models/db"
 
 	"github.com/google/uuid"
 )
@@ -12,13 +12,23 @@ type medicineRepository struct {
 	DB *database.Queries
 }
 
-func NewMedicineRepository(db *database.Queries) models.MedicineRepository {
+// MedicineRepository defines the DB operations for medicines
+// @Description Interface for medicine database transactions
+type MedicineRepository interface {
+	Create(ctx context.Context, med db.Medicine) (db.Medicine, error)
+	Delete(ctx context.Context, id uuid.UUID) error
+	Update(ctx context.Context, med db.Medicine) (db.Medicine, error)
+	FindByID(ctx context.Context, id uuid.UUID) (db.Medicine, error)
+	FindAll(ctx context.Context) ([]db.Medicine, error)
+}
+
+func NewMedicineRepository(db *database.Queries) MedicineRepository {
 	return &medicineRepository{
 		DB: db,
 	}
 }
 
-func (mr *medicineRepository) Create(ctx context.Context, newMed models.Medicine) (models.Medicine, error) {
+func (mr *medicineRepository) Create(ctx context.Context, newMed db.Medicine) (db.Medicine, error) {
 	medicine, err := mr.DB.CreateMedicine(ctx, database.CreateMedicineParams{
 		Name:         newMed.Name,
 		Dosage:       newMed.Dosage,
@@ -43,7 +53,7 @@ func (mr *medicineRepository) Delete(ctx context.Context, medID uuid.UUID) error
 	return nil
 }
 
-func (mr *medicineRepository) Update(ctx context.Context, med models.Medicine) (models.Medicine, error) {
+func (mr *medicineRepository) Update(ctx context.Context, med db.Medicine) (db.Medicine, error) {
 	medicine, err := mr.DB.UpdateMedicine(ctx, database.UpdateMedicineParams{
 		ID:           med.ID,
 		Name:         med.Name,
@@ -61,7 +71,7 @@ func (mr *medicineRepository) Update(ctx context.Context, med models.Medicine) (
 	return toMedicineDomain(medicine), nil
 }
 
-func (mr *medicineRepository) FindByID(ctx context.Context, medID uuid.UUID) (models.Medicine, error) {
+func (mr *medicineRepository) FindByID(ctx context.Context, medID uuid.UUID) (db.Medicine, error) {
 	medicine, err := mr.DB.GetMedicine(ctx, medID)
 	if err != nil {
 		return wrapMedicineError(err)
@@ -70,8 +80,8 @@ func (mr *medicineRepository) FindByID(ctx context.Context, medID uuid.UUID) (mo
 	return toMedicineDomain(medicine), nil
 }
 
-func (mr *medicineRepository) FindAll(ctx context.Context) ([]models.Medicine, error) {
-	var medList []models.Medicine
+func (mr *medicineRepository) FindAll(ctx context.Context) ([]db.Medicine, error) {
+	var medList []db.Medicine
 
 	medicines, err := mr.DB.GetMedicines(ctx)
 	if err != nil {
@@ -85,12 +95,12 @@ func (mr *medicineRepository) FindAll(ctx context.Context) ([]models.Medicine, e
 	return medList, nil
 }
 
-func wrapMedicineError(err error) (models.Medicine, error) {
-	return models.Medicine{}, err
+func wrapMedicineError(err error) (db.Medicine, error) {
+	return db.Medicine{}, err
 }
 
-func toMedicineDomain(dbMed database.Medicine) models.Medicine {
-	return models.Medicine{
+func toMedicineDomain(dbMed database.Medicine) db.Medicine {
+	return db.Medicine{
 		ID:           dbMed.ID,
 		Name:         dbMed.Name,
 		Dosage:       dbMed.Dosage,

@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 	"medicine-app/internal/database"
-	"medicine-app/models"
+	"medicine-app/models/db"
 
 	"github.com/google/uuid"
 )
@@ -12,7 +12,7 @@ type authRepository struct {
 	DB *database.Queries
 }
 
-func NewAuthRepository(db *database.Queries) models.AuthRepository {
+func NewAuthRepository(db *database.Queries) AuthRepository {
 	return &authRepository{
 		DB: db,
 	}
@@ -25,7 +25,7 @@ func (ar *authRepository) CreateRefreshToken(ctx context.Context, token string, 
 	})
 }
 
-func (ar *authRepository) FindUserFromToken(ctx context.Context, token string) (models.User, error) {
+func (ar *authRepository) FindUserFromToken(ctx context.Context, token string) (db.User, error) {
 	user, err := ar.DB.GetUserFromRefreshToken(ctx, token)
 	if err != nil {
 		return wrapUserError(err)
@@ -42,7 +42,7 @@ func (ar *authRepository) Logout(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-func (ar *authRepository) userWithAddress(ctx context.Context, user database.User) (models.User, error) {
+func (ar *authRepository) userWithAddress(ctx context.Context, user database.User) (db.User, error) {
 	address, err := ar.DB.GetAddress(ctx, user.ID)
 	if err != nil {
 		return wrapUserError(err)

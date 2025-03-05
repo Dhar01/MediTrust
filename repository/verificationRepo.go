@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"medicine-app/internal/database"
-	"medicine-app/models"
 
 	"github.com/google/uuid"
 )
@@ -12,7 +11,7 @@ type verificationRepository struct {
 	DB *database.Queries
 }
 
-func NewVerificationRepository(db *database.Queries) models.VerificationRepository {
+func NewVerificationRepository(db *database.Queries) VerificationRepository {
 	return &verificationRepository{
 		DB: db,
 	}
