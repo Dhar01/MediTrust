@@ -18,6 +18,21 @@ type Admin struct {
 	UpdatedAt    sql.NullTime
 }
 
+type Cart struct {
+	ID        uuid.UUID
+	UserID    uuid.UUID
+	CreatedAt sql.NullTime
+}
+
+type CartItem struct {
+	ID         int32
+	CartID     uuid.UUID
+	MedicineID uuid.UUID
+	Quantity   sql.NullInt32
+	Price      int32
+	CreatedAt  sql.NullTime
+}
+
 type Medicine struct {
 	ID           uuid.UUID
 	Name         string
