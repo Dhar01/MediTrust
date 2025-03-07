@@ -2,7 +2,10 @@ package service
 
 import (
 	"context"
+	"medicine-app/models/db"
 	"medicine-app/repository"
+
+	"github.com/google/uuid"
 )
 
 type cartService struct {
@@ -10,10 +13,9 @@ type cartService struct {
 }
 
 // CartService defines the business logic interface for cart management
-// @Description Interface for cart-related business logic
 type CartService interface {
 	AddToCart(ctx context.Context) error
-	GetCart(ctx context.Context) error
+	GetCart(ctx context.Context, userID uuid.UUID) (db.Cart, error)
 	UpdateCart(ctx context.Context) error
 	RemoveItemFromCart(ctx context.Context) error
 }
@@ -32,8 +34,17 @@ func (cs *cartService) AddToCart(ctx context.Context) error {
 	return nil
 }
 
-func (cs *cartService) GetCart(ctx context.Context) error {
-	return nil
+func (cs *cartService) GetCart(ctx context.Context, userID uuid.UUID) (db.Cart, error) {
+	cart, err := cs.repo.GetCart(ctx, userID)
+	if err != nil {
+		return wrapEmptyCartError(err)
+	}
+
+	for _, item := range cart.Items {
+		item.Price = item.Price * item.Quantity
+	}
+
+	return cart, nil
 }
 
 func (cs *cartService) UpdateCart(ctx context.Context) error {
@@ -42,4 +53,8 @@ func (cs *cartService) UpdateCart(ctx context.Context) error {
 
 func (cs *cartService) RemoveItemFromCart(ctx context.Context) error {
 	return nil
+}
+
+func wrapEmptyCartError(err error) (db.Cart, error) {
+	return db.Cart{}, err
 }
