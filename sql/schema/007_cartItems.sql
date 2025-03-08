@@ -1,8 +1,8 @@
 -- +goose Up
-CREATE TABLE IF NOT EXISTS cart_items(
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+CREATE TABLE IF NOT EXISTS cart_item(
+    id SERIAL PRIMARY KEY,
     cart_id UUID NOT NULL REFERENCES carts(id) ON DELETE CASCADE,
-    medicine_id UUID NOT NULL REFERENCES medicines(id),
+    medicine_id UUID NOT NULL REFERENCES medicines(id) ON DELETE CASCADE,
     quantity INT CHECK (quantity > 0),
     price INT NOT NULL,
     created_at TIMESTAMP DEFAULT now(),
@@ -10,4 +10,4 @@ CREATE TABLE IF NOT EXISTS cart_items(
 );
 
 -- +goose Down
-DROP TABLE IF EXISTS cart_items;
+DROP TABLE IF EXISTS cart_item;
