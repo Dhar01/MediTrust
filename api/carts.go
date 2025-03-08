@@ -29,4 +29,7 @@ func CartRoute(router *gin.RouterGroup, cfg *config.Config) {
 	// get the cart data
 	router.GET(cartBase, middleware.IsLoggedIn(cfg.SecretKey), cartCtrl.HandlerGetCart)
 
+	// delete the entire cart
+	router.DELETE(cartBase, middleware.IsLoggedIn(cfg.SecretKey), cartCtrl.HandlerDeleteCart)
+
 }
