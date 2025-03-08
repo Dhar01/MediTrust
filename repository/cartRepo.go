@@ -25,6 +25,7 @@ type CartRepository interface {
 	GetCart(ctx context.Context, userID uuid.UUID) (db.Cart, error)
 	UpdateCart(ctx context.Context) error
 	DeleteFromCart(ctx context.Context) error
+	DeleteCart(ctx context.Context, userID uuid.UUID) error
 }
 
 func NewCartRepository(db *database.Queries) CartRepository {
@@ -56,6 +57,10 @@ func (cr *cartRepository) UpdateCart(ctx context.Context) error {
 
 func (cr *cartRepository) DeleteFromCart(ctx context.Context) error {
 	return nil
+}
+
+func (cr *cartRepository) DeleteCart(ctx context.Context, userID uuid.UUID) error {
+	return cr.DB.DeleteCart(ctx, userID)
 }
 
 func convertToCart(cartInfo []database.GetCartRow) (db.Cart, error) {

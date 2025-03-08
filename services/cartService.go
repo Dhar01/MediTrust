@@ -18,6 +18,7 @@ type CartService interface {
 	GetCart(ctx context.Context, userID uuid.UUID) (db.Cart, error)
 	UpdateCart(ctx context.Context) error
 	RemoveItemFromCart(ctx context.Context) error
+	DeleteCart(ctx context.Context, userID uuid.UUID) error
 }
 
 func NewCartService(repo repository.CartRepository) CartService {
@@ -53,6 +54,10 @@ func (cs *cartService) UpdateCart(ctx context.Context) error {
 
 func (cs *cartService) RemoveItemFromCart(ctx context.Context) error {
 	return nil
+}
+
+func (cs *cartService) DeleteCart(ctx context.Context, userID uuid.UUID) error {
+	return cs.repo.DeleteCart(ctx, userID)
 }
 
 func wrapEmptyCartError(err error) (db.Cart, error) {
