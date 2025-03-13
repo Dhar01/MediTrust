@@ -28,7 +28,7 @@ type CartItem struct {
 	ID         int32
 	CartID     uuid.UUID
 	MedicineID uuid.UUID
-	Quantity   sql.NullInt32
+	Quantity   int32
 	Price      int32
 	CreatedAt  sql.NullTime
 }

@@ -12,6 +12,48 @@ import (
 	"github.com/google/uuid"
 )
 
+const addItemToCart = `-- name: AddItemToCart :one
+INSERT INTO cart_item (
+    medicine_id, cart_id, quantity, price
+) VALUES (
+    $1,
+    $2,
+    $3,
+    $4
+)
+RETURNING cart_id
+`
+
+type AddItemToCartParams struct {
+	MedicineID uuid.UUID
+	CartID     uuid.UUID
+	Quantity   int32
+	Price      int32
+}
+
+func (q *Queries) AddItemToCart(ctx context.Context, arg AddItemToCartParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, addItemToCart,
+		arg.MedicineID,
+		arg.CartID,
+		arg.Quantity,
+		arg.Price,
+	)
+	var cart_id uuid.UUID
+	err := row.Scan(&cart_id)
+	return cart_id, err
+}
+
+const createCart = `-- name: CreateCart :one
+INSERT INTO cart(user_id) VALUES($1) RETURNING id
+`
+
+func (q *Queries) CreateCart(ctx context.Context, userID uuid.UUID) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, createCart, userID)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
 const deleteCart = `-- name: DeleteCart :exec
 DELETE FROM cart
 WHERE cart.user_id = $1
@@ -76,6 +118,17 @@ func (q *Queries) GetCart(ctx context.Context, userID uuid.UUID) ([]GetCartRow, 
 		return nil, err
 	}
 	return items, nil
+}
+
+const getCartByUserID = `-- name: GetCartByUserID :one
+SELECT id FROM cart WHERE user_id = $1
+`
+
+func (q *Queries) GetCartByUserID(ctx context.Context, userID uuid.UUID) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, getCartByUserID, userID)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
 }
 
 const removeCartItem = `-- name: RemoveCartItem :exec
