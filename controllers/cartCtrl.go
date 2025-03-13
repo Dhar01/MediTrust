@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"medicine-app/models/dto"
 	service "medicine-app/services"
 	"net/http"
 
@@ -18,14 +19,30 @@ func NewCartController(service service.CartService) *cartController {
 	}
 }
 
-func (cc *cartController) HandlerCreateCart(ctx *gin.Context) {
-	_, ok := getUserID(ctx)
+func (cc *cartController) HandlerAddToCart(ctx *gin.Context) {
+	userID, ok := getUserID(ctx)
 	if !ok {
 		errorResponse(ctx, http.StatusUnauthorized, fmt.Errorf("userID not found"))
 		return
 	}
 
-	// * To be continue
+	var item dto.AddItemToCartDTO
+
+	if err := ctx.ShouldBindBodyWithJSON(item); err != nil {
+		errorResponse(ctx, http.StatusBadRequest, fmt.Errorf("can't process the request"))
+		return
+	}
+
+	cartID, err := cc.cartService.AddToCart(ctx, userID, item)
+	if err != nil {
+		errorResponse(ctx, http.StatusNotFound, fmt.Errorf("can't create cart"))
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, dto.CartResponseDTO{
+		CartID: cartID,
+		Message: "item added successfully",
+	})
 }
 
 // HandlerGetCart will fetch the data of a cart by UserID
