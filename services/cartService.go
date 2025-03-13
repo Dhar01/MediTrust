@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"medicine-app/models/db"
+	"medicine-app/models/dto"
 	"medicine-app/repository"
 
 	"github.com/google/uuid"
@@ -14,7 +15,7 @@ type cartService struct {
 
 // CartService defines the business logic interface for cart management
 type CartService interface {
-	AddToCart(ctx context.Context) error
+	AddToCart(ctx context.Context, userID uuid.UUID, item dto.AddItemToCartDTO) (uuid.UUID, error)
 	GetCart(ctx context.Context, userID uuid.UUID) (db.Cart, error)
 	UpdateCart(ctx context.Context) error
 	RemoveItemFromCart(ctx context.Context) error
@@ -31,8 +32,28 @@ func NewCartService(repo repository.CartRepository) CartService {
 	}
 }
 
-func (cs *cartService) AddToCart(ctx context.Context) error {
-	return nil
+func (cs *cartService) AddToCart(ctx context.Context, userID uuid.UUID, cartItem dto.AddItemToCartDTO) (uuid.UUID, error) {
+	cartID, exists := cs.repo.GetCartByID(ctx, userID)
+	if !exists {
+		var err error
+		cartID, err = cs.repo.CreateCart(ctx, userID)
+		if err != nil {
+			return uuid.Nil, err
+		}
+	}
+
+	item := db.CartItem{
+		CartID:   cartID,
+		MedID:    cartItem.MedID,
+		Quantity: cartItem.Quantity,
+	}
+
+	id, err := cs.repo.AddToCart(ctx, item)
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	return id, nil
 }
 
 func (cs *cartService) GetCart(ctx context.Context, userID uuid.UUID) (db.Cart, error) {
