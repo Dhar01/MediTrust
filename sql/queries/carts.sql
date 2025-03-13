@@ -19,3 +19,20 @@ WHERE cart.user_id = $1;
 -- name: RemoveCartItem :exec
 DELETE FROM cart_item
 WHERE cart_item.cart_id = $1;
+
+-- name: AddItemToCart :one
+INSERT INTO cart_item (
+    medicine_id, cart_id, quantity, price
+) VALUES (
+    $1,
+    $2,
+    $3,
+    $4
+)
+RETURNING cart_id;
+
+-- name: GetCartByUserID :one
+SELECT id FROM cart WHERE user_id = $1;
+
+-- name: CreateCart :one
+INSERT INTO cart(user_id) VALUES($1) RETURNING id;
