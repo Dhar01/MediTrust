@@ -20,10 +20,14 @@ type cartRepository struct {
 // CartRepository defines the DB operations for cart
 // @Description Interface for cart database transactions
 type CartRepository interface {
-	CreateCart(ctx context.Context) error
-	AddToCart(ctx context.Context) error
+	CreateCart(ctx context.Context, userID uuid.UUID) (uuid.UUID, error)
+	AddToCart(ctx context.Context, cart db.CartItem) (uuid.UUID, error)
+
 	GetCart(ctx context.Context, userID uuid.UUID) (db.Cart, error)
+	GetCartByID(ctx context.Context, userID uuid.UUID) (uuid.UUID, bool)
+
 	UpdateCart(ctx context.Context) error
+
 	DeleteFromCart(ctx context.Context) error
 	DeleteCart(ctx context.Context, userID uuid.UUID) error
 }
@@ -34,12 +38,27 @@ func NewCartRepository(db *database.Queries) CartRepository {
 	}
 }
 
-func (cr *cartRepository) CreateCart(ctx context.Context) error {
-	return nil
+func (cr *cartRepository) CreateCart(ctx context.Context, userID uuid.UUID) (uuid.UUID, error) {
+	cartID, err := cr.DB.CreateCart(ctx, userID)
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	return cartID, nil
 }
 
-func (cr *cartRepository) AddToCart(ctx context.Context) error {
-	return nil
+func (cr *cartRepository) AddToCart(ctx context.Context, item db.CartItem) (uuid.UUID, error) {
+	cartID, err := cr.DB.AddItemToCart(ctx, database.AddItemToCartParams{
+		MedicineID: item.MedID,
+		CartID:     item.CartID,
+		Quantity:   item.Quantity,
+		Price:      item.Price,
+	})
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	return cartID, nil
 }
 
 func (cr *cartRepository) GetCart(ctx context.Context, userID uuid.UUID) (db.Cart, error) {
@@ -49,6 +68,15 @@ func (cr *cartRepository) GetCart(ctx context.Context, userID uuid.UUID) (db.Car
 	}
 
 	return convertToCart(cartDetails)
+}
+
+func (cr *cartRepository) GetCartByID(ctx context.Context, userID uuid.UUID) (uuid.UUID, bool) {
+	cartID, err := cr.DB.GetCartByUserID(ctx, userID)
+	if err != nil {
+		return uuid.Nil, false
+	}
+
+	return cartID, true
 }
 
 func (cr *cartRepository) UpdateCart(ctx context.Context) error {
@@ -71,13 +99,13 @@ func convertToCart(cartInfo []database.GetCartRow) (db.Cart, error) {
 	cart := db.Cart{
 		ID:         cartInfo[0].CartID,
 		Created_At: cartInfo[0].CreatedAt.Time,
-		Items:      []db.CartItems{},
+		Items:      []db.CartItem{},
 	}
 
 	for _, info := range cartInfo {
 		// medicine ID is not valid have to be valid
 		if info.MedicineID.Valid {
-			cart.Items = append(cart.Items, db.CartItems{
+			cart.Items = append(cart.Items, db.CartItem{
 				Serial:   info.ID.Int32,
 				MedID:    info.MedicineID.UUID,
 				MedName:  info.MedicineName.String,
