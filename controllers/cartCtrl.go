@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type cartController struct {
@@ -40,7 +41,7 @@ func (cc *cartController) HandlerAddToCart(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, dto.CartResponseDTO{
-		CartID: cartID,
+		CartID:  cartID,
 		Message: "item added successfully",
 	})
 }
@@ -70,6 +71,29 @@ func (cc *cartController) HandlerGetCart(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, cart)
+}
+
+func (cc *cartController) HandlerRemoveItem(ctx *gin.Context) {
+	id := ctx.Param("itemID")
+	itemID, err := uuid.Parse(id)
+	if err != nil {
+		errorResponse(ctx, http.StatusBadRequest, fmt.Errorf("invalid itemID"))
+		return
+	}
+
+	id = ctx.Param("cartID")
+	cartID, err := uuid.Parse(id)
+	if err != nil {
+		errorResponse(ctx, http.StatusBadRequest, fmt.Errorf("invalid cartID"))
+		return
+	}
+
+	if err = cc.cartService.RemoveItemFromCart(ctx, cartID, itemID); err != nil {
+		errorResponse(ctx, http.StatusInternalServerError, fmt.Errorf("can't remove the item"))
+		return
+	}
+
+	ctx.Status(http.StatusNoContent)
 }
 
 // HandlerDeleteCart will delete the cart instance using userID
