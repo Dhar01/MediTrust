@@ -134,9 +134,15 @@ func (q *Queries) GetCartByUserID(ctx context.Context, userID uuid.UUID) (uuid.U
 const removeCartItem = `-- name: RemoveCartItem :exec
 DELETE FROM cart_item
 WHERE cart_item.cart_id = $1
+AND medicine_id = $2
 `
 
-func (q *Queries) RemoveCartItem(ctx context.Context, cartID uuid.UUID) error {
-	_, err := q.db.ExecContext(ctx, removeCartItem, cartID)
+type RemoveCartItemParams struct {
+	CartID     uuid.UUID
+	MedicineID uuid.UUID
+}
+
+func (q *Queries) RemoveCartItem(ctx context.Context, arg RemoveCartItemParams) error {
+	_, err := q.db.ExecContext(ctx, removeCartItem, arg.CartID, arg.MedicineID)
 	return err
 }
