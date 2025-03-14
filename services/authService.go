@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 	"medicine-app/internal/auth"
+	"medicine-app/internal/database"
 	"medicine-app/models"
+	"medicine-app/models/db"
 	"medicine-app/models/dto"
-	repo "medicine-app/repository"
 	"medicine-app/utils"
 	"time"
 
@@ -14,13 +15,11 @@ import (
 )
 
 type authService struct {
-	authRepo         repo.AuthRepository
-	userRepo         repo.UserRepository
-	verificationRepo repo.VerificationRepository
-	secret           string
-	domain           string
-	port             string
-	emailSender      *utils.EmailSender
+	secret      string
+	domain      string
+	port        string
+	emailSender *utils.EmailSender
+	DB          *database.Queries
 }
 
 // AuthService defines the business logic interface for authentication management
@@ -35,39 +34,36 @@ type AuthService interface {
 }
 
 func NewAuthService(
-	authRepo repo.AuthRepository,
-	userRepo repo.UserRepository,
-	verificationRepo repo.VerificationRepository,
 	secret, domain, port string,
 	emailSender *utils.EmailSender,
+	db *database.Queries,
 ) AuthService {
-	if authRepo == nil || userRepo == nil || verificationRepo == nil {
-		panic("repo can't be nil")
+	if db == nil {
+		panic("database can't be nil")
 	}
 
 	return &authService{
-		authRepo:         authRepo,
-		userRepo:         userRepo,
-		verificationRepo: verificationRepo,
-		secret:           secret,
-		domain:           domain,
-		port:             port,
-		emailSender:      emailSender,
+		DB:          db,
+		secret:      secret,
+		domain:      domain,
+		port:        port,
+		emailSender: emailSender,
 	}
 }
 
 func (as *authService) SignUpUser(ctx context.Context, user dto.SignUpUserDTO) (dto.SignUpResponseDTO, error) {
 	// check if the user exists with the associated email
-	available, _ := as.userRepo.FindUser(ctx, models.Email, user.Email)
-	if available.Exist {
+	userExist, _ := as.DB.GetUserByEmail(ctx, user.Email)
+	if userExist.Verified {
 		return wrapSignUpError(errUserExist)
 	}
 
 	// * first user will always be admin
-	count, err := as.userRepo.CountAvailableUsers(ctx)
+	count, err := as.DB.CountUsers(ctx)
 	if err != nil {
 		return wrapSignUpError(err)
 	}
+
 	var role string
 	if count > 0 {
 		role = models.Customer
@@ -88,7 +84,20 @@ func (as *authService) SignUpUser(ctx context.Context, user dto.SignUpUserDTO) (
 		return wrapSignUpError(err)
 	}
 
-	newUser, err := as.userRepo.SignUp(ctx, person)
+	// newUser, err := as.userRepo.SignUp(ctx, person)
+	// if err != nil {
+	// 	return wrapSignUpError(err)
+	// }
+
+	newUser, err := as.DB.CreateUser(ctx, database.CreateUserParams{
+		FirstName:    person.Name.FirstName,
+		LastName:     person.Name.LastName,
+		Email:        person.Email,
+		Role:         person.Role,
+		Age:          person.Age,
+		Phone:        person.Phone,
+		PasswordHash: person.HashPassword,
+	})
 	if err != nil {
 		return wrapSignUpError(err)
 	}
@@ -103,7 +112,7 @@ func (as *authService) SignUpUser(ctx context.Context, user dto.SignUpUserDTO) (
 	emailOpts := utils.EmailOptions{
 		To:           newUser.Email,
 		Verification: true,
-		FirstName:    newUser.Name.FirstName,
+		FirstName:    newUser.FirstName,
 		Token:        verifyToken,
 		Domain:       as.domain,
 		DomainPort:   as.port,
@@ -119,12 +128,12 @@ func (as *authService) SignUpUser(ctx context.Context, user dto.SignUpUserDTO) (
 }
 
 func (as *authService) LogInUser(ctx context.Context, login dto.LogInDTO) (dto.TokenResponseDTO, error) {
-	user, err := as.userRepo.FindUser(ctx, models.Email, login.Email)
+	user, err := as.DB.GetUserByEmail(ctx, login.Email)
 	if err != nil {
 		return wrapTokenResponseError(err)
 	}
 
-	ok, err := as.verificationRepo.GetVerification(ctx, user.ID)
+	ok, err := as.DB.GetVerified(ctx, user.ID)
 	if err != nil {
 		return wrapTokenResponseError(err)
 	}
@@ -133,11 +142,11 @@ func (as *authService) LogInUser(ctx context.Context, login dto.LogInDTO) (dto.T
 		return wrapTokenResponseError(fmt.Errorf("not verified"))
 	}
 
-	if err = auth.CheckPasswordHash(login.Password, user.HashPassword); err != nil {
+	if err = auth.CheckPasswordHash(login.Password, user.PasswordHash); err != nil {
 		return wrapTokenResponseError(err)
 	}
 
-	role, err := as.verificationRepo.GetUserRole(ctx, user.ID)
+	role, err := as.DB.GetRole(ctx, user.ID)
 	if err != nil {
 		return wrapTokenResponseError(err)
 	}
@@ -152,7 +161,10 @@ func (as *authService) LogInUser(ctx context.Context, login dto.LogInDTO) (dto.T
 		return wrapTokenResponseError(err)
 	}
 
-	if err = as.authRepo.CreateRefreshToken(ctx, refreshToken, user.ID); err != nil {
+	if err = as.DB.CreateRefreshToken(ctx, database.CreateRefreshTokenParams{
+		Refreshtoken: refreshToken,
+		UserID:       user.ID,
+	}); err != nil {
 		return wrapTokenResponseError(err)
 	}
 
@@ -163,7 +175,11 @@ func (as *authService) LogInUser(ctx context.Context, login dto.LogInDTO) (dto.T
 }
 
 func (as *authService) LogoutUser(ctx context.Context, id uuid.UUID) error {
-	return as.authRepo.Logout(ctx, id)
+	if err := as.DB.RevokeTokenByID(ctx, id); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (as *authService) SetVerifiedUser(ctx context.Context, token string) error {
@@ -172,7 +188,7 @@ func (as *authService) SetVerifiedUser(ctx context.Context, token string) error 
 		return err
 	}
 
-	if err = as.verificationRepo.SetVerification(ctx, id); err != nil {
+	if err = as.DB.SetVerified(ctx, id); err != nil {
 		return err
 	}
 
@@ -180,7 +196,7 @@ func (as *authService) SetVerifiedUser(ctx context.Context, token string) error 
 }
 
 func (as *authService) ResetPassEmail(ctx context.Context, email string) error {
-	user, err := as.userRepo.FindUser(ctx, models.Email, email)
+	user, err := as.DB.GetUserByEmail(ctx, email)
 	if err != nil {
 		return err
 	}
@@ -193,7 +209,7 @@ func (as *authService) ResetPassEmail(ctx context.Context, email string) error {
 	emailOpts := utils.EmailOptions{
 		To:            user.Email,
 		ResetPassword: true,
-		FirstName:     user.Name.FirstName,
+		FirstName:     user.FirstName,
 		Token:         token,
 		Domain:        as.domain,
 		DomainPort:    as.port,
@@ -217,9 +233,30 @@ func (as *authService) ResetPassword(ctx context.Context, token, password string
 		return err
 	}
 
-	if err := as.userRepo.UpdatePassword(ctx, pass, id); err != nil {
+	if err := as.DB.ResetPassword(ctx, database.ResetPasswordParams{
+		PasswordHash: pass,
+		ID:           id,
+	}); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func toUser(dbUser database.User) db.User {
+	return db.User{
+		ID: dbUser.ID,
+		Name: db.Name{
+			FirstName: dbUser.FirstName,
+			LastName:  dbUser.LastName,
+		},
+		Email:        dbUser.Email,
+		Exist:        true,
+		Age:          dbUser.Age,
+		HashPassword: dbUser.PasswordHash,
+		Phone:        dbUser.Phone,
+		Role:         dbUser.Role,
+		CreatedAt:    dbUser.CreatedAt,
+		UpdatedAt:    dbUser.UpdatedAt,
+	}
 }
