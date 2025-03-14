@@ -4,7 +4,6 @@ import (
 	"medicine-app/config"
 	"medicine-app/controllers"
 	middleware "medicine-app/middleware"
-	repo "medicine-app/repository"
 	service "medicine-app/services"
 
 	"github.com/gin-gonic/gin"
@@ -16,8 +15,7 @@ const (
 )
 
 func MedicineRoutes(router *gin.RouterGroup, cfg *config.Config) {
-	medRepo := repo.NewMedicineRepository(cfg.DB)
-	medService := service.NewMedicineService(medRepo)
+	medService := service.NewMedicineService(cfg.DB)
 	medCtrl := controllers.NewMedicineController(medService)
 
 	// GET route for medicines - PUBLIC
