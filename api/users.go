@@ -4,7 +4,6 @@ import (
 	"medicine-app/config"
 	"medicine-app/controllers"
 	"medicine-app/middleware"
-	repo "medicine-app/repository"
 	service "medicine-app/services"
 
 	"github.com/gin-gonic/gin"
@@ -13,12 +12,8 @@ import (
 var usersBase = "/users"
 
 func UserRoutes(router *gin.RouterGroup, cfg *config.Config) {
-	userRepo := repo.NewUserRepository(cfg.DB)
-	authRepo := repo.NewAuthRepository(cfg.DB)
-	verificationRepo := repo.NewVerificationRepository(cfg.DB)
-
-	userService := service.NewUserProfileService(userRepo, cfg.SecretKey)
-	authService := service.NewAuthService(authRepo, userRepo, verificationRepo, cfg.SecretKey, cfg.Domain, cfg.Port, cfg.EmailSender)
+	userService := service.NewUserProfileService(cfg.DB, cfg.SecretKey)
+	authService := service.NewAuthService(cfg.SecretKey, cfg.Domain, cfg.Port, cfg.EmailSender, cfg.DB)
 	userCtrl := controllers.NewUserController(userService, authService, cfg.Domain)
 
 	// GET route for users

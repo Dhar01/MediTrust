@@ -2,11 +2,14 @@ package service
 
 import (
 	"context"
+	"database/sql"
 	"errors"
+	"fmt"
 	"medicine-app/internal/auth"
+	"medicine-app/internal/database"
+	"medicine-app/models"
 	"medicine-app/models/db"
 	"medicine-app/models/dto"
-	repo "medicine-app/repository"
 
 	"github.com/google/uuid"
 )
@@ -14,8 +17,8 @@ import (
 var errUserExist = errors.New("user exist")
 
 type userProfileService struct {
-	userRepo repo.UserRepository
-	secret   string
+	DB     *database.Queries
+	secret string
 }
 
 // UserService defines the business logic interface for user management
@@ -27,14 +30,14 @@ type UserProfileService interface {
 	DeleteUser(ctx context.Context, userID uuid.UUID) error
 }
 
-func NewUserProfileService(userRepo repo.UserRepository, secret string) UserProfileService {
-	if userRepo == nil {
+func NewUserProfileService(db *database.Queries, secret string) UserProfileService {
+	if db == nil {
 		panic("repo can't be nil")
 	}
 
 	return &userProfileService{
-		userRepo: userRepo,
-		secret:   secret,
+		DB:     db,
+		secret: secret,
 	}
 }
 
@@ -56,7 +59,7 @@ func NewUser(signUp dto.SignUpUserDTO, role string) (db.User, error) {
 }
 
 func (us *userProfileService) UpdateUser(ctx context.Context, userID uuid.UUID, user dto.UpdateUserDTO) (dto.UserResponseDTO, error) {
-	oldInfo, err := us.userRepo.FindByID(ctx, userID)
+	oldInfo, err := us.DB.GetUserByID(ctx, userID)
 	// log.Printf("OldInfo: %+v", oldInfo)
 	if err != nil {
 		return wrapUserError(err)
@@ -65,33 +68,65 @@ func (us *userProfileService) UpdateUser(ctx context.Context, userID uuid.UUID, 
 	person := db.User{
 		ID: userID,
 		Name: db.Name{
-			FirstName: updateField(user.Name.FirstName, oldInfo.Name.FirstName),
-			LastName:  updateField(user.Name.LastName, oldInfo.Name.LastName),
+			FirstName: updateField(user.Name.FirstName, oldInfo.FirstName),
+			LastName:  updateField(user.Name.LastName, oldInfo.LastName),
 		},
-		Role:    oldInfo.Role,
-		Email:   updateField(user.Email, oldInfo.Email),
-		Phone:   updateField(user.Phone, oldInfo.Phone),
-		Age:     *updateIntPointerField(&user.Age, &oldInfo.Age),
-		Address: setAddress(user.Address, &oldInfo.Address),
+		Role:  oldInfo.Role,
+		Email: updateField(user.Email, oldInfo.Email),
+		Phone: updateField(user.Phone, oldInfo.Phone),
+		Age:   *updateIntPointerField(&user.Age, &oldInfo.Age),
+		// Address: setAddress(user.Address, &oldInfo.Address),
 	}
 
-	// log.Printf("UpdateUser: %+v", person)
-
-	userUpdate, err := us.userRepo.Update(ctx, person)
-	// log.Printf("UserUpdate Data: %v", userUpdate)
+	userUpdate, err := us.DB.UpdateUser(ctx, database.UpdateUserParams{
+		FirstName: person.Name.FirstName,
+		LastName:  person.Name.LastName,
+		Email:     person.Email,
+		Age:       person.Age,
+		Phone:     person.Phone,
+		ID:        person.ID,
+	})
 	if err != nil {
 		return wrapUserError(err)
 	}
+
+	_, err = us.DB.CheckAddressExist(ctx, person.ID)
+	if err != nil {
+		return wrapUserError(err)
+	}
+
+	// var address database.UserAddress
+	// if !exists {
+	// 	address, err = us.DB.CreateUserAddress(ctx, database.CreateUserAddressParams{
+	// 		UserID:        user.ID,
+	// 		Country:       user.Address.Country,
+	// 		City:          user.Address.City,
+	// 		StreetAddress: user.Address.StreetAddress,
+	// 		PostalCode:    toNullString(user.Address.PostalCode),
+	// 	})
+	// } else {
+	// 	address, err = us.DB.UpdateAddress(ctx, database.UpdateAddressParams{
+	// 		UserID:        user.ID,
+	// 		Country:       user.Address.Country,
+	// 		City:          user.Address.City,
+	// 		StreetAddress: user.Address.StreetAddress,
+	// 		PostalCode:    toNullString(user.Address.PostalCode),
+	// 	})
+	// }
 
 	return toUserDTODomain(userUpdate), nil
 }
 
 func (us *userProfileService) DeleteUser(ctx context.Context, userID uuid.UUID) error {
-	return us.userRepo.Delete(ctx, userID)
+	if err := us.DB.DeleteUser(ctx, userID); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (us *userProfileService) FindUserByID(ctx context.Context, userID uuid.UUID) (dto.UserResponseDTO, error) {
-	user, err := us.userRepo.FindByID(ctx, userID)
+	user, err := us.DB.GetUserByID(ctx, userID)
 	if err != nil {
 		return wrapUserError(err)
 	}
@@ -99,14 +134,19 @@ func (us *userProfileService) FindUserByID(ctx context.Context, userID uuid.UUID
 	return toUserDTODomain(user), nil
 }
 
-// FindUser by KEY. Key should be either Email or Phone.
 func (us *userProfileService) FindUserByKey(ctx context.Context, key, value string) (dto.UserResponseDTO, error) {
-	person, err := us.userRepo.FindUser(ctx, key, value)
-	if err != nil {
-		return wrapUserError(err)
+	var user database.User
+	var err error
+
+	switch key {
+	case models.Email:
+		user, err = us.DB.GetUserByEmail(ctx, value)
+	case models.Phone:
+		user, err = us.DB.GetUserByPhone(ctx, value)
+	default:
+		return wrapUserError(fmt.Errorf("unsupported lookup key %s", key))
 	}
 
-	user, err := us.userRepo.FindByID(ctx, person.ID)
 	if err != nil {
 		return wrapUserError(err)
 	}
@@ -114,24 +154,26 @@ func (us *userProfileService) FindUserByKey(ctx context.Context, key, value stri
 	return toUserDTODomain(user), nil
 }
 
-func toUserDTODomain(user db.User) dto.UserResponseDTO {
+func toUserDTODomain(user database.User) dto.UserResponseDTO {
 	return dto.UserResponseDTO{
 		ID: user.ID,
 		Name: db.Name{
-			FirstName: user.Name.FirstName,
-			LastName:  user.Name.LastName,
+			FirstName: user.FirstName,
+			LastName:  user.LastName,
 		},
 		Email:     user.Email,
 		Age:       user.Age,
 		Phone:     user.Phone,
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,
-		Address: db.Address{
-			Country:       user.Address.Country,
-			City:          user.Address.City,
-			StreetAddress: user.Address.StreetAddress,
-			PostalCode:    user.Address.PostalCode,
-		},
+
+		// Address: db.Address{
+		// 	Country:       user.,
+		// 	City:          user.City,
+		// 	StreetAddress: user.StreetAddress,
+		// 	PostalCode:    user.PostalCode,
+		// },
+
 	}
 }
 
@@ -175,4 +217,16 @@ func setAddress(address, oldAddress *db.Address) db.Address {
 		PostalCode:    address.PostalCode,
 	}
 
+}
+
+func toNullString(value string) sql.NullString {
+	if value == "" {
+		return sql.NullString{
+			Valid: false,
+		}
+	}
+	return sql.NullString{
+		String: value,
+		Valid:  true,
+	}
 }
