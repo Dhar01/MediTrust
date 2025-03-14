@@ -18,7 +18,8 @@ WHERE cart.user_id = $1;
 
 -- name: RemoveCartItem :exec
 DELETE FROM cart_item
-WHERE cart_item.cart_id = $1;
+WHERE cart_item.cart_id = $1
+AND medicine_id = $2;
 
 -- name: AddItemToCart :one
 INSERT INTO cart_item (
