@@ -2,18 +2,23 @@ package service
 
 import (
 	"context"
+	"medicine-app/internal/database"
 	"medicine-app/models"
 
 	"github.com/google/uuid"
 )
 
 type adminService struct {
-	repo models.AdminRepository
+	DB *database.Queries
 }
 
-func NewAdminService(repo models.AdminRepository) models.AdminService {
+func NewAdminService(db *database.Queries) models.AdminService {
+	if db == nil {
+		panic("database can't be nil")
+	}
+
 	return &adminService{
-		repo: repo,
+		DB: db,
 	}
 }
 
