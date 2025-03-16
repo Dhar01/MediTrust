@@ -32,6 +32,14 @@ INSERT INTO cart_item (
 )
 RETURNING cart_id;
 
+-- name: UpdateCartItem :exec
+UPDATE cart_item
+SET
+    quantity = $1
+WHERE
+    medicine_id = $2
+    AND cart_id = $3;
+
 -- name: GetCartByUserID :one
 SELECT id FROM cart WHERE user_id = $1;
 

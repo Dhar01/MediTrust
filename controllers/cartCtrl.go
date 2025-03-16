@@ -46,6 +46,36 @@ func (cc *cartController) HandlerAddToCart(ctx *gin.Context) {
 	})
 }
 
+func (cc *cartController) HandlerUpdateCartItem(ctx *gin.Context) {
+	id := ctx.Param("cartID")
+	cartID, err := uuid.Parse(id)
+	if err != nil {
+		errorResponse(ctx, http.StatusBadRequest, fmt.Errorf("cartID not found"))
+		return
+	}
+
+	id = ctx.Param("itemID")
+	itemID, err := uuid.Parse(id)
+	if err != nil {
+		errorResponse(ctx, http.StatusBadRequest, fmt.Errorf("itemID not found"))
+		return
+	}
+
+	var quantity dto.QuantityControlDTO
+
+	if err := ctx.ShouldBindBodyWithJSON(quantity); err != nil {
+		errorResponse(ctx, http.StatusBadRequest, fmt.Errorf("can't process the request"))
+		return
+	}
+
+	if err := cc.cartService.UpdateCartItem(ctx.Request.Context(), cartID, itemID, quantity.Quantity); err != nil {
+		errorResponse(ctx, http.StatusInternalServerError, fmt.Errorf("internal server error"))
+		return
+	}
+
+	ctx.Status(http.StatusOK)
+}
+
 // HandlerGetCart will fetch the data of a cart by UserID
 //
 //	@Summary		Fetch the data of a cart by userID
@@ -88,7 +118,7 @@ func (cc *cartController) HandlerRemoveItem(ctx *gin.Context) {
 		return
 	}
 
-	if err = cc.cartService.RemoveItemFromCart(ctx, cartID, itemID); err != nil {
+	if err = cc.cartService.RemoveItemFromCart(ctx.Request.Context(), cartID, itemID); err != nil {
 		errorResponse(ctx, http.StatusInternalServerError, fmt.Errorf("can't remove the item"))
 		return
 	}

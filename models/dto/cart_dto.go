@@ -12,3 +12,7 @@ type AddItemToCartDTO struct {
 	MedID    uuid.UUID `json:"medID" example:"550e8400-e29b-41d4-a716-446655440000" format:"uuid" `
 	Quantity int32     `json:"quantity"`
 }
+
+type QuantityControlDTO struct {
+	Quantity int32 `json:"quantity"`
+}
