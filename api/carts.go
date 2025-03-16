@@ -9,7 +9,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const cartBase = "/cart"
+const (
+	cartBase = "/carts"
+	cartID   = cartBase + "/:cartID"
+	itemID   = cartID + "items/:itemID"
+)
 
 func CartRoute(router *gin.RouterGroup, cfg *config.Config) {
 	cartService := service.NewCartService(cfg.DB)
@@ -19,13 +23,13 @@ func CartRoute(router *gin.RouterGroup, cfg *config.Config) {
 	router.POST(cartBase, middleware.IsLoggedIn(cfg.SecretKey), cartCtrl.HandlerAddToCart)
 
 	// update the quantity of an item
-	// router.PUT(cartBase+"/update", middleware.IsLoggedIn(cfg.SecretKey), cartCtrl.HandlerUpdateCart)
+	router.PATCH(itemID, middleware.IsLoggedIn(cfg.SecretKey), cartCtrl.HandlerUpdateCartItem)
 
 	// get the cart data
 	router.GET(cartBase, middleware.IsLoggedIn(cfg.SecretKey), cartCtrl.HandlerGetCart)
 
 	// remove an item from the cart
-	router.DELETE(cartBase+"/:cartID/item/:itemID", middleware.IsLoggedIn(cfg.SecretKey), cartCtrl.HandlerRemoveItem)
+	router.DELETE(itemID, middleware.IsLoggedIn(cfg.SecretKey), cartCtrl.HandlerRemoveItem)
 
 	// delete the entire cart
 	router.DELETE(cartBase, middleware.IsLoggedIn(cfg.SecretKey), cartCtrl.HandlerDeleteCart)
