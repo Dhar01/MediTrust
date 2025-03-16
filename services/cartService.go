@@ -23,7 +23,7 @@ type CartService interface {
 	AddToCart(ctx context.Context, userID uuid.UUID, item dto.AddItemToCartDTO) (uuid.UUID, error)
 	GetCart(ctx context.Context, userID uuid.UUID) (db.Cart, error)
 
-	UpdateCart(ctx context.Context) error
+	UpdateCartItem(ctx context.Context, cartID, itemID uuid.UUID, quantity int32) error
 
 	RemoveItemFromCart(ctx context.Context, cartID, itemID uuid.UUID) error
 	DeleteCart(ctx context.Context, userID uuid.UUID) error
@@ -104,7 +104,15 @@ func (cs *cartService) GetCart(ctx context.Context, userID uuid.UUID) (db.Cart, 
 	return cart, nil
 }
 
-func (cs *cartService) UpdateCart(ctx context.Context) error {
+func (cs *cartService) UpdateCartItem(ctx context.Context, cartID, itemID uuid.UUID, quantity int32) error {
+	if err := cs.DB.UpdateCartItem(ctx, database.UpdateCartItemParams{
+		Quantity:   quantity,
+		MedicineID: itemID,
+		CartID:     cartID,
+	}); err != nil {
+		return err
+	}
+
 	return nil
 }
 
