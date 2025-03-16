@@ -146,3 +146,23 @@ func (q *Queries) RemoveCartItem(ctx context.Context, arg RemoveCartItemParams) 
 	_, err := q.db.ExecContext(ctx, removeCartItem, arg.CartID, arg.MedicineID)
 	return err
 }
+
+const updateCartItem = `-- name: UpdateCartItem :exec
+UPDATE cart_item
+SET
+    quantity = $1
+WHERE
+    medicine_id = $2
+    AND cart_id = $3
+`
+
+type UpdateCartItemParams struct {
+	Quantity   int32
+	MedicineID uuid.UUID
+	CartID     uuid.UUID
+}
+
+func (q *Queries) UpdateCartItem(ctx context.Context, arg UpdateCartItemParams) error {
+	_, err := q.db.ExecContext(ctx, updateCartItem, arg.Quantity, arg.MedicineID, arg.CartID)
+	return err
+}
