@@ -104,6 +104,20 @@ func (cs *cartService) GetCart(ctx context.Context, userID uuid.UUID) (db.Cart, 
 	return cart, nil
 }
 
+/*
+	UpdateCartItem updates the quantity of an item in a cart
+
+Parameters:
+
+	ctx			Context	for			request	handling
+	cartID		UUID	of			the		cart
+	itemID		UUID	of			the		item
+	quantity	New		quantity	to		be	updated
+
+Return:
+
+	Error if update fails, otherwise nil
+*/
 func (cs *cartService) UpdateCartItem(ctx context.Context, cartID, itemID uuid.UUID, quantity int32) error {
 	if err := cs.DB.UpdateCartItem(ctx, database.UpdateCartItemParams{
 		Quantity:   quantity,
