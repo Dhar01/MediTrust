@@ -12,26 +12,26 @@ import (
 const (
 	cartBase = "/carts"
 	cartID   = cartBase + "/:cartID"
-	itemID   = cartID + "items/:itemID"
+	itemID   = cartID + "/items/:itemID"
 )
 
 func CartRoute(router *gin.RouterGroup, cfg *config.Config) {
 	cartService := service.NewCartService(cfg.DB)
 	cartCtrl := controllers.NewCartController(cartService)
 
-	// create a cart or add an item
+	// Register route for creating a cart if not exists or add an item if cart exists
 	router.POST(cartBase, middleware.IsLoggedIn(cfg.SecretKey), cartCtrl.HandlerAddToCart)
 
-	// update the quantity of an item
+	// Register route for updating the quantity of an item in the cart
 	router.PATCH(itemID, middleware.IsLoggedIn(cfg.SecretKey), cartCtrl.HandlerUpdateCartItem)
 
-	// get the cart data
+	// Register route for getting the cart data
 	router.GET(cartBase, middleware.IsLoggedIn(cfg.SecretKey), cartCtrl.HandlerGetCart)
 
-	// remove an item from the cart
+	// Register route for removing an item from the cart
 	router.DELETE(itemID, middleware.IsLoggedIn(cfg.SecretKey), cartCtrl.HandlerRemoveItem)
 
-	// delete the entire cart
+	// Register route for deleting the entire cart
 	router.DELETE(cartBase, middleware.IsLoggedIn(cfg.SecretKey), cartCtrl.HandlerDeleteCart)
 
 }
