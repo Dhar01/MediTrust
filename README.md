@@ -115,9 +115,9 @@ Find `db_migration.sh` in the `scripts` to automate DB migration.
 
 ### Cart & Wishlist
 
-- [ ] Add medicine to cart
+- [x] Add medicine to cart
 - [x] Get/Fetch cart
-- [ ] Remove medicine from cart
+- [x] Remove medicine from cart
 - [x] Remove/Delete the Cart
 
 ### Checkout & Payment
