@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 type cartController struct {
@@ -23,7 +22,6 @@ func NewCartController(service service.CartService) *cartController {
 func (cc *cartController) HandlerAddToCart(ctx *gin.Context) {
 	userID, ok := getUserID(ctx)
 	if !ok {
-		errorResponse(ctx, http.StatusUnauthorized, fmt.Errorf("userID not found"))
 		return
 	}
 
@@ -47,17 +45,13 @@ func (cc *cartController) HandlerAddToCart(ctx *gin.Context) {
 }
 
 func (cc *cartController) HandlerUpdateCartItem(ctx *gin.Context) {
-	id := ctx.Param("cartID")
-	cartID, err := uuid.Parse(id)
-	if err != nil {
-		errorResponse(ctx, http.StatusBadRequest, fmt.Errorf("cartID not found"))
+	cartID, ok := getParamID(ctx, "cartID")
+	if !ok {
 		return
 	}
 
-	id = ctx.Param("itemID")
-	itemID, err := uuid.Parse(id)
-	if err != nil {
-		errorResponse(ctx, http.StatusBadRequest, fmt.Errorf("itemID not found"))
+	itemID, ok := getParamID(ctx, "itemID")
+	if !ok {
 		return
 	}
 
@@ -90,7 +84,6 @@ func (cc *cartController) HandlerUpdateCartItem(ctx *gin.Context) {
 func (cc *cartController) HandlerGetCart(ctx *gin.Context) {
 	userID, ok := getUserID(ctx)
 	if !ok {
-		errorResponse(ctx, http.StatusUnauthorized, fmt.Errorf("UserID not found"))
 		return
 	}
 
@@ -104,21 +97,17 @@ func (cc *cartController) HandlerGetCart(ctx *gin.Context) {
 }
 
 func (cc *cartController) HandlerRemoveItem(ctx *gin.Context) {
-	id := ctx.Param("itemID")
-	itemID, err := uuid.Parse(id)
-	if err != nil {
-		errorResponse(ctx, http.StatusBadRequest, fmt.Errorf("invalid itemID"))
+	itemID, ok := getParamID(ctx, "itemID")
+	if !ok {
 		return
 	}
 
-	id = ctx.Param("cartID")
-	cartID, err := uuid.Parse(id)
-	if err != nil {
-		errorResponse(ctx, http.StatusBadRequest, fmt.Errorf("invalid cartID"))
+	cartID, ok := getParamID(ctx, "cartID")
+	if !ok {
 		return
 	}
 
-	if err = cc.cartService.RemoveItemFromCart(ctx.Request.Context(), cartID, itemID); err != nil {
+	if err := cc.cartService.RemoveItemFromCart(ctx.Request.Context(), cartID, itemID); err != nil {
 		errorResponse(ctx, http.StatusInternalServerError, fmt.Errorf("can't remove the item"))
 		return
 	}
@@ -140,7 +129,6 @@ func (cc *cartController) HandlerRemoveItem(ctx *gin.Context) {
 func (cc *cartController) HandlerDeleteCart(ctx *gin.Context) {
 	userID, ok := getUserID(ctx)
 	if !ok {
-		errorResponse(ctx, http.StatusUnauthorized, fmt.Errorf("UserID not found"))
 		return
 	}
 

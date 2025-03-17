@@ -115,9 +115,9 @@ Find `db_migration.sh` in the `scripts` to automate DB migration.
 
 ### Cart & Wishlist
 
-- [ ] Add medicine to cart
+- [x] Add medicine to cart
 - [x] Get/Fetch cart
-- [ ] Remove medicine from cart
+- [x] Remove medicine from cart
 - [x] Remove/Delete the Cart
 
 ### Checkout & Payment
@@ -155,6 +155,7 @@ Find `db_migration.sh` in the `scripts` to automate DB migration.
 > Experimental
 
 Run the project and see the documentation at `http://localhost:8080/api/v1/swagger/index.html`.
+Live version of github pages hosted [here](https://dhar01.github.io/MediTrust/)
 
 # 🚀 Status
 
