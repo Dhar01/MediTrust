@@ -27,16 +27,14 @@ definitions:
         type: string
       items:
         items:
-          $ref: '#/definitions/db.CartItems'
+          $ref: '#/definitions/db.CartItem'
         type: array
       userID:
         type: string
     type: object
-  db.CartItems:
+  db.CartItem:
     properties:
       cartID:
-        type: string
-      id:
         type: string
       medID:
         type: string
@@ -163,6 +161,11 @@ definitions:
     - email
     - password
     type: object
+  dto.QuantityControlDTO:
+    properties:
+      quantity:
+        type: integer
+    type: object
   dto.ServerResponseDTO:
     description: Used for authentication responses
     properties:
@@ -281,7 +284,7 @@ info:
   title: MediTrust Backend API
   version: "1.0"
 paths:
-  /cart:
+  /carts:
     delete:
       consumes:
       - application/json
@@ -307,7 +310,9 @@ paths:
     get:
       consumes:
       - application/json
-      description: Fetch the data of a cart using userID
+      description: |-
+        Fetch the data of a cart using userID for a logged in user.
+        Implemented middleware will be used to fetch the userID.
       produces:
       - application/json
       responses:
@@ -324,6 +329,85 @@ paths:
           schema:
             $ref: '#/definitions/dto.ErrorResponseDTO'
       summary: Fetch the data of a cart by userID
+      tags:
+      - cart
+  /carts/:cartID/items/:itemID:
+    delete:
+      consumes:
+      - application/json
+      description: Remove an item from the cart
+      parameters:
+      - description: cartID
+        in: path
+        name: cartID
+        required: true
+        type: string
+      - description: medID
+        in: path
+        name: itemID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: status no content
+          schema:
+            type: string
+        "400":
+          description: cartID/userID not found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDTO'
+        "500":
+          description: can't remove the item
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDTO'
+      summary: Remove an item from the cart
+      tags:
+      - cart
+  /carts/{cartID}/items/{itemID}:
+    patch:
+      consumes:
+      - application/json
+      description: HandlerUpdateCartItem will add an item to the cart using cartID
+        and itemID
+      parameters:
+      - description: Cart ID
+        in: path
+        name: cartID
+        required: true
+        type: string
+      - description: Item (Medicine) ID
+        in: path
+        name: itemID
+        required: true
+        type: string
+      - description: New quantity of the item
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.QuantityControlDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Status Ok
+          schema:
+            type: string
+        "400":
+          description: Invalid request data
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDTO'
+        "404":
+          description: cartID/itemID not found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDTO'
+        "500":
+          description: can't remove the item
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDTO'
+      summary: Update item quantity in the cart
       tags:
       - cart
   /login:

@@ -23,9 +23,9 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/cart": {
+        "/carts": {
             "get": {
-                "description": "Fetch the data of a cart using userID",
+                "description": "Fetch the data of a cart using userID for a logged in user.\nImplemented middleware will be used to fetch the userID.",
                 "consumes": [
                     "application/json"
                 ],
@@ -84,6 +84,123 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponseDTO"
+                        }
+                    }
+                }
+            }
+        },
+        "/carts/:cartID/items/:itemID": {
+            "delete": {
+                "description": "Remove an item from the cart",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cart"
+                ],
+                "summary": "Remove an item from the cart",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "cartID",
+                        "name": "cartID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "medID",
+                        "name": "itemID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "status no content",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "cartID/userID not found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponseDTO"
+                        }
+                    },
+                    "500": {
+                        "description": "can't remove the item",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponseDTO"
+                        }
+                    }
+                }
+            }
+        },
+        "/carts/{cartID}/items/{itemID}": {
+            "patch": {
+                "description": "HandlerUpdateCartItem will add an item to the cart using cartID and itemID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cart"
+                ],
+                "summary": "Update item quantity in the cart",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cart ID",
+                        "name": "cartID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Item (Medicine) ID",
+                        "name": "itemID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "New quantity of the item",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.QuantityControlDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status Ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request data",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponseDTO"
+                        }
+                    },
+                    "404": {
+                        "description": "cartID/itemID not found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponseDTO"
+                        }
+                    },
+                    "500": {
+                        "description": "can't remove the item",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponseDTO"
                         }
@@ -785,7 +902,7 @@ const docTemplate = `{
                 "items": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/db.CartItems"
+                        "$ref": "#/definitions/db.CartItem"
                     }
                 },
                 "userID": {
@@ -793,13 +910,10 @@ const docTemplate = `{
                 }
             }
         },
-        "db.CartItems": {
+        "db.CartItem": {
             "type": "object",
             "properties": {
                 "cartID": {
-                    "type": "string"
-                },
-                "id": {
                     "type": "string"
                 },
                 "medID": {
@@ -963,6 +1077,14 @@ const docTemplate = `{
                     "type": "string",
                     "minLength": 8,
                     "example": "SecurePass123"
+                }
+            }
+        },
+        "dto.QuantityControlDTO": {
+            "type": "object",
+            "properties": {
+                "quantity": {
+                    "type": "integer"
                 }
             }
         },
