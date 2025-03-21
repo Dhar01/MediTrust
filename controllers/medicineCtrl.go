@@ -7,7 +7,6 @@ import (
 	service "medicine-app/services"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 type medicineController struct {
@@ -84,7 +83,7 @@ func (mc *medicineController) HandlerGetMedicines(ctx *gin.Context) {
 //
 //	@example
 func (mc *medicineController) HandlerGetMedicineByID(ctx *gin.Context) {
-	id, ok := getMedicineID(ctx)
+	id, ok := getParamID(ctx, "medID")
 	if !ok {
 		return
 	}
@@ -112,7 +111,7 @@ func (mc *medicineController) HandlerGetMedicineByID(ctx *gin.Context) {
 //	@Failure		500			{object}	dto.ErrorResponseDTO	"Internal server error"
 //	@Router			/medicines/{medID} [put]
 func (mc *medicineController) HandlerUpdateMedicineByID(ctx *gin.Context) {
-	id, ok := getMedicineID(ctx)
+	id, ok := getParamID(ctx, "medID")
 	if !ok {
 		return
 	}
@@ -146,7 +145,7 @@ func (mc *medicineController) HandlerUpdateMedicineByID(ctx *gin.Context) {
 //	@Failure		500		{object}	dto.ErrorResponseDTO	"Internal server error"
 //	@Router			/medicines/{medID} [delete]
 func (mc *medicineController) HandlerDeleteMedicineByID(ctx *gin.Context) {
-	id, ok := getMedicineID(ctx)
+	id, ok := getParamID(ctx, "medID")
 	if !ok {
 		return
 	}
@@ -157,15 +156,4 @@ func (mc *medicineController) HandlerDeleteMedicineByID(ctx *gin.Context) {
 	}
 
 	ctx.Status(http.StatusNoContent)
-}
-
-func getMedicineID(ctx *gin.Context) (uuid.UUID, bool) {
-	medID := ctx.Param("medID")
-	id, err := uuid.Parse(medID)
-	if err != nil {
-		errorResponse(ctx, http.StatusBadRequest, err)
-		return uuid.Nil, false
-	}
-
-	return id, true
 }
