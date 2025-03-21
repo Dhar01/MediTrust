@@ -157,6 +157,10 @@ Find `db_migration.sh` in the `scripts` to automate DB migration.
 Run the project and see the documentation at `http://localhost:8080/api/v1/swagger/index.html`.<br>
 Live version of github pages hosted [here](https://dhar01.github.io/MediTrust/)
 
+# Entity-Relationship Diagram
+
+![ERD](diagrams/MediTrust.png)
+
 # 🚀 Status
 
 ![code coverage badge](https://github.com/Dhar01/medicine-app/actions/workflows/ci.yml/badge.svg)
