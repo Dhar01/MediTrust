@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 type userController struct {
@@ -101,13 +100,12 @@ func (uc *userController) HandlerLogIn(ctx *gin.Context) {
 //	@Failure		500	{object}	dto.ErrorResponseDTO	"Internal server error"
 //	@Router			/logout [post]
 func (uc *userController) HandlerLogout(ctx *gin.Context) {
-	id, ok := getUserID(ctx)
+	userID, ok := getUserID(ctx)
 	if !ok {
-		errorResponse(ctx, http.StatusUnauthorized, fmt.Errorf("can't get user-id"))
 		return
 	}
 
-	if err := uc.authService.LogoutUser(ctx.Request.Context(), id); err != nil {
+	if err := uc.authService.LogoutUser(ctx.Request.Context(), userID); err != nil {
 		errorResponse(ctx, http.StatusInternalServerError, err)
 		return
 	}
@@ -130,15 +128,13 @@ func (uc *userController) HandlerLogout(ctx *gin.Context) {
 //	@Failure		500		{object}	dto.ErrorResponseDTO	"Internal server error"
 //	@Router			/users [put]
 func (uc *userController) HandlerUpdateUser(ctx *gin.Context) {
-	id, ok := getUserID(ctx)
+	userID, ok := getUserID(ctx)
 	if !ok {
-		errorResponse(ctx, http.StatusUnauthorized, fmt.Errorf("user_id not found"))
 		return
 	}
 
 	role, ok := getRole(ctx)
 	if !ok {
-		errorResponse(ctx, http.StatusUnauthorized, fmt.Errorf("role not found"))
 		return
 	}
 
@@ -156,7 +152,7 @@ func (uc *userController) HandlerUpdateUser(ctx *gin.Context) {
 
 	// log.Println(updateUser)
 
-	user, err := uc.userService.UpdateUser(ctx.Request.Context(), id, updateUser)
+	user, err := uc.userService.UpdateUser(ctx.Request.Context(), userID, updateUser)
 	if err != nil {
 		errorResponse(ctx, http.StatusInternalServerError, err)
 		return
@@ -177,13 +173,12 @@ func (uc *userController) HandlerUpdateUser(ctx *gin.Context) {
 //	@Failure		404	{object}	dto.ErrorResponseDTO	"not found error"
 //	@Router			/users [delete]
 func (uc *userController) HandlerDeleteUser(ctx *gin.Context) {
-	id, ok := getUserID(ctx)
+	userID, ok := getUserID(ctx)
 	if !ok {
-		errorResponse(ctx, http.StatusUnauthorized, fmt.Errorf("user_id not found"))
 		return
 	}
 
-	if err := uc.userService.DeleteUser(ctx.Request.Context(), id); err != nil {
+	if err := uc.userService.DeleteUser(ctx.Request.Context(), userID); err != nil {
 		errorResponse(ctx, http.StatusNotFound, err)
 		return
 	}
@@ -203,14 +198,12 @@ func (uc *userController) HandlerDeleteUser(ctx *gin.Context) {
 //	@Failure		404	{object}	dto.ErrorResponseDTO	"not found error"
 //	@Router			/users [get]
 func (uc *userController) HandlerGetUserByID(ctx *gin.Context) {
-	userID := ctx.Param("userID")
-	id, err := uuid.Parse(userID)
-	if err != nil {
-		errorResponse(ctx, http.StatusBadRequest, err)
+	userID, ok := getParamID(ctx, "userID")
+	if !ok {
 		return
 	}
 
-	user, err := uc.userService.FindUserByID(ctx.Request.Context(), id)
+	user, err := uc.userService.FindUserByID(ctx.Request.Context(), userID)
 	if err != nil {
 		errorResponse(ctx, http.StatusNotFound, err)
 		return
@@ -294,22 +287,4 @@ func (us *userController) HandlerResetUpdatePass(ctx *gin.Context) {
 	}
 
 	ctx.Status(http.StatusAccepted)
-}
-
-func getUserID(ctx *gin.Context) (uuid.UUID, bool) {
-	userID, exists := ctx.Get("user_id")
-	if !exists {
-		return uuid.Nil, false
-	}
-
-	return userID.(uuid.UUID), true
-}
-
-func getRole(ctx *gin.Context) (string, bool) {
-	role, exists := ctx.Get("role")
-	if !exists {
-		return "", false
-	}
-
-	return role.(string), true
 }
