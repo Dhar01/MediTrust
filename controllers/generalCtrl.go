@@ -81,7 +81,6 @@ func (ctrl *controller) HandlerReset(ctx *gin.Context) {
 func (ctrl *controller) HandlerRefresh(ctx *gin.Context) {
 	refreshToken, ok := getRefreshToken(ctx)
 	if !ok {
-		ctx.Status(http.StatusUnauthorized)
 		return
 	}
 
@@ -112,9 +111,9 @@ func (ctrl *controller) HandlerRefresh(ctx *gin.Context) {
 func (ctrl *controller) HandlerRevoke(ctx *gin.Context) {
 	refreshToken, ok := getRefreshToken(ctx)
 	if !ok {
-		ctx.Status(http.StatusUnauthorized)
 		return
 	}
+
 	if err := ctrl.generalService.RevokeRefreshToken(ctx.Request.Context(), refreshToken); err != nil {
 		errorResponse(ctx, http.StatusUnauthorized, err)
 		return
@@ -122,25 +121,4 @@ func (ctrl *controller) HandlerRevoke(ctx *gin.Context) {
 
 	ctx.SetCookie(models.TokenRefresh, models.TokenNull, -1, models.RootPath, ctrl.conf.Domain, true, true)
 	ctx.Status(http.StatusNoContent)
-}
-
-func getRefreshToken(ctx *gin.Context) (string, bool) {
-	refreshToken, err := ctx.Cookie(models.TokenRefresh)
-	if err != nil {
-		return "", false
-	}
-
-	if refreshToken == "" {
-		return "", false
-	}
-
-	return refreshToken, true
-}
-
-func errorResponse(ctx *gin.Context, code int, err error) {
-	ctx.Error(err)
-	ctx.JSON(code, dto.ErrorResponseDTO{
-		Message: err.Error(),
-		Code:    code,
-	})
 }
