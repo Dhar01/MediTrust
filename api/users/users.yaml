@@ -1,0 +1,128 @@
+openapi: 3.0.0
+
+info:
+    title: User Management API
+    description: API for user management in an online pharmacy
+    version: 0.0.1
+
+paths:
+
+    /users:
+
+        # POST /api/v1/users
+        post:
+            summary: Create/Sign Up a new user.
+            description: Register a new user with an email and password
+            operationId: userSignUpHandler
+            tags:
+                - user
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SignUpRequest'
+            responses:
+                "201":
+                    description: User created Successfully. Please verify.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/SignUpResponse'
+                "400":
+                    description: Bad request, invalid input data
+                "500":
+                    description: Internal server error
+
+
+components:
+    schemas:
+
+        # ==================== MODELS ======================
+
+        User:
+            type: object
+            properties:
+                id:
+                    type: string
+                    format: uuid
+                    example: '550e8400-e29b-41d4-a716-446655440000'
+                name:
+                    $ref: '#/components/schemas/FullName'
+                email:
+                    type: string
+                    format: email
+                    example: 'user@example.com'
+                age:
+                    type: string
+                    format: int32
+                    example: 30
+                address:
+                    $ref: '#/components/schemas/Address'
+                role:
+                    type: string
+                    example: 'customer'
+                phone:
+                    type: string
+                    minLength: 11
+                    example: "01600000000"
+                is_active:
+                    type: boolean
+                    example: true
+                hashPassword:
+                    type: string
+                    example: '$2a$12$yD7F9szLFSKx0PKHdRgGKu...'
+
+        FullName:
+            type: object
+            properties:
+                first_name:
+                    type: string
+                    minLength: 3
+                    example: 'John'
+                last_name:
+                    type: string
+                    minLength: 3
+                    example: 'Doe'
+
+        Address:
+            type: object
+            properties:
+                country:
+                    type: string
+                    example: 'Bangladesh'
+                city:
+                    type: string
+                    example: 'Dhaka'
+                street_address:
+                    type: string
+                    example: '123 Main Street'
+                postal_code:
+                    type: string
+                    example: '1207'
+
+        # ==================== AUTH =====================================
+
+        SignUpRequest:
+            type: object
+            required:
+                - email
+                - password
+            properties:
+                email:
+                    type: string
+                    format: email
+                    example: 'user@example.com'
+                password:
+                    type: string
+                    format: password
+                    minLength: 8
+                    example: "SecureP@ss123"
+
+        SignUpResponse:
+            type: object
+            properties:
+                user_id:
+                    type: string
+                    format: uuid
+                    example: '550e8400-e29b-41d4-a716-446655440000'
