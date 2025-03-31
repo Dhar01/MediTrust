@@ -50,6 +50,9 @@ type MedicineCreateHandlerJSONRequestBody = CreateMedicineDTO
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// Get all medicines
+	// (GET /medicines)
+	MedicineListFetchHandler(c *gin.Context)
 	// Create a new medicine (admin only)
 	// (POST /medicines)
 	MedicineCreateHandler(c *gin.Context)
@@ -63,6 +66,19 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(c *gin.Context)
+
+// MedicineListFetchHandler operation middleware
+func (siw *ServerInterfaceWrapper) MedicineListFetchHandler(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.MedicineListFetchHandler(c)
+}
 
 // MedicineCreateHandler operation middleware
 func (siw *ServerInterfaceWrapper) MedicineCreateHandler(c *gin.Context) {
@@ -104,7 +120,32 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 		ErrorHandler:       errorHandler,
 	}
 
+	router.GET(options.BaseURL+"/medicines", wrapper.MedicineListFetchHandler)
 	router.POST(options.BaseURL+"/medicines", wrapper.MedicineCreateHandler)
+}
+
+type MedicineListFetchHandlerRequestObject struct {
+}
+
+type MedicineListFetchHandlerResponseObject interface {
+	VisitMedicineListFetchHandlerResponse(w http.ResponseWriter) error
+}
+
+type MedicineListFetchHandler200JSONResponse []Medicine
+
+func (response MedicineListFetchHandler200JSONResponse) VisitMedicineListFetchHandlerResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type MedicineListFetchHandler500Response struct {
+}
+
+func (response MedicineListFetchHandler500Response) VisitMedicineListFetchHandlerResponse(w http.ResponseWriter) error {
+	w.WriteHeader(500)
+	return nil
 }
 
 type MedicineCreateHandlerRequestObject struct {
@@ -142,6 +183,9 @@ func (response MedicineCreateHandler500Response) VisitMedicineCreateHandlerRespo
 
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
+	// Get all medicines
+	// (GET /medicines)
+	MedicineListFetchHandler(ctx context.Context, request MedicineListFetchHandlerRequestObject) (MedicineListFetchHandlerResponseObject, error)
 	// Create a new medicine (admin only)
 	// (POST /medicines)
 	MedicineCreateHandler(ctx context.Context, request MedicineCreateHandlerRequestObject) (MedicineCreateHandlerResponseObject, error)
@@ -157,6 +201,31 @@ func NewStrictHandler(ssi StrictServerInterface, middlewares []StrictMiddlewareF
 type strictHandler struct {
 	ssi         StrictServerInterface
 	middlewares []StrictMiddlewareFunc
+}
+
+// MedicineListFetchHandler operation middleware
+func (sh *strictHandler) MedicineListFetchHandler(ctx *gin.Context) {
+	var request MedicineListFetchHandlerRequestObject
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.MedicineListFetchHandler(ctx, request.(MedicineListFetchHandlerRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "MedicineListFetchHandler")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(MedicineListFetchHandlerResponseObject); ok {
+		if err := validResponse.VisitMedicineListFetchHandlerResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
 }
 
 // MedicineCreateHandler operation middleware
