@@ -1,0 +1,96 @@
+openapi: 3.0.0
+
+info:
+    title: Medicine API
+    description: API for managing medicines in an online pharmacy
+    version: 0.0.1
+
+paths:
+    /medicines:
+
+        # POST /api/v1/medicines
+        post:
+            summary: Create a new medicine (admin only)
+            description: Create a new medicine entry. Only an admin can perform this action.
+            operationId: medicineCreateHandler
+            tags:
+                - medicine
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateMedicineDTO'
+            responses:
+                "201":
+                    description: Medicine created successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Medicine'
+                "400":
+                    description: Invalid input
+                "500":
+                    description: Internal server error
+
+components:
+    schemas:
+
+        Medicine:
+            type: object
+            properties:
+                id:
+                    type: string
+                    format: uuid
+                    example: '550e8400-e29b-41d4-a716-446655440000'
+                name:
+                    type: string
+                description:
+                    type: string
+                dosage:
+                    type: string
+                manufacturer:
+                    type: string
+                price:
+                    type: integer
+                stock:
+                    type: integer
+
+        CreateMedicineDTO:
+            type: object
+            properties:
+                name:
+                    type: string
+                price:
+                    type: integer
+                description:
+                    type: string
+                dosage:
+                    type: string
+                manufacturer:
+                    type: string
+                stock:
+                    type: string
+            required:
+                - name
+                - price
+                - description
+                - stock
+                - dosage
+                - manufacturer
+
+        UpdateMedicineDTO:
+            type: object
+            properties:
+                name:
+                    type: string
+                price:
+                    type: integer
+                description:
+                    type: string
+                dosage:
+                    type: string
+                manufacturer:
+                    type: string
+                stock:
+                    type: integer
