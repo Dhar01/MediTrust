@@ -1,0 +1,8 @@
+package: medicines
+output: ./medicines_gen/medicines.gen.go
+generate:
+    models: true
+    gin-server: true
+
+output-options:
+    skip-prune: true

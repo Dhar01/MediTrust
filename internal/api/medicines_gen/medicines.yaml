@@ -1,0 +1,253 @@
+openapi: 3.0.0
+
+info:
+    title: Medicine API
+    description: API for managing medicines in an online pharmacy
+    version: 0.0.1
+    license:
+        name: MIT
+    x-oapi-codegen-middlewares:
+        - Middlewares
+    type-mappings:
+        uuid: github.com/google/uuid.UUID
+
+servers:
+    - url: http://localhost:8080/api/v1
+
+paths:
+
+    /medicines:
+
+        # POST /api/v1/medicines
+        post:
+            summary: Create a new medicine (admin only)
+            description: Create a new medicine entry. Only an admin can perform this action.
+            operationId: createNewMedicine
+            tags:
+                - medicine
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateMedicineDTO'
+            responses:
+                "201":
+                    description: Medicine created successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Medicine'
+                "400":
+                    $ref: '#/components/responses/InvalidInput'
+                "500":
+                    $ref: '#/components/responses/InternalServerError'
+
+
+        # GET /api/v1/medicines
+        get:
+            summary: Get all medicines
+            description: Fetch a list of available medicines
+            operationId: fetchMedicineList
+            tags:
+                - medicines
+            responses:
+                "200":
+                    description: List of medicines
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/Medicine'
+                "500":
+                    $ref: '#/components/responses/InternalServerError'
+
+
+    /medicines/{medicineID}:
+
+        # GET /api/v1/medicines/{medicineID}
+        get:
+            summary: Get a medicine by ID
+            description: Fetch information of a medicine using ID
+            operationId: FetchMedicineByID
+            tags:
+                - medicines
+            parameters:
+                - $ref: '#/components/parameters/MedicineID'
+            responses:
+                "200":
+                    description: Success
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Medicine'
+                "400":
+                    $ref: '#/components/responses/InvalidInput'
+                "500":
+                    $ref: '#/components/responses/InternalServerError'
+
+        # PUT /api/v1/medicines/{medicineID}
+        put:
+            summary: Update a medicine by ID (admin only)
+            description: Update information of a medicine by its ID
+            operationId: updateMedicineInfoByID
+            tags:
+                - medicines
+            parameters:
+                - $ref: '#/components/parameters/MedicineID'
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateMedicineDTO'
+            responses:
+                "202":
+                    description: medicine updated successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Medicine'
+                "400":
+                    $ref: '#/components/responses/InvalidInput'
+                "500":
+                    $ref: '#/components/responses/InternalServerError'
+
+
+        # DELETE /api/v1/medicines/{medicineID}
+        delete:
+            summary: Delete a medicine by ID (admin only)
+            description: remove a medicine from the store
+            operationId: deleteMedicineByID
+            tags:
+                - medicines
+            parameters:
+                - $ref: '#/components/parameters/MedicineID'
+            responses:
+                "204":
+                    description: Medicine deleted successfully
+                "400":
+                    $ref: '#/components/responses/InvalidInput'
+                "500":
+                    $ref: '#/components/responses/InternalServerError'
+
+components:
+    parameters:
+        MedicineID:
+            name: medicineID
+            in: path
+            required: true
+            schema:
+                type: string
+                x-go-type: googleuuid.UUID
+                x-go-type-import:
+                        path: github.com/google/uuid
+                        name: googleuuid
+
+
+    responses:
+        InternalServerError:
+            description: Internal server error
+        InvalidInput:
+            description: Invalid input
+
+    schemas:
+        Medicine:
+            type: object
+            properties:
+                id:
+                    type: string
+                    example: '550e8400-e29b-41d4-a716-446655440000'
+                    x-go-type: googleuuid.UUID
+                    x-go-type-import:
+                        path: github.com/google/uuid
+                        name: googleuuid
+                name:
+                    type: string
+                    example: 'Losectil'
+                description:
+                    type: string
+                    example: 'treatment of gastric'
+                dosage:
+                    type: string
+                    example: '20mg'
+                manufacturer:
+                    type: string
+                    example: 'Eskayef Pharmaceuticals Ltd.'
+                price:
+                    type: integer
+                    example: 5
+                    x-go-type: int32
+                    x-oapi-codegen-extra-tags:
+                        validate: gte=0
+                stock:
+                    type: integer
+                    example: 10
+                    x-go-type: int32
+                    x-oapi-codegen-extra-tags:
+                        validate: gte=0
+
+
+        CreateMedicineDTO:
+            type: object
+            properties:
+                name:
+                    type: string
+                    example: 'Losectil'
+                price:
+                    type: integer
+                    example: 5
+                    x-go-type: int32
+                    x-oapi-codegen-extra-tags:
+                        validate: gte=0
+                description:
+                    type: string
+                    example: 'treatment of gastric'
+                dosage:
+                    type: string
+                    example: '20mg'
+                manufacturer:
+                    type: string
+                    example: 'Eskayef Pharmaceuticals Ltd.'
+                stock:
+                    type: integer
+                    example: 10
+                    x-go-type: int32
+                    x-oapi-codegen-extra-tags:
+                        validate: gte=0
+            required:
+                - name
+                - price
+                - description
+                - stock
+                - dosage
+                - manufacturer
+
+        UpdateMedicineDTO:
+            type: object
+            properties:
+                name:
+                    type: string
+                    example: 'Losectil'
+                price:
+                    type: integer
+                    example: 5
+                    x-go-type: int32
+                    x-oapi-codegen-extra-tags:
+                        validate: gte=0
+                description:
+                    type: string
+                    example: 'treatment of gastric'
+                dosage:
+                    type: string
+                    example: '20mg'
+                manufacturer:
+                    type: string
+                    example: 'Eskayef Pharmaceuticals Ltd.'
+                stock:
+                    type: integer
+                    example: 5
+                    x-go-type: int32
+                    x-oapi-codegen-extra-tags:
+                        validate: gte=0
