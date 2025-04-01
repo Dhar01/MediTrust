@@ -1,0 +1,9 @@
+package: users
+output: ./users_gen/users.gen.go
+generate:
+    models: true
+    gin-server: true
+    strict-server: true
+
+output-options:
+    skip-prune: true
