@@ -13,24 +13,6 @@ import (
 
 const apiBase = "/api/v1"
 
-//	@title			MediTrust Backend API
-//	@version		1.0
-//	@description	Documentation of api of online medicine pharmacy - MediTrust
-
-//	@contact.name	API Support
-//	@contact.url	http://t.me/Dhar01
-//	@contact.email	loknathdhar66@gmail.com
-
-//	@license.name	GPL v3
-//	@license.url	https://www.gnu.org/licenses/gpl-3.0.html
-
-//	@host		localhost:8080
-//	@BasePath	/api/v1
-
-//	@securityDefinitions.apikey	ApiKeyAuth
-//	@in							cookie
-//	@name						refresh-token
-
 func main() {
 	cfg, err := config.LoadConfig()
 	if err != nil {
