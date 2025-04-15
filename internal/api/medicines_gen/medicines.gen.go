@@ -4,12 +4,24 @@
 package medicines
 
 import (
+	"bytes"
+	"compress/gzip"
+	"encoding/base64"
 	"fmt"
 	"net/http"
+	"net/url"
+	"path"
+	"strings"
 
+	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gin-gonic/gin"
 	googleuuid "github.com/google/uuid"
 	"github.com/oapi-codegen/runtime"
+	openapi_types "github.com/oapi-codegen/runtime/types"
+)
+
+const (
+	BearerAuthScopes = "BearerAuth.Scopes"
 )
 
 // CreateMedicineDTO defines model for CreateMedicineDTO.
@@ -24,13 +36,13 @@ type CreateMedicineDTO struct {
 
 // Medicine defines model for Medicine.
 type Medicine struct {
-	Description  *string          `json:"description,omitempty"`
-	Dosage       *string          `json:"dosage,omitempty"`
-	Id           *googleuuid.UUID `json:"id,omitempty"`
-	Manufacturer *string          `json:"manufacturer,omitempty"`
-	Name         *string          `json:"name,omitempty"`
-	Price        *int32           `json:"price,omitempty" validate:"gte=0"`
-	Stock        *int32           `json:"stock,omitempty" validate:"gte=0"`
+	Description  *string             `json:"description,omitempty"`
+	Dosage       *string             `json:"dosage,omitempty"`
+	Id           *openapi_types.UUID `json:"id,omitempty"`
+	Manufacturer *string             `json:"manufacturer,omitempty"`
+	Name         *string             `json:"name,omitempty"`
+	Price        *int32              `json:"price,omitempty" validate:"gte=0"`
+	Stock        *int32              `json:"stock,omitempty" validate:"gte=0"`
 }
 
 // UpdateMedicineDTO defines model for UpdateMedicineDTO.
@@ -83,6 +95,8 @@ type MiddlewareFunc func(c *gin.Context)
 // FetchMedicineList operation middleware
 func (siw *ServerInterfaceWrapper) FetchMedicineList(c *gin.Context) {
 
+	c.Set(BearerAuthScopes, []string{})
+
 	for _, middleware := range siw.HandlerMiddlewares {
 		middleware(c)
 		if c.IsAborted() {
@@ -95,6 +109,8 @@ func (siw *ServerInterfaceWrapper) FetchMedicineList(c *gin.Context) {
 
 // CreateNewMedicine operation middleware
 func (siw *ServerInterfaceWrapper) CreateNewMedicine(c *gin.Context) {
+
+	c.Set(BearerAuthScopes, []string{})
 
 	for _, middleware := range siw.HandlerMiddlewares {
 		middleware(c)
@@ -120,6 +136,8 @@ func (siw *ServerInterfaceWrapper) DeleteMedicineByID(c *gin.Context) {
 		return
 	}
 
+	c.Set(BearerAuthScopes, []string{})
+
 	for _, middleware := range siw.HandlerMiddlewares {
 		middleware(c)
 		if c.IsAborted() {
@@ -144,6 +162,8 @@ func (siw *ServerInterfaceWrapper) FetchMedicineByID(c *gin.Context) {
 		return
 	}
 
+	c.Set(BearerAuthScopes, []string{})
+
 	for _, middleware := range siw.HandlerMiddlewares {
 		middleware(c)
 		if c.IsAborted() {
@@ -167,6 +187,8 @@ func (siw *ServerInterfaceWrapper) UpdateMedicineInfoByID(c *gin.Context) {
 		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter medicineID: %w", err), http.StatusBadRequest)
 		return
 	}
+
+	c.Set(BearerAuthScopes, []string{})
 
 	for _, middleware := range siw.HandlerMiddlewares {
 		middleware(c)
@@ -210,4 +232,101 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	router.DELETE(options.BaseURL+"/medicines/:medicineID", wrapper.DeleteMedicineByID)
 	router.GET(options.BaseURL+"/medicines/:medicineID", wrapper.FetchMedicineByID)
 	router.PUT(options.BaseURL+"/medicines/:medicineID", wrapper.UpdateMedicineInfoByID)
+}
+
+// Base64 encoded, gzipped, json marshaled Swagger object
+var swaggerSpec = []string{
+
+	"H4sIAAAAAAAC/+xX32/bNhD+VwhuDxsgW3Jqd52APbRLO3hI1gBJsAfDD2fqLLOVSI2knAiB/veBpC1Z",
+	"lpplW36gQJ8MWcf78X0f7053lMm8kAKF0TS+owUoyNGgck/nmHDGBc5P7RMXNKYFmA0NqIAcaUzz1iCg",
+	"Cv8qucKExkaVGFDNNpiDPbmWKgdDY5pKmWZYljyhATVVYX1oo7hIaUBvR6kc7f5sDcfX185783bE80Iq",
+	"Y/3usuh4dQnGNOVmU67GTOahfx2693Vd1zZTXUih0RU5FwaVgOwS1RbVe6Wksn8nqJniheHSlr03ItpZ",
+	"EXRmdUDnYgsZT+aiKM3QMfeWcPfahvaguMC/KgSDe4xPrz46ApQsUBnuc+t4u6N4C3mR2ZKNPZujMESu",
+	"SQoWQ9aDtA5oIjWk2D17EuXpkG0OolwDM6VC1T3xXn+GCtfkYgMqB4al4QwyTc5MMh7y5Hk59HAmNTLD",
+	"syHrQnHWNZ81VlwYTFEdqYML8+rE/Seh4CMmE0xRjPDWKBgZSB12DnkwTiAGf4k8/Eayz51Yk+iJgtWH",
+	"N2LhMdkXG3SY3afV0HXExbLJUK4+ITMWtL1sXlgzPOnazWYRvplG0QhPfl6NppNkOoKfJq9H0+nr17PZ",
+	"dBpFUUSDtiEMtoJvWnwCLfYUdF0k39rPi1M+ezbGbXhkpeKmurRDyFP8DkGhelvaoXlHV+7pw/52/v7n",
+	"Fd2NLOvJv20x3BhT+FBcrGV/+r29mJO1VCQHASkXKdmvC5pwQUAQKTIukBSe14oGNOMMhcaD4X4+v7Is",
+	"GW4ck3u9krcXcxrQLSrtg0XjaDzpA5XzJMnwBpQtd0HPDx6XPWO3XuRQFFx4YF17+tIy4TcTW74sUEDB",
+	"aUxfjaNxtNtCnIewqdk+pTiwJHxAwzYESMa1u0+wBZ7BKsMWL+piKLAn5sn+zB6LM64NPdpqTqLI/jAp",
+	"DAoXFIoi48y5CD9pf6PbFY0bzN3B7xWuaUy/C9vFMNwtLWEzdFp1gVJQeRF0qzrbVdPWUAd05rMaitFk",
+	"Hw4tZE69ZZ6DqmhMf0NDIMs6+Pi7sKDtf0t7uaUeQNxvXgSIwJvGCUFhVDUmH0VWWXFCknNBGAhSoLID",
+	"i5gN1wSYdTLuMeJ9/oE3DUh+/qM272RS/Ssy7uOgvzUerRp2+a57apg8WgKtCPqkN7eTuSwTokvGUOt1",
+	"mWWVFcD0YQI42Kn/t2p2PY/Gi263Wyzr5aGohkXxg5eBFFn144DK6NLGaC95eNd+EtVeeBka7EtQYS63",
+	"NloTaa2klRgSbaTCnr5OnaM9wO8q91F0+Lm2GEaoNQkPPuds6UcKmfaTbOj0VXxVdHq8DgFeVWR++k+E",
+	"+rZxT5+2o86ORy6Fa9at/1LbGed4uadZPwFz0bPc7UvP/QvR3u39R6R+uf0PfZT7xfceIlcV4UYPMdnd",
+	"mediLR+HzscfE/3t/kFj4uRZpNReGZflV9VXdur5L33lIXFcWl5Epcp2S3YchplkkG2kNvGb6E0UQsHD",
+	"7YTWy/rvAAAA//+wZN4SwhMAAA==",
+}
+
+// GetSwagger returns the content of the embedded swagger specification file
+// or error if failed to decode
+func decodeSpec() ([]byte, error) {
+	zipped, err := base64.StdEncoding.DecodeString(strings.Join(swaggerSpec, ""))
+	if err != nil {
+		return nil, fmt.Errorf("error base64 decoding spec: %w", err)
+	}
+	zr, err := gzip.NewReader(bytes.NewReader(zipped))
+	if err != nil {
+		return nil, fmt.Errorf("error decompressing spec: %w", err)
+	}
+	var buf bytes.Buffer
+	_, err = buf.ReadFrom(zr)
+	if err != nil {
+		return nil, fmt.Errorf("error decompressing spec: %w", err)
+	}
+
+	return buf.Bytes(), nil
+}
+
+var rawSpec = decodeSpecCached()
+
+// a naive cached of a decoded swagger spec
+func decodeSpecCached() func() ([]byte, error) {
+	data, err := decodeSpec()
+	return func() ([]byte, error) {
+		return data, err
+	}
+}
+
+// Constructs a synthetic filesystem for resolving external references when loading openapi specifications.
+func PathToRawSpec(pathToFile string) map[string]func() ([]byte, error) {
+	res := make(map[string]func() ([]byte, error))
+	if len(pathToFile) > 0 {
+		res[pathToFile] = rawSpec
+	}
+
+	return res
+}
+
+// GetSwagger returns the Swagger specification corresponding to the generated code
+// in this file. The external references of Swagger specification are resolved.
+// The logic of resolving external references is tightly connected to "import-mapping" feature.
+// Externally referenced files must be embedded in the corresponding golang packages.
+// Urls can be supported but this task was out of the scope.
+func GetSwagger() (swagger *openapi3.T, err error) {
+	resolvePath := PathToRawSpec("")
+
+	loader := openapi3.NewLoader()
+	loader.IsExternalRefsAllowed = true
+	loader.ReadFromURIFunc = func(loader *openapi3.Loader, url *url.URL) ([]byte, error) {
+		pathToFile := url.String()
+		pathToFile = path.Clean(pathToFile)
+		getSpec, ok := resolvePath[pathToFile]
+		if !ok {
+			err1 := fmt.Errorf("path not found: %s", pathToFile)
+			return nil, err1
+		}
+		return getSpec()
+	}
+	var specData []byte
+	specData, err = rawSpec()
+	if err != nil {
+		return
+	}
+	swagger, err = loader.LoadFromData(specData)
+	if err != nil {
+		return
+	}
+	return
 }
