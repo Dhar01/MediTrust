@@ -6,7 +6,9 @@ package medicines
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -17,7 +19,7 @@ import (
 	"github.com/gin-gonic/gin"
 	googleuuid "github.com/google/uuid"
 	"github.com/oapi-codegen/runtime"
-	openapi_types "github.com/oapi-codegen/runtime/types"
+	strictgin "github.com/oapi-codegen/runtime/strictmiddleware/gin"
 )
 
 const (
@@ -36,13 +38,13 @@ type CreateMedicineDTO struct {
 
 // Medicine defines model for Medicine.
 type Medicine struct {
-	Description  *string             `json:"description,omitempty"`
-	Dosage       *string             `json:"dosage,omitempty"`
-	Id           *openapi_types.UUID `json:"id,omitempty"`
-	Manufacturer *string             `json:"manufacturer,omitempty"`
-	Name         *string             `json:"name,omitempty"`
-	Price        *int32              `json:"price,omitempty" validate:"gte=0"`
-	Stock        *int32              `json:"stock,omitempty" validate:"gte=0"`
+	Description  *string          `json:"description,omitempty"`
+	Dosage       *string          `json:"dosage,omitempty"`
+	Id           *googleuuid.UUID `json:"id,omitempty"`
+	Manufacturer *string          `json:"manufacturer,omitempty"`
+	Name         *string          `json:"name,omitempty"`
+	Price        *int32           `json:"price,omitempty" validate:"gte=0"`
+	Stock        *int32           `json:"stock,omitempty" validate:"gte=0"`
 }
 
 // UpdateMedicineDTO defines model for UpdateMedicineDTO.
@@ -234,29 +236,360 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	router.PUT(options.BaseURL+"/medicines/:medicineID", wrapper.UpdateMedicineInfoByID)
 }
 
+type InternalServerErrorResponse struct {
+}
+
+type InvalidInputResponse struct {
+}
+
+type FetchMedicineListRequestObject struct {
+}
+
+type FetchMedicineListResponseObject interface {
+	VisitFetchMedicineListResponse(w http.ResponseWriter) error
+}
+
+type FetchMedicineList200JSONResponse []Medicine
+
+func (response FetchMedicineList200JSONResponse) VisitFetchMedicineListResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type FetchMedicineList500Response = InternalServerErrorResponse
+
+func (response FetchMedicineList500Response) VisitFetchMedicineListResponse(w http.ResponseWriter) error {
+	w.WriteHeader(500)
+	return nil
+}
+
+type CreateNewMedicineRequestObject struct {
+	Body *CreateNewMedicineJSONRequestBody
+}
+
+type CreateNewMedicineResponseObject interface {
+	VisitCreateNewMedicineResponse(w http.ResponseWriter) error
+}
+
+type CreateNewMedicine201JSONResponse Medicine
+
+func (response CreateNewMedicine201JSONResponse) VisitCreateNewMedicineResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateNewMedicine400Response = InvalidInputResponse
+
+func (response CreateNewMedicine400Response) VisitCreateNewMedicineResponse(w http.ResponseWriter) error {
+	w.WriteHeader(400)
+	return nil
+}
+
+type CreateNewMedicine500Response = InternalServerErrorResponse
+
+func (response CreateNewMedicine500Response) VisitCreateNewMedicineResponse(w http.ResponseWriter) error {
+	w.WriteHeader(500)
+	return nil
+}
+
+type DeleteMedicineByIDRequestObject struct {
+	MedicineID MedicineID `json:"medicineID"`
+}
+
+type DeleteMedicineByIDResponseObject interface {
+	VisitDeleteMedicineByIDResponse(w http.ResponseWriter) error
+}
+
+type DeleteMedicineByID204Response struct {
+}
+
+func (response DeleteMedicineByID204Response) VisitDeleteMedicineByIDResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteMedicineByID400Response = InvalidInputResponse
+
+func (response DeleteMedicineByID400Response) VisitDeleteMedicineByIDResponse(w http.ResponseWriter) error {
+	w.WriteHeader(400)
+	return nil
+}
+
+type DeleteMedicineByID500Response = InternalServerErrorResponse
+
+func (response DeleteMedicineByID500Response) VisitDeleteMedicineByIDResponse(w http.ResponseWriter) error {
+	w.WriteHeader(500)
+	return nil
+}
+
+type FetchMedicineByIDRequestObject struct {
+	MedicineID MedicineID `json:"medicineID"`
+}
+
+type FetchMedicineByIDResponseObject interface {
+	VisitFetchMedicineByIDResponse(w http.ResponseWriter) error
+}
+
+type FetchMedicineByID200JSONResponse Medicine
+
+func (response FetchMedicineByID200JSONResponse) VisitFetchMedicineByIDResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type FetchMedicineByID400Response = InvalidInputResponse
+
+func (response FetchMedicineByID400Response) VisitFetchMedicineByIDResponse(w http.ResponseWriter) error {
+	w.WriteHeader(400)
+	return nil
+}
+
+type FetchMedicineByID500Response = InternalServerErrorResponse
+
+func (response FetchMedicineByID500Response) VisitFetchMedicineByIDResponse(w http.ResponseWriter) error {
+	w.WriteHeader(500)
+	return nil
+}
+
+type UpdateMedicineInfoByIDRequestObject struct {
+	MedicineID MedicineID `json:"medicineID"`
+	Body       *UpdateMedicineInfoByIDJSONRequestBody
+}
+
+type UpdateMedicineInfoByIDResponseObject interface {
+	VisitUpdateMedicineInfoByIDResponse(w http.ResponseWriter) error
+}
+
+type UpdateMedicineInfoByID202JSONResponse Medicine
+
+func (response UpdateMedicineInfoByID202JSONResponse) VisitUpdateMedicineInfoByIDResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(202)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateMedicineInfoByID400Response = InvalidInputResponse
+
+func (response UpdateMedicineInfoByID400Response) VisitUpdateMedicineInfoByIDResponse(w http.ResponseWriter) error {
+	w.WriteHeader(400)
+	return nil
+}
+
+type UpdateMedicineInfoByID500Response = InternalServerErrorResponse
+
+func (response UpdateMedicineInfoByID500Response) VisitUpdateMedicineInfoByIDResponse(w http.ResponseWriter) error {
+	w.WriteHeader(500)
+	return nil
+}
+
+// StrictServerInterface represents all server handlers.
+type StrictServerInterface interface {
+	// Get all medicines
+	// (GET /medicines)
+	FetchMedicineList(ctx context.Context, request FetchMedicineListRequestObject) (FetchMedicineListResponseObject, error)
+	// Create a new medicine (admin only)
+	// (POST /medicines)
+	CreateNewMedicine(ctx context.Context, request CreateNewMedicineRequestObject) (CreateNewMedicineResponseObject, error)
+	// Delete a medicine by ID (admin only)
+	// (DELETE /medicines/{medicineID})
+	DeleteMedicineByID(ctx context.Context, request DeleteMedicineByIDRequestObject) (DeleteMedicineByIDResponseObject, error)
+	// Get a medicine by ID
+	// (GET /medicines/{medicineID})
+	FetchMedicineByID(ctx context.Context, request FetchMedicineByIDRequestObject) (FetchMedicineByIDResponseObject, error)
+	// Update a medicine by ID (admin only)
+	// (PUT /medicines/{medicineID})
+	UpdateMedicineInfoByID(ctx context.Context, request UpdateMedicineInfoByIDRequestObject) (UpdateMedicineInfoByIDResponseObject, error)
+}
+
+type StrictHandlerFunc = strictgin.StrictGinHandlerFunc
+type StrictMiddlewareFunc = strictgin.StrictGinMiddlewareFunc
+
+func NewStrictHandler(ssi StrictServerInterface, middlewares []StrictMiddlewareFunc) ServerInterface {
+	return &strictHandler{ssi: ssi, middlewares: middlewares}
+}
+
+type strictHandler struct {
+	ssi         StrictServerInterface
+	middlewares []StrictMiddlewareFunc
+}
+
+// FetchMedicineList operation middleware
+func (sh *strictHandler) FetchMedicineList(ctx *gin.Context) {
+	var request FetchMedicineListRequestObject
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.FetchMedicineList(ctx, request.(FetchMedicineListRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "FetchMedicineList")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(FetchMedicineListResponseObject); ok {
+		if err := validResponse.VisitFetchMedicineListResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateNewMedicine operation middleware
+func (sh *strictHandler) CreateNewMedicine(ctx *gin.Context) {
+	var request CreateNewMedicineRequestObject
+
+	var body CreateNewMedicineJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		ctx.Status(http.StatusBadRequest)
+		ctx.Error(err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateNewMedicine(ctx, request.(CreateNewMedicineRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateNewMedicine")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(CreateNewMedicineResponseObject); ok {
+		if err := validResponse.VisitCreateNewMedicineResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteMedicineByID operation middleware
+func (sh *strictHandler) DeleteMedicineByID(ctx *gin.Context, medicineID MedicineID) {
+	var request DeleteMedicineByIDRequestObject
+
+	request.MedicineID = medicineID
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteMedicineByID(ctx, request.(DeleteMedicineByIDRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteMedicineByID")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(DeleteMedicineByIDResponseObject); ok {
+		if err := validResponse.VisitDeleteMedicineByIDResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// FetchMedicineByID operation middleware
+func (sh *strictHandler) FetchMedicineByID(ctx *gin.Context, medicineID MedicineID) {
+	var request FetchMedicineByIDRequestObject
+
+	request.MedicineID = medicineID
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.FetchMedicineByID(ctx, request.(FetchMedicineByIDRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "FetchMedicineByID")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(FetchMedicineByIDResponseObject); ok {
+		if err := validResponse.VisitFetchMedicineByIDResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateMedicineInfoByID operation middleware
+func (sh *strictHandler) UpdateMedicineInfoByID(ctx *gin.Context, medicineID MedicineID) {
+	var request UpdateMedicineInfoByIDRequestObject
+
+	request.MedicineID = medicineID
+
+	var body UpdateMedicineInfoByIDJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		ctx.Status(http.StatusBadRequest)
+		ctx.Error(err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateMedicineInfoByID(ctx, request.(UpdateMedicineInfoByIDRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateMedicineInfoByID")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(UpdateMedicineInfoByIDResponseObject); ok {
+		if err := validResponse.VisitUpdateMedicineInfoByIDResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/+xX32/bNhD+VwhuDxsgW3Jqd52APbRLO3hI1gBJsAfDD2fqLLOVSI2knAiB/veBpC1Z",
-	"lpplW36gQJ8MWcf78X0f7053lMm8kAKF0TS+owUoyNGgck/nmHDGBc5P7RMXNKYFmA0NqIAcaUzz1iCg",
-	"Cv8qucKExkaVGFDNNpiDPbmWKgdDY5pKmWZYljyhATVVYX1oo7hIaUBvR6kc7f5sDcfX185783bE80Iq",
-	"Y/3usuh4dQnGNOVmU67GTOahfx2693Vd1zZTXUih0RU5FwaVgOwS1RbVe6Wksn8nqJniheHSlr03ItpZ",
-	"EXRmdUDnYgsZT+aiKM3QMfeWcPfahvaguMC/KgSDe4xPrz46ApQsUBnuc+t4u6N4C3mR2ZKNPZujMESu",
-	"SQoWQ9aDtA5oIjWk2D17EuXpkG0OolwDM6VC1T3xXn+GCtfkYgMqB4al4QwyTc5MMh7y5Hk59HAmNTLD",
-	"syHrQnHWNZ81VlwYTFEdqYML8+rE/Seh4CMmE0xRjPDWKBgZSB12DnkwTiAGf4k8/Eayz51Yk+iJgtWH",
-	"N2LhMdkXG3SY3afV0HXExbLJUK4+ITMWtL1sXlgzPOnazWYRvplG0QhPfl6NppNkOoKfJq9H0+nr17PZ",
-	"dBpFUUSDtiEMtoJvWnwCLfYUdF0k39rPi1M+ezbGbXhkpeKmurRDyFP8DkGhelvaoXlHV+7pw/52/v7n",
-	"Fd2NLOvJv20x3BhT+FBcrGV/+r29mJO1VCQHASkXKdmvC5pwQUAQKTIukBSe14oGNOMMhcaD4X4+v7Is",
-	"GW4ck3u9krcXcxrQLSrtg0XjaDzpA5XzJMnwBpQtd0HPDx6XPWO3XuRQFFx4YF17+tIy4TcTW74sUEDB",
-	"aUxfjaNxtNtCnIewqdk+pTiwJHxAwzYESMa1u0+wBZ7BKsMWL+piKLAn5sn+zB6LM64NPdpqTqLI/jAp",
-	"DAoXFIoi48y5CD9pf6PbFY0bzN3B7xWuaUy/C9vFMNwtLWEzdFp1gVJQeRF0qzrbVdPWUAd05rMaitFk",
-	"Hw4tZE69ZZ6DqmhMf0NDIMs6+Pi7sKDtf0t7uaUeQNxvXgSIwJvGCUFhVDUmH0VWWXFCknNBGAhSoLID",
-	"i5gN1wSYdTLuMeJ9/oE3DUh+/qM272RS/Ssy7uOgvzUerRp2+a57apg8WgKtCPqkN7eTuSwTokvGUOt1",
-	"mWWVFcD0YQI42Kn/t2p2PY/Gi263Wyzr5aGohkXxg5eBFFn144DK6NLGaC95eNd+EtVeeBka7EtQYS63",
-	"NloTaa2klRgSbaTCnr5OnaM9wO8q91F0+Lm2GEaoNQkPPuds6UcKmfaTbOj0VXxVdHq8DgFeVWR++k+E",
-	"+rZxT5+2o86ORy6Fa9at/1LbGed4uadZPwFz0bPc7UvP/QvR3u39R6R+uf0PfZT7xfceIlcV4UYPMdnd",
-	"mediLR+HzscfE/3t/kFj4uRZpNReGZflV9VXdur5L33lIXFcWl5Epcp2S3YchplkkG2kNvGb6E0UQsHD",
-	"7YTWy/rvAAAA//+wZN4SwhMAAA==",
+	"H4sIAAAAAAAC/+xX32/bNhD+VwhuDxsgW3Jqd52APTRLO3hI1gBJsAfDD2fqLLOVSI2knAiB/veBpC1Z",
+	"lpplW5qgQJ8Mmsf78X0fj6d7ymReSIHCaBrf0wIU5GhQudUFJpxxgfMzu+KCxrQAs6EBFZAjjWneGgRU",
+	"4V8lV5jQ2KgSA6rZBnOwJ9dS5WBoTFMp0wzLkic0oKYqrA9tFBcpDejdKJWj3Z+t4fjmxnlvdkc8L6Qy",
+	"1u8ui45Xl2BMU2425WrMZB767dDt13Vd20x1IYVGV+RcGFQCsitUW1TvlJLK/p2gZooXhktb9t6IaGdF",
+	"0JnVAZ2LLWQ8mYuiNEPH3C7hbtuG9qC4wL8qBIN7jM+uPzgClCxQGe5z63i7p3gHeZHZko09m6MwRK5J",
+	"ChZD1oO0DmgiNaTYPXsS5emQbQ6iXAMzpULVPfFOf4IK1+RyAyoHhqXhDDJNzk0yHvLkeTn0cC41MsOz",
+	"IetCcdY1nzVWXBhMUR2pgwvz6sT9J6HgIyYTTFGM8M4oGBlIHXYOeTBOIAZ/iTz8RrJPnViT6AsFqw9v",
+	"xMJjsi826DC7T6uh64iLZZOhXH1EZixoe9m8sGZ40rWbzSJ8M42iEZ78vBpNJ8l0BD9NXo+m09evZ7Pp",
+	"NIqiiAZtQ3jRVvBN8k8v+Z5Qb4rkW5d7ccpnz8a4DY+sVNxUV/at8xSfIihUb0t7Ie/pyq3e75vA739e",
+	"093LaD353RbDjTGFD8XFWvYf2beXc7KWiuQgIOUiJfupRBMuCAgiRcYFksLzWtGAZpyh0HjQOC7m15Yl",
+	"w41jcq9X8vZyTgO6RaV9sGgcjSd9oHKeJBnegrLlLujFwXLZM3atK4ei4MID6/rR5xqV73q2fFmggILT",
+	"mL4aR+No1+Gch7Cp2a5SHJhF3qNhGwIk49rdJ9gCz2CVYYsXdTEU2BPzZH9mj8U514YeDU8nUWR/mBQG",
+	"hQsKRZFx5lyEH7W/0e0kyA3m7uD3Ctc0pt+F7fwZ7majsHnbWnWBUlB5EXSrOt9V09ZQB3TmsxqK0WQf",
+	"Ds19Tr1lnoOqaEx/Q0Mgyzr4+LuwoO1/S3u5pR5A3A94BIjA28YJQWFUNSYfRFZZcUKSc0EYCFKgsu8i",
+	"MRuuCTDrZNxjxPv8A28bkPyYgdqcyqT6V2Q8xEF/OD2aaOyMX/fUMHmyBFoR9ElvbidzWSZEl4yh1usy",
+	"yyorgOnjBHAwuv9v1ex6Ho0X3W63WNbLQ1ENi+IHLwMpsurHAZXRpY3RXvLwvv3yqr3wMjTYl6DCXG5t",
+	"tCbSWkkrMSTaSIU9fZ05R3uATys3cB1+FS6GEWpNwoOvRlv6kUKm/SQbOn0VXxWdHq9DgFcVmZ/9E6G+",
+	"bTzQp+1TZ59HLoVr1q3/Uts3zvHyQLP+AsxFz3K3rzz3L0R7t/cfkfr59j/07e8H3weIXFWEGz3EZHdm",
+	"nou1fBo6n/6Z6E/3j3omTp5FSu2VcVl+VX1lp57/0lceE8el5UVUqmw3ZMdhmEkG2UZqE7+J3kQhFDzc",
+	"Tmi9rP8OAAD//875FaQpFAAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
