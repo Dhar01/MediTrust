@@ -3,6 +3,7 @@ output: ./medicines_gen/medicines.gen.go
 generate:
     models: true
     gin-server: true
+    strict-server: true
     embedded-spec: true
 
 output-options:
