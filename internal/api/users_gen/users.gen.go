@@ -4,14 +4,26 @@
 package users
 
 import (
+	"bytes"
+	"compress/gzip"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
+	"path"
+	"strings"
 
+	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gin-gonic/gin"
+	googleuuid "github.com/google/uuid"
 	strictgin "github.com/oapi-codegen/runtime/strictmiddleware/gin"
 	openapi_types "github.com/oapi-codegen/runtime/types"
+)
+
+const (
+	BearerAuthScopes = "BearerAuth.Scopes"
 )
 
 // Address defines model for Address.
@@ -36,21 +48,24 @@ type SignUpRequest struct {
 
 // SignUpResponse defines model for SignUpResponse.
 type SignUpResponse struct {
-	UserId *openapi_types.UUID `json:"user_id,omitempty"`
+	UserId *googleuuid.UUID `json:"user_id,omitempty"`
 }
 
 // User defines model for User.
 type User struct {
 	Address      *Address             `json:"address,omitempty"`
-	Age          *string              `json:"age,omitempty"`
+	Age          *int32               `json:"age,omitempty" validate:"gte=18"`
 	Email        *openapi_types.Email `json:"email,omitempty"`
 	HashPassword *string              `json:"hashPassword,omitempty"`
-	Id           *openapi_types.UUID  `json:"id,omitempty"`
+	Id           *googleuuid.UUID     `json:"id,omitempty"`
 	IsActive     *bool                `json:"is_active,omitempty"`
 	Name         *FullName            `json:"name,omitempty"`
 	Phone        *string              `json:"phone,omitempty"`
 	Role         *string              `json:"role,omitempty"`
 }
+
+// UserID defines model for UserID.
+type UserID = googleuuid.UUID
 
 // UserSignUpHandlerJSONRequestBody defines body for UserSignUpHandler for application/json ContentType.
 type UserSignUpHandlerJSONRequestBody = SignUpRequest
@@ -73,6 +88,8 @@ type MiddlewareFunc func(c *gin.Context)
 
 // UserSignUpHandler operation middleware
 func (siw *ServerInterfaceWrapper) UserSignUpHandler(c *gin.Context) {
+
+	c.Set(BearerAuthScopes, []string{})
 
 	for _, middleware := range siw.HandlerMiddlewares {
 		middleware(c)
@@ -114,6 +131,12 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	router.POST(options.BaseURL+"/users", wrapper.UserSignUpHandler)
 }
 
+type InternalServerErrorResponse struct {
+}
+
+type InvalidInputResponse struct {
+}
+
 type UserSignUpHandlerRequestObject struct {
 	Body *UserSignUpHandlerJSONRequestBody
 }
@@ -131,16 +154,14 @@ func (response UserSignUpHandler201JSONResponse) VisitUserSignUpHandlerResponse(
 	return json.NewEncoder(w).Encode(response)
 }
 
-type UserSignUpHandler400Response struct {
-}
+type UserSignUpHandler400Response = InvalidInputResponse
 
 func (response UserSignUpHandler400Response) VisitUserSignUpHandlerResponse(w http.ResponseWriter) error {
 	w.WriteHeader(400)
 	return nil
 }
 
-type UserSignUpHandler500Response struct {
-}
+type UserSignUpHandler500Response = InternalServerErrorResponse
 
 func (response UserSignUpHandler500Response) VisitUserSignUpHandlerResponse(w http.ResponseWriter) error {
 	w.WriteHeader(500)
@@ -197,4 +218,99 @@ func (sh *strictHandler) UserSignUpHandler(ctx *gin.Context) {
 	} else if response != nil {
 		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
 	}
+}
+
+// Base64 encoded, gzipped, json marshaled Swagger object
+var swaggerSpec = []string{
+
+	"H4sIAAAAAAAC/9xWXW/bNhT9KwKXR9mibOejAgY0WZbVTTMYcYM9BEZwI11L7CiSJSknXqD/PpBSbMtW",
+	"0z70YVheYpG8H+fynHv5QlJZKilQWEOSF6JAQ4kWtf+6M6inl+4XEyQhCmxBQiKgRJKQqtkMicavFdOY",
+	"kcTqCkNi0gJLcFZLqUuwJCG5lDnHqmIZCYldK2dvrGYiJyF5HuRy0C5uDw7v7rz3ze6AlUpq6/y2GXS8",
+	"+uQSkjNbVI/DVJZRsx35/bqua5epUVIY9OCmwqIWwOeoV6h/11pqt5yhSTVTlkkH+fVQYPypAP2xOiRT",
+	"sQLOsqlQle0z87sB89sudFMUH/g8yzSaptxaKtSWNRmlzK7df3yGUnGH8LKAv+GgZHVIUlkJq/dOX4DI",
+	"OWRoij4TJY0F/pDKDLtm8Yie9hkYqxHtA2zT3bUZBzfARDD3hw7N682KfPyCqXUOryrO//RXt498ybSx",
+	"D6Ld24b5KAtBQlIy8QlF7i543JMoh17jS4nfs+3Lcs5ycadu8WuFxh6miiUw3g3klPC+/XTMI+GW+c3x",
+	"vusAY56kzrqu5phWGmfvjYlH410/m+MdRGd9iLZ6vN+E35gv3kDciOMQssP3wPYyPT6meDahdICjd4+D",
+	"SZxNBnAanwwmk5OT4+PJhFJKdwH8F1pAD3bX4g4R73D+SOOSJOSXaNsoo1bM0auS65BA3mXfmG6CMWEx",
+	"R70Hkwk7Hvk1CYoNnCxzFAN8thoGFnIf3HcRsB6pxV/jM3/BP4uCBZhi1kvDoxEcxaOj9eXp1Tvzz6er",
+	"+fUznV1/yG7zP66r4XDY5+1/QJCQMPMAqWWr7mU2c60N/yglRxAO8mvPeYsjm6bnNF9IsdekaHxC27+u",
+	"tOO4p8Za8j37tDJWlp5d3+1trqe7/sLser4dRxcIGvV55YK+kEf/dfV6KR//+kza4eWx+91trMJa1QiL",
+	"iaU8nIPns2mwlDpw9AxKEJBjicIGTAQgAik4ExioAnQJ6ZqEhLMU2xbU3t/N9LMDbpn1cJ1cg5uto/PZ",
+	"lIRkhdo0AemQDuNDVZUsyzg+gXbyvic3O5+Lg8OeSCUoxUSjQs+Ob9Gm4aArgVQoQDGSkPGQDmnLN+8h",
+	"cgVoJr40Pe+FW8yZsagDCAQ+NeV6YrZwVfLyDUBkwc4McM0KnPE0a6vSNPEPIDLub0g3A+xCZv6VkEph",
+	"UfjQoBRnqbeOvhgX/2XnzfYWl7ujse4OGyeS/TfWiMY/PXg7pXz0bhU9OVKNYDEL5lWaojHLivP1MJhx",
+	"BIPBCjVbroeOURNKvxVxAyHqvPLqkBz/mNHhw3JXeyS576ruflEvQmKqsgT3pCO/eQgecHCndjjh+64f",
+	"Dfe+45NF/SOOfR7G71aat7JNoojLFHghjU3O6BmNQLFoFZN6Uf8bAAD//+QQ8i0WDAAA",
+}
+
+// GetSwagger returns the content of the embedded swagger specification file
+// or error if failed to decode
+func decodeSpec() ([]byte, error) {
+	zipped, err := base64.StdEncoding.DecodeString(strings.Join(swaggerSpec, ""))
+	if err != nil {
+		return nil, fmt.Errorf("error base64 decoding spec: %w", err)
+	}
+	zr, err := gzip.NewReader(bytes.NewReader(zipped))
+	if err != nil {
+		return nil, fmt.Errorf("error decompressing spec: %w", err)
+	}
+	var buf bytes.Buffer
+	_, err = buf.ReadFrom(zr)
+	if err != nil {
+		return nil, fmt.Errorf("error decompressing spec: %w", err)
+	}
+
+	return buf.Bytes(), nil
+}
+
+var rawSpec = decodeSpecCached()
+
+// a naive cached of a decoded swagger spec
+func decodeSpecCached() func() ([]byte, error) {
+	data, err := decodeSpec()
+	return func() ([]byte, error) {
+		return data, err
+	}
+}
+
+// Constructs a synthetic filesystem for resolving external references when loading openapi specifications.
+func PathToRawSpec(pathToFile string) map[string]func() ([]byte, error) {
+	res := make(map[string]func() ([]byte, error))
+	if len(pathToFile) > 0 {
+		res[pathToFile] = rawSpec
+	}
+
+	return res
+}
+
+// GetSwagger returns the Swagger specification corresponding to the generated code
+// in this file. The external references of Swagger specification are resolved.
+// The logic of resolving external references is tightly connected to "import-mapping" feature.
+// Externally referenced files must be embedded in the corresponding golang packages.
+// Urls can be supported but this task was out of the scope.
+func GetSwagger() (swagger *openapi3.T, err error) {
+	resolvePath := PathToRawSpec("")
+
+	loader := openapi3.NewLoader()
+	loader.IsExternalRefsAllowed = true
+	loader.ReadFromURIFunc = func(loader *openapi3.Loader, url *url.URL) ([]byte, error) {
+		pathToFile := url.String()
+		pathToFile = path.Clean(pathToFile)
+		getSpec, ok := resolvePath[pathToFile]
+		if !ok {
+			err1 := fmt.Errorf("path not found: %s", pathToFile)
+			return nil, err1
+		}
+		return getSpec()
+	}
+	var specData []byte
+	specData, err = rawSpec()
+	if err != nil {
+		return
+	}
+	swagger, err = loader.LoadFromData(specData)
+	if err != nil {
+		return
+	}
+	return
 }

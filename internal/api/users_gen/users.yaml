@@ -4,6 +4,18 @@ info:
     title: User Management API
     description: API for user management in an online pharmacy
     version: 0.0.1
+    license:
+        name: MIT
+    x-oapi-codegen-middlewares:
+        - Middlewares
+    x-oapi-codegen-type-mappings:
+        uuid: github.com/google/uuid.UUID
+
+servers:
+    - url: http://localhost:8080/api/v1
+
+security:
+    - BearerAuth: []
 
 paths:
 
@@ -16,6 +28,8 @@ paths:
             operationId: userSignUpHandler
             tags:
                 - user
+            security:
+                - BearerAuth: []
             requestBody:
                 required: true
                 content:
@@ -30,12 +44,37 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/SignUpResponse'
                 "400":
-                    description: Bad request, invalid input data
+                    $ref: '#/components/responses/InvalidInput'
                 "500":
-                    description: Internal server error
+                    $ref: '#/components/responses/InternalServerError'
 
 
 components:
+    parameters:
+        UserID:
+            name: userID
+            in: path
+            required: true
+            schema:
+                type: string
+                format: googleuuid
+                x-go-type: googleuuid.UUID
+                x-go-type-import:
+                    path: github.com/google/uuid
+                    name: googleuuid
+
+    responses:
+        InternalServerError:
+            description: Internal server error
+        InvalidInput:
+            description: Invalid input
+
+    securitySchemas:
+        BearerAuth:
+            type: http
+            scheme: bearer
+            bearerFormat: JWT
+
     schemas:
 
         # ==================== MODELS ======================
@@ -45,8 +84,12 @@ components:
             properties:
                 id:
                     type: string
-                    format: uuid
+                    format: googleuuid
                     example: '550e8400-e29b-41d4-a716-446655440000'
+                    x-go-type: googleuuid.UUID
+                    x-go-type-import:
+                        path: github.com/google/uuid
+                        name: googleuuid
                 name:
                     $ref: '#/components/schemas/FullName'
                 email:
@@ -54,9 +97,11 @@ components:
                     format: email
                     example: 'user@example.com'
                 age:
-                    type: string
-                    format: int32
+                    type: integer
                     example: 30
+                    x-go-type: int32
+                    x-oapi-codegen-extra-tags:
+                        validate: gte=18
                 address:
                     $ref: '#/components/schemas/Address'
                 role:
@@ -124,5 +169,9 @@ components:
             properties:
                 user_id:
                     type: string
-                    format: uuid
+                    format: googleuuid
                     example: '550e8400-e29b-41d4-a716-446655440000'
+                    x-go-type: googleuuid.UUID
+                    x-go-type-import:
+                        path: github.com/google/uuid
+                        name: googleuuid
