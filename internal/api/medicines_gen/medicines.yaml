@@ -179,13 +179,12 @@ components:
             properties:
                 id:
                     type: string
-                    format: uuid
+                    format: googleuuid
                     example: '550e8400-e29b-41d4-a716-446655440000'
                     x-go-type: googleuuid.UUID
                     x-go-type-import:
                         path: github.com/google/uuid
                         name: googleuuid
-
                 name:
                     type: string
                     example: 'Losectil'
