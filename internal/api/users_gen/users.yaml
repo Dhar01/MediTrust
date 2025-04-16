@@ -14,13 +14,14 @@ info:
 servers:
     - url: http://localhost:8080/api/v1
 
-security:
-    - BearerAuth: []
+# security:
+#     - BearerAuth: []
 
 paths:
 
     /users:
 
+        # ok
         # POST /api/v1/users
         post:
             summary: Create/Sign Up a new user.
@@ -28,8 +29,6 @@ paths:
             operationId: userSignUpHandler
             tags:
                 - user
-            security:
-                - BearerAuth: []
             requestBody:
                 required: true
                 content:
@@ -47,6 +46,142 @@ paths:
                     $ref: '#/components/responses/InvalidInput'
                 "500":
                     $ref: '#/components/responses/InternalServerError'
+
+    /users/{userID}:
+
+        # ok
+        # GET /api/v1/users/{userID}
+        get:
+            summary: Get user using userID
+            description: Fetch a user information using userID
+            operationID: fetchUserInfoByID
+            tags:
+                - users
+            security:
+                - BearerAuth: [ ]
+            parameters:
+                - $ref: '#/components/parameters/UserID'
+            response:
+                "200":
+                    description: Success
+                    content:
+                        application/json:
+                            scheme:
+                                $ref: '#/components/schemas/User'
+                "400":
+                    $ref: '#/components/responses/InvalidInput'
+                "500":
+                    $ref: '#/components/responses/InternalServerError'
+
+        # # PUT /api/v1/users/{userID}
+        # put:
+        #     summary: Update a user information using userID
+        #     description: Update a user information using userID
+        #     operationID: updateUserInfoByID
+        #     tags:
+        #         - users
+        #     security:
+        #         - BearerAuth: [ ]
+        #     parameters:
+        #         - $ref: '#/components/parameters/UserID'
+        #     requestBody:
+        #         required: true
+        #         content:
+        #             application/json:
+        #                 schema:
+        #                     $ref: '#/components/schemas/UpdateUserDTO'
+        #     responses:
+        #         "202":
+        #             description: user information updated successfully
+        #             content:
+        #                 application/json:
+        #                     schema:
+        #                         $ref: '#/components/schemas/User'
+        #         "400":
+        #             $ref: '#/components/responses/InvalidInput'
+        #         "500":
+        #             $ref: '#/components/responses/InternalServerError'
+
+    # /auth/login:
+    #     # POST /api/v1/auth/login
+    #     post:
+    #         summary: Log In a user using email and password
+    #         description: log in a user using email and password
+    #         operationID: logInUser
+    #         tags:
+    #             - auth
+    #         requestBody:
+    #             required: true
+    #             content:
+    #                 application/json:
+    #                     schema: '#/components/schemas/SignInRequest'
+    #         responses:
+    #             "200":
+    #                 description: Success
+    #                 content:
+    #                     application/json:
+    #                         schema:
+    #                             $ref: '#/components/schemas/SignInResponse'
+    #             "400":
+    #                 $ref: '#/components/responses/InvalidInput'
+    #             "500":
+    #                 $ref: '#/components/responses/InternalServerError'
+
+    # /users/verify:
+    #     # ok
+    #     # GET /api/v1/users/verify?token=%s
+    #     get:
+    #         summary: Verify a user with a confirmation token
+    #         description: After sign up, users go through verification process via token
+    #         operationID: verifySignedUpUser
+    #         tags:
+    #             - users
+    #         parameters:
+    #             - in: query
+    #               name: token
+    #               required: true
+    #               schema:
+    #                 type: string
+    #         responses:
+    #             "200":
+    #                 description: successfully verified
+    #                 content:
+    #                     application/json:
+    #                         schema:
+    #                             $ref: ''
+    #             "400":
+    #                 $ref: '#/components/responses/InvalidInput'
+    #             "500":
+    #                 $ref: '#/components/responses/InternalServerError'
+
+    # /users/reset:
+    #     # POST /api/v1/users/reset
+    #     post:
+    #         summary: Request for password update for the user
+    #         description: if a user forget his/her password, they can request for password reset
+    #         operationID: requestPasswordReset
+    #         tags:
+    #             - users
+    #         requestBody:
+    #             required: true
+    #             content:
+    #                 application/json:
+    #                     schema: '#/components/schemas/RequestPasswordReset'
+    #         response:
+    #             "202":
+    #                 description: status accepted, please check email
+    #                 content:
+    #                     application/json:
+    #                         schema:
+    #                             $ref: '#/components/responses/RequestPasswordReset'
+    #             "400":
+    #                 $ref: '#/components/responses/InvalidInput'
+    #             "500":
+    #                 $ref: '#/components/responses/InternalServerError'
+
+
+        # PUT /api/v1/users/reset
+        # put:
 
 
 components:
@@ -66,6 +201,11 @@ components:
     responses:
         InternalServerError:
             description: Internal server error
+
+            # content:
+            #     application/json:
+            #         schema: '#components/schemas/Error500Response'
+
         InvalidInput:
             description: Invalid input
 
@@ -175,3 +315,49 @@ components:
                     x-go-type-import:
                         path: github.com/google/uuid
                         name: googleuuid
+
+        SignInRequest:
+            type: object
+            required:
+                - email
+                - password
+            properties:
+                email:
+                    type: string
+                    format: email
+                    example: 'user@example.com'
+                password:
+                    type: string
+                    format: password
+                    minLength: 8
+                    example: "SecureP@ss123"
+
+        SignInResponse:
+            type: object
+            required:
+                - access_token
+            properties:
+                access_token:
+                    type: string
+                    description: JWT access token
+
+
+        RequestPasswordReset:
+            type: object
+            required:
+                - email
+            properties:
+                email:
+                    type: string
+                    format: email
+                    example: 'user@example.com'
+
+        Error500Problem:
+            type: object
+            properties:
+                message:
+                    type: string
+                status:
+                    type: integer
+                    format: int32
+                    example: 500

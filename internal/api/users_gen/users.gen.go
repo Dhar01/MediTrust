@@ -18,6 +18,7 @@ import (
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gin-gonic/gin"
 	googleuuid "github.com/google/uuid"
+	"github.com/oapi-codegen/runtime"
 	strictgin "github.com/oapi-codegen/runtime/strictmiddleware/gin"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
@@ -34,10 +35,33 @@ type Address struct {
 	StreetAddress *string `json:"street_address,omitempty"`
 }
 
+// Error500Problem defines model for Error500Problem.
+type Error500Problem struct {
+	Message *string `json:"message,omitempty"`
+	Status  *int32  `json:"status,omitempty"`
+}
+
 // FullName defines model for FullName.
 type FullName struct {
 	FirstName *string `json:"first_name,omitempty"`
 	LastName  *string `json:"last_name,omitempty"`
+}
+
+// RequestPasswordReset defines model for RequestPasswordReset.
+type RequestPasswordReset struct {
+	Email openapi_types.Email `json:"email"`
+}
+
+// SignInRequest defines model for SignInRequest.
+type SignInRequest struct {
+	Email    openapi_types.Email `json:"email"`
+	Password string              `json:"password"`
+}
+
+// SignInResponse defines model for SignInResponse.
+type SignInResponse struct {
+	// AccessToken JWT access token
+	AccessToken string `json:"access_token"`
 }
 
 // SignUpRequest defines model for SignUpRequest.
@@ -75,6 +99,9 @@ type ServerInterface interface {
 	// Create/Sign Up a new user.
 	// (POST /users)
 	UserSignUpHandler(c *gin.Context)
+	// Get user using userID
+	// (GET /users/{userID})
+	FetchUserInfoByID(c *gin.Context, userID UserID)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -89,6 +116,30 @@ type MiddlewareFunc func(c *gin.Context)
 // UserSignUpHandler operation middleware
 func (siw *ServerInterfaceWrapper) UserSignUpHandler(c *gin.Context) {
 
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.UserSignUpHandler(c)
+}
+
+// FetchUserInfoByID operation middleware
+func (siw *ServerInterfaceWrapper) FetchUserInfoByID(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "userID" -------------
+	var userID UserID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userID", c.Param("userID"), &userID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userID: %w", err), http.StatusBadRequest)
+		return
+	}
+
 	c.Set(BearerAuthScopes, []string{})
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -98,7 +149,7 @@ func (siw *ServerInterfaceWrapper) UserSignUpHandler(c *gin.Context) {
 		}
 	}
 
-	siw.Handler.UserSignUpHandler(c)
+	siw.Handler.FetchUserInfoByID(c, userID)
 }
 
 // GinServerOptions provides options for the Gin server.
@@ -129,6 +180,7 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	}
 
 	router.POST(options.BaseURL+"/users", wrapper.UserSignUpHandler)
+	router.GET(options.BaseURL+"/users/:userID", wrapper.FetchUserInfoByID)
 }
 
 type InternalServerErrorResponse struct {
@@ -168,11 +220,22 @@ func (response UserSignUpHandler500Response) VisitUserSignUpHandlerResponse(w ht
 	return nil
 }
 
+type FetchUserInfoByIDRequestObject struct {
+	UserID UserID `json:"userID"`
+}
+
+type FetchUserInfoByIDResponseObject interface {
+	VisitFetchUserInfoByIDResponse(w http.ResponseWriter) error
+}
+
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
 	// Create/Sign Up a new user.
 	// (POST /users)
 	UserSignUpHandler(ctx context.Context, request UserSignUpHandlerRequestObject) (UserSignUpHandlerResponseObject, error)
+	// Get user using userID
+	// (GET /users/{userID})
+	FetchUserInfoByID(ctx context.Context, request FetchUserInfoByIDRequestObject) (FetchUserInfoByIDResponseObject, error)
 }
 
 type StrictHandlerFunc = strictgin.StrictGinHandlerFunc
@@ -220,27 +283,58 @@ func (sh *strictHandler) UserSignUpHandler(ctx *gin.Context) {
 	}
 }
 
+// FetchUserInfoByID operation middleware
+func (sh *strictHandler) FetchUserInfoByID(ctx *gin.Context, userID UserID) {
+	var request FetchUserInfoByIDRequestObject
+
+	request.UserID = userID
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.FetchUserInfoByID(ctx, request.(FetchUserInfoByIDRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "FetchUserInfoByID")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(FetchUserInfoByIDResponseObject); ok {
+		if err := validResponse.VisitFetchUserInfoByIDResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"H4sIAAAAAAAC/+RXX2/bNhD/KgSXR9miEztNDQxosiyt22Yw4gZ9CILgIp0lthSpklQSL9B3H0gqlmUr",
+	"TR86bNj60si8P7+7+90d+UgTVZRKorSGTh9pCRoKtKj916VBPTt1f3FJp7QEm9OISiiQTmkVDiOq8VvF",
+	"NaZ0anWFETVJjgU4raXSBVg6pZlSmcCq4imNqF2VTt9YzWVGI/owyNSg+bEVHF5eeuvr0wEvSqWts9sg",
+	"6Fj14KY04zavboeJKuJwHPvzuq5rh9SUShr0wc2kRS1BLFDfof5da6XdzymaRPPScuVCfhIixksR9GJ1",
+	"RGfyDgRPZ7KsbJ+aPyXcHzvXISne8XGaajQh3VqVqC0PiBJuV+5/fICiFC7C0xy+wk7K6ogmqpJWb0mf",
+	"gMwEpGjyPpVSGQviJlEpdtVG++xVn4KxGtHeQAt3U+eAnAOXZOGFdtXr9S/q9gsm1hn0OZ4wNtfqVmCx",
+	"m4ACjYHMw+tBA7bqopgwFrUc49Ie7LdAuLSYoe5HclYJ8Ycn0TaEJdfG3sjmrA34vcoljWjB5UeUmaPa",
+	"QU/KBPQqnyp8SbcP5QV+q9DYORhzr3R6gQbtLmIsgIuuP9eab5pP1wp0I01BvM9/28dXjdR1D6gFz+RM",
+	"NtD+LjSunUPQXVMLTCqN8zfGjPYPNu2sxTtpPvqxMDe8fS/iMDt2Q4YkQWNurPqKcncUvP/8iQQJEiRe",
+	"wtQx9xyey/L/VgEX8XMVcPHd8C2kkwnDozFjA9x/fTsYj9LxAF6NDgfj8eHhZDIeM8bYZgD/hh3VE7vb",
+	"wT2ca4fynsYlndJf4naTx822iZ9WTR3RZq6u83PAdkZlN8ynefowUFDygdsbGcoBPlgNAwuZd+7XHFgf",
+	"qcVfR0e+wD+LgjmYfN5Lw7192Bvt761OX529Nn9+PFt8eGDzD+/Si+zth2o4HPZZ+w8QJKLc3EBi+V23",
+	"mOHi1bi/VUogSBfy0yr6HkfWu9D1fK7k1u5io0PW/Ou29mjUk2OtxJZ+UhmrCs+uF1eeW/NuvnC7WrT3",
+	"pRMEjfq4ck4f6a3/OnsqyvvPn2hzu/Kx+9PWV25tGRqLy6Xanc7H8xlZKk0cPUkBEjIsUFrCJQFJlBRc",
+	"Iilz0AUkKxpRwRNsRlBTv/PZJxe45daH69qVnLeGjuczGtE71CY4ZEM2HO12VcHTVOA9aNfeV/R84/N6",
+	"R9gTqYCy5DJ0oWfHc7QJHHQpUCVKKDmd0oMhG7KGb95C7BIQrqTK9FxoLzDjxqImQCTeh3Tdc5u7LPn2",
+	"JSBTsrED3LACpzxLm6yEIf4OZCp8hXRYYCcq9dfYREmL0ruGshQ88drxF6P8Um0fFd/jcnc11t1l45pk",
+	"+xGwz0Y/3Xmzpbz3bhY9ORKNYDEli8ov+mUlxGpI5gLBILlDzZeroWPUmLHnPK5DiDvPkDqikx9T2n35",
+	"+N6rigLco4L+5jH6iMhluVF0P1j97L/yI51eO8XAnvgxPAlrhyDDHhadoU1yAoE+riFdE3MlSWW4zMj6",
+	"RdmS55RO6dJp+aeoXKqT1ZZE+mR3S2LzJXvVn5FWJG5euvV1y49AD/aj9HhxzvpF3kOKhgf/TMk3mkFW",
+	"QrTz1ydtc/JeXbvktBR5izbUcat2m+wwjh5+qDuvoRCVFs1cnsaxUAmIXBk7PWJHLIaSx3cjWl/XfwUA",
+	"AP//EZYIHJgQAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
