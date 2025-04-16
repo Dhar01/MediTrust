@@ -119,6 +119,8 @@ paths:
                                 $ref: '#/components/schemas/Medicine'
                 "400":
                     $ref: '#/components/responses/InvalidInput'
+                "404":
+                    $ref: '#/components/responses/NotFound'
                 "500":
                     $ref: '#/components/responses/InternalServerError'
 
@@ -159,8 +161,12 @@ components:
     responses:
         InternalServerError:
             description: Internal server error
+
         InvalidInput:
             description: Invalid input
+
+        NotFound:
+            description: Not Found
 
     securitySchemes:
         BearerAuth:
