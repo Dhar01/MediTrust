@@ -2,9 +2,10 @@ package main
 
 import (
 	"log"
-	"medicine-app/api"
+	"medicine-app/internal/handlers"
 	"medicine-app/config"
 	"medicine-app/models"
+	srv "medicine-app/internal/services"
 
 	_ "medicine-app/docs"
 
@@ -28,22 +29,22 @@ func main() {
 	router.SetTrustedProxies(nil)
 
 	// medicines
-	api.MedicineRoutes(router.Group(apiBase), cfg)
+	srv.MedicineRoutes(router.Group(apiBase), cfg)
 
 	// users
-	api.UserRoutes(router.Group(apiBase), cfg)
+	handlers.UserRoutes(router.Group(apiBase), cfg)
 
 	// admin
 	// api.AdminRoutes(router.Group(apiBase), cfg)
 
 	// general routes
-	api.GeneralRoutes(router.Group(apiBase), cfg)
+	handlers.GeneralRoutes(router.Group(apiBase), cfg)
 
 	// documentation routes
-	api.DocumentationRoute(router.Group(apiBase))
+	handlers.DocumentationRoute(router.Group(apiBase))
 
 	// cart routes
-	api.CartRoute(router.Group(apiBase), cfg)
+	handlers.CartRoute(router.Group(apiBase), cfg)
 
 	port := ":" + cfg.Port
 
