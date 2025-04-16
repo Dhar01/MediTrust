@@ -29,15 +29,17 @@ paths:
                 - BearerAuth: [ ]
             parameters:
                 - $ref: '#/components/parameters/UserID'
-            response:
+            responses:
                 "200":
                     description: Success
                     content:
                         application/json:
-                            scheme:
-                                $ref: '#/components/schemas/User'
+                            schema:
+                                $ref: '#/components/schemas/FetchUserInfoResponse'
                 "400":
                     $ref: '#/components/responses/InvalidInput'
+                "404":
+                    $ref: '#/components/responses/NotFound'
                 "500":
                     $ref: '#/components/responses/InternalServerError'
 
@@ -51,19 +53,12 @@ paths:
                 - BearerAuth: [ ]
             parameters:
                 - $ref: '#/components/parameters/UserID'
-            response:
+            responses:
                 "204":
                     description: successfully deleted user
-                    content:
-                        application/json:
-                            schema:
-                                type: string
+                    type: string
                 "401":
                     $ref: '#/components/responses/UnauthorizedAccess'
-                "404":
-                    $ref: '#/components/responses/NotFound'
-                "500":
-                    $ref: '#/components/responses/InternalServerError'
 
         # PUT /api/v1/users/{userID}
         put:
@@ -265,3 +260,31 @@ components:
                 - role
                 - phone
                 - is_active
+
+        FetchUserInfoResponse:
+            type: object
+            properties:
+                name:
+                    $ref: '#/components/schemas/FullName'
+                email:
+                    type: string
+                    format: email
+                    example: 'user@example.com'
+                age:
+                    type: integer
+                    example: 30
+                    x-go-type: int32
+                    x-oapi-codegen-extra-tags:
+                        validate: gte=18
+                address:
+                    $ref: '#/components/schemas/Address'
+                role:
+                    type: string
+                    example: 'customer'
+                phone:
+                    type: string
+                    minLength: 11
+                    example: "01600000000"
+                is_active:
+                    type: boolean
+                    example: true
