@@ -21,7 +21,6 @@ paths:
 
     /users:
 
-        # ok
         # POST /api/v1/users
         post:
             summary: Create/Sign Up a new user.
@@ -49,7 +48,6 @@ paths:
 
     /users/{userID}:
 
-        # ok
         # GET /api/v1/users/{userID}
         get:
             summary: Get user using userID
@@ -70,6 +68,30 @@ paths:
                                 $ref: '#/components/schemas/User'
                 "400":
                     $ref: '#/components/responses/InvalidInput'
+                "500":
+                    $ref: '#/components/responses/InternalServerError'
+
+        delete:
+            summary: Delete user data
+            description: Delete the logged in user.
+            operationID: deleteUserByID
+            tags:
+                - users
+            security:
+                - BearerAuth: [ ]
+            parameters:
+                - $ref: '#/components/parameters/UserID'
+            response:
+                "204":
+                    description: successfully deleted user
+                    content:
+                        application/json:
+                            schema:
+                                type: string
+                "401":
+                    $ref: '#/components/responses/UnauthorizedAccess'
+                "404":
+                    $ref: '#/components/responses/NotFound'
                 "500":
                     $ref: '#/components/responses/InternalServerError'
 
@@ -102,86 +124,107 @@ paths:
         #         "500":
         #             $ref: '#/components/responses/InternalServerError'
 
-    # /auth/login:
-    #     # POST /api/v1/auth/login
-    #     post:
-    #         summary: Log In a user using email and password
-    #         description: log in a user using email and password
-    #         operationID: logInUser
-    #         tags:
-    #             - auth
-    #         requestBody:
-    #             required: true
-    #             content:
-    #                 application/json:
-    #                     schema: '#/components/schemas/SignInRequest'
-    #         responses:
-    #             "200":
-    #                 description: Success
-    #                 content:
-    #                     application/json:
-    #                         schema:
-    #                             $ref: '#/components/schemas/SignInResponse'
-    #             "400":
-    #                 $ref: '#/components/responses/InvalidInput'
-    #             "500":
-    #                 $ref: '#/components/responses/InternalServerError'
+    /auth/login:
 
-    # /users/verify:
-    #     # ok
-    #     # GET /api/v1/users/verify?token=%s
-    #     get:
-    #         summary: Verify a user with a confirmation token
-    #         description: After sign up, users go through verification process via token
-    #         operationID: verifySignedUpUser
-    #         tags:
-    #             - users
-    #         parameters:
-    #             - in: query
-    #               name: token
-    #               required: true
-    #               schema:
-    #                 type: string
-    #         responses:
-    #             "200":
-    #                 description: successfully verified
-    #                 content:
-    #                     application/json:
-    #                         schema:
-    #                             $ref: ''
-    #             "400":
-    #                 $ref: '#/components/responses/InvalidInput'
-    #             "500":
-    #                 $ref: '#/components/responses/InternalServerError'
+        # POST /api/v1/auth/login
+        post:
+            summary: Log in a user using email and password
+            description: log in a user using email and password
+            operationID: logInUser
+            tags:
+                - auth
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SignInRequest'
+            responses:
+                "200":
+                    description: Successful login
+                    headers:
+                        Set-Cookie:
+                            description: Refresh token cookie
+                            schema:
+                                type: string
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/SignInResponse'
+                "400":
+                    $ref: '#/components/responses/InvalidInput'
+                "500":
+                    $ref: '#/components/responses/InternalServerError'
 
-    # /users/reset:
-    #     # POST /api/v1/users/reset
-    #     post:
-    #         summary: Request for password update for the user
-    #         description: if a user forget his/her password, they can request for password reset
-    #         operationID: requestPasswordReset
-    #         tags:
-    #             - users
-    #         requestBody:
-    #             required: true
-    #             content:
-    #                 application/json:
-    #                     schema: '#/components/schemas/RequestPasswordReset'
-    #         response:
-    #             "202":
-    #                 description: status accepted, please check email
-    #                 content:
-    #                     application/json:
-    #                         schema:
-    #                             $ref: '#/components/responses/RequestPasswordReset'
-    #             "400":
-    #                 $ref: '#/components/responses/InvalidInput'
-    #             "500":
-    #                 $ref: '#/components/responses/InternalServerError'
+    /auth/verify:
+
+        # GET /api/v1/auth/verify?token=%s
+        get:
+            summary: Verify a user with a confirmation token
+            description: After sign up, users go through verification process via token
+            operationID: verifySignedUpUser
+            tags:
+                - auth
+            parameters:
+                - in: query
+                  name: token
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: successfully verified
+                "400":
+                    $ref: '#/components/responses/InvalidInput'
+                "500":
+                    $ref: '#/components/responses/InternalServerError'
+
+    /auth/reset:
+
+        # POST /api/v1/auth/reset
+        post:
+            summary: Request for password update for the user
+            description: if a user forget his/her password, they can request for password reset
+            operationID: requestPasswordReset
+            tags:
+                - auth
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/RequestPasswordReset'
+            response:
+                "202":
+                    description: status accepted, please check email
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/responses/RequestPasswordReset'
+                "400":
+                    $ref: '#/components/responses/InvalidInput'
+                "500":
+                    $ref: '#/components/responses/InternalServerError'
 
 
-        # PUT /api/v1/users/reset
-        # put:
+        # PUT /api/v1/auth/reset
+        put:
+            summary: update password via verify token for the user
+            description: if a user request for password reset, can update via this endpoint
+            operationID: updatePasswordReset
+            tags:
+                - auth
+            response:
+                "202":
+                    description: password updated
+                    content:
+                        application/json:
+                            schema:
+                                type: string
+                "400":
+                    $ref: '#/components/responses/InvalidInput'
+                "500":
+                    $ref: '#/components/responses/InternalServerError'
 
 
 components:
@@ -202,12 +245,14 @@ components:
         InternalServerError:
             description: Internal server error
 
-            # content:
-            #     application/json:
-            #         schema: '#components/schemas/Error500Response'
-
         InvalidInput:
             description: Invalid input
+
+        UnauthorizedAccess:
+            description: Unauthorized access
+
+        NotFound:
+            description: status not found
 
     securitySchemas:
         BearerAuth:
@@ -318,9 +363,6 @@ components:
 
         SignInRequest:
             type: object
-            required:
-                - email
-                - password
             properties:
                 email:
                     type: string
@@ -330,7 +372,10 @@ components:
                     type: string
                     format: password
                     minLength: 8
-                    example: "SecureP@ss123"
+                    example: 'SecureP@ss123'
+            required:
+                - email
+                - password
 
         SignInResponse:
             type: object

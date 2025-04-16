@@ -91,14 +91,40 @@ type User struct {
 // UserID defines model for UserID.
 type UserID = googleuuid.UUID
 
+// VerifySignedUpUserParams defines parameters for VerifySignedUpUser.
+type VerifySignedUpUserParams struct {
+	Token string `form:"token" json:"token"`
+}
+
+// LogInUserJSONRequestBody defines body for LogInUser for application/json ContentType.
+type LogInUserJSONRequestBody = SignInRequest
+
+// RequestPasswordResetJSONRequestBody defines body for RequestPasswordReset for application/json ContentType.
+type RequestPasswordResetJSONRequestBody = RequestPasswordReset
+
 // UserSignUpHandlerJSONRequestBody defines body for UserSignUpHandler for application/json ContentType.
 type UserSignUpHandlerJSONRequestBody = SignUpRequest
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// Log in a user using email and password
+	// (POST /auth/login)
+	LogInUser(c *gin.Context)
+	// Request for password update for the user
+	// (POST /auth/reset)
+	RequestPasswordReset(c *gin.Context)
+	// update password via verify token for the user
+	// (PUT /auth/reset)
+	UpdatePasswordReset(c *gin.Context)
+	// Verify a user with a confirmation token
+	// (GET /auth/verify)
+	VerifySignedUpUser(c *gin.Context, params VerifySignedUpUserParams)
 	// Create/Sign Up a new user.
 	// (POST /users)
 	UserSignUpHandler(c *gin.Context)
+	// Delete user data
+	// (DELETE /users/{userID})
+	DeleteUserByID(c *gin.Context, userID UserID)
 	// Get user using userID
 	// (GET /users/{userID})
 	FetchUserInfoByID(c *gin.Context, userID UserID)
@@ -113,6 +139,78 @@ type ServerInterfaceWrapper struct {
 
 type MiddlewareFunc func(c *gin.Context)
 
+// LogInUser operation middleware
+func (siw *ServerInterfaceWrapper) LogInUser(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.LogInUser(c)
+}
+
+// RequestPasswordReset operation middleware
+func (siw *ServerInterfaceWrapper) RequestPasswordReset(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.RequestPasswordReset(c)
+}
+
+// UpdatePasswordReset operation middleware
+func (siw *ServerInterfaceWrapper) UpdatePasswordReset(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.UpdatePasswordReset(c)
+}
+
+// VerifySignedUpUser operation middleware
+func (siw *ServerInterfaceWrapper) VerifySignedUpUser(c *gin.Context) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params VerifySignedUpUserParams
+
+	// ------------- Required query parameter "token" -------------
+
+	if paramValue := c.Query("token"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Query argument token is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "token", c.Request.URL.Query(), &params.Token)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter token: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.VerifySignedUpUser(c, params)
+}
+
 // UserSignUpHandler operation middleware
 func (siw *ServerInterfaceWrapper) UserSignUpHandler(c *gin.Context) {
 
@@ -124,6 +222,32 @@ func (siw *ServerInterfaceWrapper) UserSignUpHandler(c *gin.Context) {
 	}
 
 	siw.Handler.UserSignUpHandler(c)
+}
+
+// DeleteUserByID operation middleware
+func (siw *ServerInterfaceWrapper) DeleteUserByID(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "userID" -------------
+	var userID UserID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userID", c.Param("userID"), &userID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userID: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.DeleteUserByID(c, userID)
 }
 
 // FetchUserInfoByID operation middleware
@@ -179,7 +303,12 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 		ErrorHandler:       errorHandler,
 	}
 
+	router.POST(options.BaseURL+"/auth/login", wrapper.LogInUser)
+	router.POST(options.BaseURL+"/auth/reset", wrapper.RequestPasswordReset)
+	router.PUT(options.BaseURL+"/auth/reset", wrapper.UpdatePasswordReset)
+	router.GET(options.BaseURL+"/auth/verify", wrapper.VerifySignedUpUser)
 	router.POST(options.BaseURL+"/users", wrapper.UserSignUpHandler)
+	router.DELETE(options.BaseURL+"/users/:userID", wrapper.DeleteUserByID)
 	router.GET(options.BaseURL+"/users/:userID", wrapper.FetchUserInfoByID)
 }
 
@@ -187,6 +316,96 @@ type InternalServerErrorResponse struct {
 }
 
 type InvalidInputResponse struct {
+}
+
+type NotFoundResponse struct {
+}
+
+type UnauthorizedAccessResponse struct {
+}
+
+type LogInUserRequestObject struct {
+	Body *LogInUserJSONRequestBody
+}
+
+type LogInUserResponseObject interface {
+	VisitLogInUserResponse(w http.ResponseWriter) error
+}
+
+type LogInUser200ResponseHeaders struct {
+	SetCookie string
+}
+
+type LogInUser200JSONResponse struct {
+	Body    SignInResponse
+	Headers LogInUser200ResponseHeaders
+}
+
+func (response LogInUser200JSONResponse) VisitLogInUserResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Set-Cookie", fmt.Sprint(response.Headers.SetCookie))
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response.Body)
+}
+
+type LogInUser400Response = InvalidInputResponse
+
+func (response LogInUser400Response) VisitLogInUserResponse(w http.ResponseWriter) error {
+	w.WriteHeader(400)
+	return nil
+}
+
+type LogInUser500Response = InternalServerErrorResponse
+
+func (response LogInUser500Response) VisitLogInUserResponse(w http.ResponseWriter) error {
+	w.WriteHeader(500)
+	return nil
+}
+
+type RequestPasswordResetRequestObject struct {
+	Body *RequestPasswordResetJSONRequestBody
+}
+
+type RequestPasswordResetResponseObject interface {
+	VisitRequestPasswordResetResponse(w http.ResponseWriter) error
+}
+
+type UpdatePasswordResetRequestObject struct {
+}
+
+type UpdatePasswordResetResponseObject interface {
+	VisitUpdatePasswordResetResponse(w http.ResponseWriter) error
+}
+
+type VerifySignedUpUserRequestObject struct {
+	Params VerifySignedUpUserParams
+}
+
+type VerifySignedUpUserResponseObject interface {
+	VisitVerifySignedUpUserResponse(w http.ResponseWriter) error
+}
+
+type VerifySignedUpUser200Response struct {
+}
+
+func (response VerifySignedUpUser200Response) VisitVerifySignedUpUserResponse(w http.ResponseWriter) error {
+	w.WriteHeader(200)
+	return nil
+}
+
+type VerifySignedUpUser400Response = InvalidInputResponse
+
+func (response VerifySignedUpUser400Response) VisitVerifySignedUpUserResponse(w http.ResponseWriter) error {
+	w.WriteHeader(400)
+	return nil
+}
+
+type VerifySignedUpUser500Response = InternalServerErrorResponse
+
+func (response VerifySignedUpUser500Response) VisitVerifySignedUpUserResponse(w http.ResponseWriter) error {
+	w.WriteHeader(500)
+	return nil
 }
 
 type UserSignUpHandlerRequestObject struct {
@@ -220,6 +439,14 @@ func (response UserSignUpHandler500Response) VisitUserSignUpHandlerResponse(w ht
 	return nil
 }
 
+type DeleteUserByIDRequestObject struct {
+	UserID UserID `json:"userID"`
+}
+
+type DeleteUserByIDResponseObject interface {
+	VisitDeleteUserByIDResponse(w http.ResponseWriter) error
+}
+
 type FetchUserInfoByIDRequestObject struct {
 	UserID UserID `json:"userID"`
 }
@@ -230,9 +457,24 @@ type FetchUserInfoByIDResponseObject interface {
 
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
+	// Log in a user using email and password
+	// (POST /auth/login)
+	LogInUser(ctx context.Context, request LogInUserRequestObject) (LogInUserResponseObject, error)
+	// Request for password update for the user
+	// (POST /auth/reset)
+	RequestPasswordReset(ctx context.Context, request RequestPasswordResetRequestObject) (RequestPasswordResetResponseObject, error)
+	// update password via verify token for the user
+	// (PUT /auth/reset)
+	UpdatePasswordReset(ctx context.Context, request UpdatePasswordResetRequestObject) (UpdatePasswordResetResponseObject, error)
+	// Verify a user with a confirmation token
+	// (GET /auth/verify)
+	VerifySignedUpUser(ctx context.Context, request VerifySignedUpUserRequestObject) (VerifySignedUpUserResponseObject, error)
 	// Create/Sign Up a new user.
 	// (POST /users)
 	UserSignUpHandler(ctx context.Context, request UserSignUpHandlerRequestObject) (UserSignUpHandlerResponseObject, error)
+	// Delete user data
+	// (DELETE /users/{userID})
+	DeleteUserByID(ctx context.Context, request DeleteUserByIDRequestObject) (DeleteUserByIDResponseObject, error)
 	// Get user using userID
 	// (GET /users/{userID})
 	FetchUserInfoByID(ctx context.Context, request FetchUserInfoByIDRequestObject) (FetchUserInfoByIDResponseObject, error)
@@ -248,6 +490,124 @@ func NewStrictHandler(ssi StrictServerInterface, middlewares []StrictMiddlewareF
 type strictHandler struct {
 	ssi         StrictServerInterface
 	middlewares []StrictMiddlewareFunc
+}
+
+// LogInUser operation middleware
+func (sh *strictHandler) LogInUser(ctx *gin.Context) {
+	var request LogInUserRequestObject
+
+	var body LogInUserJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		ctx.Status(http.StatusBadRequest)
+		ctx.Error(err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.LogInUser(ctx, request.(LogInUserRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "LogInUser")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(LogInUserResponseObject); ok {
+		if err := validResponse.VisitLogInUserResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// RequestPasswordReset operation middleware
+func (sh *strictHandler) RequestPasswordReset(ctx *gin.Context) {
+	var request RequestPasswordResetRequestObject
+
+	var body RequestPasswordResetJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		ctx.Status(http.StatusBadRequest)
+		ctx.Error(err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.RequestPasswordReset(ctx, request.(RequestPasswordResetRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RequestPasswordReset")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(RequestPasswordResetResponseObject); ok {
+		if err := validResponse.VisitRequestPasswordResetResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdatePasswordReset operation middleware
+func (sh *strictHandler) UpdatePasswordReset(ctx *gin.Context) {
+	var request UpdatePasswordResetRequestObject
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdatePasswordReset(ctx, request.(UpdatePasswordResetRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdatePasswordReset")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(UpdatePasswordResetResponseObject); ok {
+		if err := validResponse.VisitUpdatePasswordResetResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// VerifySignedUpUser operation middleware
+func (sh *strictHandler) VerifySignedUpUser(ctx *gin.Context, params VerifySignedUpUserParams) {
+	var request VerifySignedUpUserRequestObject
+
+	request.Params = params
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.VerifySignedUpUser(ctx, request.(VerifySignedUpUserRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "VerifySignedUpUser")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(VerifySignedUpUserResponseObject); ok {
+		if err := validResponse.VisitVerifySignedUpUserResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
 }
 
 // UserSignUpHandler operation middleware
@@ -276,6 +636,33 @@ func (sh *strictHandler) UserSignUpHandler(ctx *gin.Context) {
 		ctx.Status(http.StatusInternalServerError)
 	} else if validResponse, ok := response.(UserSignUpHandlerResponseObject); ok {
 		if err := validResponse.VisitUserSignUpHandlerResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteUserByID operation middleware
+func (sh *strictHandler) DeleteUserByID(ctx *gin.Context, userID UserID) {
+	var request DeleteUserByIDRequestObject
+
+	request.UserID = userID
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteUserByID(ctx, request.(DeleteUserByIDRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteUserByID")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(DeleteUserByIDResponseObject); ok {
+		if err := validResponse.VisitDeleteUserByIDResponse(ctx.Writer); err != nil {
 			ctx.Error(err)
 		}
 	} else if response != nil {
@@ -313,28 +700,36 @@ func (sh *strictHandler) FetchUserInfoByID(ctx *gin.Context, userID UserID) {
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/+RXX2/bNhD/KgSXR9miEztNDQxosiyt22Yw4gZ9CILgIp0lthSpklQSL9B3H0gqlmUr",
-	"TR86bNj60si8P7+7+90d+UgTVZRKorSGTh9pCRoKtKj916VBPTt1f3FJp7QEm9OISiiQTmkVDiOq8VvF",
-	"NaZ0anWFETVJjgU4raXSBVg6pZlSmcCq4imNqF2VTt9YzWVGI/owyNSg+bEVHF5eeuvr0wEvSqWts9sg",
-	"6Fj14KY04zavboeJKuJwHPvzuq5rh9SUShr0wc2kRS1BLFDfof5da6XdzymaRPPScuVCfhIixksR9GJ1",
-	"RGfyDgRPZ7KsbJ+aPyXcHzvXISne8XGaajQh3VqVqC0PiBJuV+5/fICiFC7C0xy+wk7K6ogmqpJWb0mf",
-	"gMwEpGjyPpVSGQviJlEpdtVG++xVn4KxGtHeQAt3U+eAnAOXZOGFdtXr9S/q9gsm1hn0OZ4wNtfqVmCx",
-	"m4ACjYHMw+tBA7bqopgwFrUc49Ie7LdAuLSYoe5HclYJ8Ycn0TaEJdfG3sjmrA34vcoljWjB5UeUmaPa",
-	"QU/KBPQqnyp8SbcP5QV+q9DYORhzr3R6gQbtLmIsgIuuP9eab5pP1wp0I01BvM9/28dXjdR1D6gFz+RM",
-	"NtD+LjSunUPQXVMLTCqN8zfGjPYPNu2sxTtpPvqxMDe8fS/iMDt2Q4YkQWNurPqKcncUvP/8iQQJEiRe",
-	"wtQx9xyey/L/VgEX8XMVcPHd8C2kkwnDozFjA9x/fTsYj9LxAF6NDgfj8eHhZDIeM8bYZgD/hh3VE7vb",
-	"wT2ca4fynsYlndJf4naTx822iZ9WTR3RZq6u83PAdkZlN8ynefowUFDygdsbGcoBPlgNAwuZd+7XHFgf",
-	"qcVfR0e+wD+LgjmYfN5Lw7192Bvt761OX529Nn9+PFt8eGDzD+/Si+zth2o4HPZZ+w8QJKLc3EBi+V23",
-	"mOHi1bi/VUogSBfy0yr6HkfWu9D1fK7k1u5io0PW/Ou29mjUk2OtxJZ+UhmrCs+uF1eeW/NuvnC7WrT3",
-	"pRMEjfq4ck4f6a3/OnsqyvvPn2hzu/Kx+9PWV25tGRqLy6Xanc7H8xlZKk0cPUkBEjIsUFrCJQFJlBRc",
-	"Iilz0AUkKxpRwRNsRlBTv/PZJxe45daH69qVnLeGjuczGtE71CY4ZEM2HO12VcHTVOA9aNfeV/R84/N6",
-	"R9gTqYCy5DJ0oWfHc7QJHHQpUCVKKDmd0oMhG7KGb95C7BIQrqTK9FxoLzDjxqImQCTeh3Tdc5u7LPn2",
-	"JSBTsrED3LACpzxLm6yEIf4OZCp8hXRYYCcq9dfYREmL0ruGshQ88drxF6P8Um0fFd/jcnc11t1l45pk",
-	"+xGwz0Y/3Xmzpbz3bhY9ORKNYDEli8ov+mUlxGpI5gLBILlDzZeroWPUmLHnPK5DiDvPkDqikx9T2n35",
-	"+N6rigLco4L+5jH6iMhluVF0P1j97L/yI51eO8XAnvgxPAlrhyDDHhadoU1yAoE+riFdE3MlSWW4zMj6",
-	"RdmS55RO6dJp+aeoXKqT1ZZE+mR3S2LzJXvVn5FWJG5euvV1y49AD/aj9HhxzvpF3kOKhgf/TMk3mkFW",
-	"QrTz1ydtc/JeXbvktBR5izbUcat2m+wwjh5+qDuvoRCVFs1cnsaxUAmIXBk7PWJHLIaSx3cjWl/XfwUA",
-	"AP//EZYIHJgQAAA=",
+	"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",
+	"Ed7cbP4XAAD//2GW5VpMHAAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
