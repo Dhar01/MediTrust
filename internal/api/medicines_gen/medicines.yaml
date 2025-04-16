@@ -14,9 +14,9 @@ info:
 servers:
     - url: http://localhost:8080/api/v1
 
-security:
-    # - access_token: [ ]
-    - BearerAuth: []
+# security:
+#     # - access_token: [ ]
+#     - BearerAuth: []
 
 paths:
 
