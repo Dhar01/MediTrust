@@ -110,6 +110,9 @@ type ServerInterface interface {
 	// Log in a user using email and password
 	// (POST /auth/login)
 	LogInUser(c *gin.Context)
+	// user logout
+	// (POST /auth/logout)
+	PostAuthLogout(c *gin.Context)
 	// Request for password update for the user
 	// (POST /auth/reset)
 	RequestPasswordReset(c *gin.Context)
@@ -150,6 +153,19 @@ func (siw *ServerInterfaceWrapper) LogInUser(c *gin.Context) {
 	}
 
 	siw.Handler.LogInUser(c)
+}
+
+// PostAuthLogout operation middleware
+func (siw *ServerInterfaceWrapper) PostAuthLogout(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.PostAuthLogout(c)
 }
 
 // RequestPasswordReset operation middleware
@@ -304,6 +320,7 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	}
 
 	router.POST(options.BaseURL+"/auth/login", wrapper.LogInUser)
+	router.POST(options.BaseURL+"/auth/logout", wrapper.PostAuthLogout)
 	router.POST(options.BaseURL+"/auth/reset", wrapper.RequestPasswordReset)
 	router.PUT(options.BaseURL+"/auth/reset", wrapper.UpdatePasswordReset)
 	router.GET(options.BaseURL+"/auth/verify", wrapper.VerifySignedUpUser)
@@ -359,6 +376,44 @@ func (response LogInUser400Response) VisitLogInUserResponse(w http.ResponseWrite
 type LogInUser500Response = InternalServerErrorResponse
 
 func (response LogInUser500Response) VisitLogInUserResponse(w http.ResponseWriter) error {
+	w.WriteHeader(500)
+	return nil
+}
+
+type PostAuthLogoutRequestObject struct {
+}
+
+type PostAuthLogoutResponseObject interface {
+	VisitPostAuthLogoutResponse(w http.ResponseWriter) error
+}
+
+type PostAuthLogout200ResponseHeaders struct {
+	SetCookie string
+}
+
+type PostAuthLogout200JSONResponse struct {
+	Body    string
+	Headers PostAuthLogout200ResponseHeaders
+}
+
+func (response PostAuthLogout200JSONResponse) VisitPostAuthLogoutResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Set-Cookie", fmt.Sprint(response.Headers.SetCookie))
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response.Body)
+}
+
+type PostAuthLogout401Response = UnauthorizedAccessResponse
+
+func (response PostAuthLogout401Response) VisitPostAuthLogoutResponse(w http.ResponseWriter) error {
+	w.WriteHeader(401)
+	return nil
+}
+
+type PostAuthLogout500Response = InternalServerErrorResponse
+
+func (response PostAuthLogout500Response) VisitPostAuthLogoutResponse(w http.ResponseWriter) error {
 	w.WriteHeader(500)
 	return nil
 }
@@ -460,6 +515,9 @@ type StrictServerInterface interface {
 	// Log in a user using email and password
 	// (POST /auth/login)
 	LogInUser(ctx context.Context, request LogInUserRequestObject) (LogInUserResponseObject, error)
+	// user logout
+	// (POST /auth/logout)
+	PostAuthLogout(ctx context.Context, request PostAuthLogoutRequestObject) (PostAuthLogoutResponseObject, error)
 	// Request for password update for the user
 	// (POST /auth/reset)
 	RequestPasswordReset(ctx context.Context, request RequestPasswordResetRequestObject) (RequestPasswordResetResponseObject, error)
@@ -518,6 +576,31 @@ func (sh *strictHandler) LogInUser(ctx *gin.Context) {
 		ctx.Status(http.StatusInternalServerError)
 	} else if validResponse, ok := response.(LogInUserResponseObject); ok {
 		if err := validResponse.VisitLogInUserResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// PostAuthLogout operation middleware
+func (sh *strictHandler) PostAuthLogout(ctx *gin.Context) {
+	var request PostAuthLogoutRequestObject
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.PostAuthLogout(ctx, request.(PostAuthLogoutRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PostAuthLogout")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(PostAuthLogoutResponseObject); ok {
+		if err := validResponse.VisitPostAuthLogoutResponse(ctx.Writer); err != nil {
 			ctx.Error(err)
 		}
 	} else if response != nil {
@@ -700,36 +783,37 @@ func (sh *strictHandler) FetchUserInfoByID(ctx *gin.Context, userID UserID) {
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"Ed7cbP4XAAD//2GW5VpMHAAA",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
