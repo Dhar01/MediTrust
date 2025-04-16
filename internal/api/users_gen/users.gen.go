@@ -47,32 +47,23 @@ type FullName struct {
 	LastName  *string `json:"last_name,omitempty"`
 }
 
-// RequestPasswordReset defines model for RequestPasswordReset.
-type RequestPasswordReset struct {
-	Email openapi_types.Email `json:"email"`
+// UpdateUserRequest defines model for UpdateUserRequest.
+type UpdateUserRequest struct {
+	Address *Address  `json:"address,omitempty"`
+	Age     *int32    `json:"age,omitempty" validate:"gte=18"`
+	Name    *FullName `json:"name,omitempty"`
+	Phone   *string   `json:"phone,omitempty"`
 }
 
-// SignInRequest defines model for SignInRequest.
-type SignInRequest struct {
+// UpdateUserResponse defines model for UpdateUserResponse.
+type UpdateUserResponse struct {
+	Address  Address             `json:"address"`
+	Age      int32               `json:"age" validate:"gte=18"`
 	Email    openapi_types.Email `json:"email"`
-	Password string              `json:"password"`
-}
-
-// SignInResponse defines model for SignInResponse.
-type SignInResponse struct {
-	// AccessToken JWT access token
-	AccessToken string `json:"access_token"`
-}
-
-// SignUpRequest defines model for SignUpRequest.
-type SignUpRequest struct {
-	Email    openapi_types.Email `json:"email"`
-	Password string              `json:"password"`
-}
-
-// SignUpResponse defines model for SignUpResponse.
-type SignUpResponse struct {
-	UserId *googleuuid.UUID `json:"user_id,omitempty"`
+	IsActive bool                `json:"is_active"`
+	Name     FullName            `json:"name"`
+	Phone    string              `json:"phone"`
+	Role     string              `json:"role"`
 }
 
 // User defines model for User.
@@ -91,46 +82,20 @@ type User struct {
 // UserID defines model for UserID.
 type UserID = googleuuid.UUID
 
-// VerifySignedUpUserParams defines parameters for VerifySignedUpUser.
-type VerifySignedUpUserParams struct {
-	Token string `form:"token" json:"token"`
-}
-
-// LogInUserJSONRequestBody defines body for LogInUser for application/json ContentType.
-type LogInUserJSONRequestBody = SignInRequest
-
-// RequestPasswordResetJSONRequestBody defines body for RequestPasswordReset for application/json ContentType.
-type RequestPasswordResetJSONRequestBody = RequestPasswordReset
-
-// UserSignUpHandlerJSONRequestBody defines body for UserSignUpHandler for application/json ContentType.
-type UserSignUpHandlerJSONRequestBody = SignUpRequest
+// UpdateUserInfoByIDJSONRequestBody defines body for UpdateUserInfoByID for application/json ContentType.
+type UpdateUserInfoByIDJSONRequestBody = UpdateUserRequest
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
-	// Log in a user using email and password
-	// (POST /auth/login)
-	LogInUser(c *gin.Context)
-	// user logout
-	// (POST /auth/logout)
-	PostAuthLogout(c *gin.Context)
-	// Request for password update for the user
-	// (POST /auth/reset)
-	RequestPasswordReset(c *gin.Context)
-	// update password via verify token for the user
-	// (PUT /auth/reset)
-	UpdatePasswordReset(c *gin.Context)
-	// Verify a user with a confirmation token
-	// (GET /auth/verify)
-	VerifySignedUpUser(c *gin.Context, params VerifySignedUpUserParams)
-	// Create/Sign Up a new user.
-	// (POST /users)
-	UserSignUpHandler(c *gin.Context)
 	// Delete user data
 	// (DELETE /users/{userID})
 	DeleteUserByID(c *gin.Context, userID UserID)
 	// Get user using userID
 	// (GET /users/{userID})
 	FetchUserInfoByID(c *gin.Context, userID UserID)
+	// Update a user information using userID
+	// (PUT /users/{userID})
+	UpdateUserInfoByID(c *gin.Context, userID UserID)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -141,104 +106,6 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(c *gin.Context)
-
-// LogInUser operation middleware
-func (siw *ServerInterfaceWrapper) LogInUser(c *gin.Context) {
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.LogInUser(c)
-}
-
-// PostAuthLogout operation middleware
-func (siw *ServerInterfaceWrapper) PostAuthLogout(c *gin.Context) {
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.PostAuthLogout(c)
-}
-
-// RequestPasswordReset operation middleware
-func (siw *ServerInterfaceWrapper) RequestPasswordReset(c *gin.Context) {
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.RequestPasswordReset(c)
-}
-
-// UpdatePasswordReset operation middleware
-func (siw *ServerInterfaceWrapper) UpdatePasswordReset(c *gin.Context) {
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.UpdatePasswordReset(c)
-}
-
-// VerifySignedUpUser operation middleware
-func (siw *ServerInterfaceWrapper) VerifySignedUpUser(c *gin.Context) {
-
-	var err error
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params VerifySignedUpUserParams
-
-	// ------------- Required query parameter "token" -------------
-
-	if paramValue := c.Query("token"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandler(c, fmt.Errorf("Query argument token is required, but not found"), http.StatusBadRequest)
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "token", c.Request.URL.Query(), &params.Token)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter token: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.VerifySignedUpUser(c, params)
-}
-
-// UserSignUpHandler operation middleware
-func (siw *ServerInterfaceWrapper) UserSignUpHandler(c *gin.Context) {
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.UserSignUpHandler(c)
-}
 
 // DeleteUserByID operation middleware
 func (siw *ServerInterfaceWrapper) DeleteUserByID(c *gin.Context) {
@@ -292,6 +159,32 @@ func (siw *ServerInterfaceWrapper) FetchUserInfoByID(c *gin.Context) {
 	siw.Handler.FetchUserInfoByID(c, userID)
 }
 
+// UpdateUserInfoByID operation middleware
+func (siw *ServerInterfaceWrapper) UpdateUserInfoByID(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "userID" -------------
+	var userID UserID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userID", c.Param("userID"), &userID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userID: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.UpdateUserInfoByID(c, userID)
+}
+
 // GinServerOptions provides options for the Gin server.
 type GinServerOptions struct {
 	BaseURL      string
@@ -319,14 +212,9 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 		ErrorHandler:       errorHandler,
 	}
 
-	router.POST(options.BaseURL+"/auth/login", wrapper.LogInUser)
-	router.POST(options.BaseURL+"/auth/logout", wrapper.PostAuthLogout)
-	router.POST(options.BaseURL+"/auth/reset", wrapper.RequestPasswordReset)
-	router.PUT(options.BaseURL+"/auth/reset", wrapper.UpdatePasswordReset)
-	router.GET(options.BaseURL+"/auth/verify", wrapper.VerifySignedUpUser)
-	router.POST(options.BaseURL+"/users", wrapper.UserSignUpHandler)
 	router.DELETE(options.BaseURL+"/users/:userID", wrapper.DeleteUserByID)
 	router.GET(options.BaseURL+"/users/:userID", wrapper.FetchUserInfoByID)
+	router.PUT(options.BaseURL+"/users/:userID", wrapper.UpdateUserInfoByID)
 }
 
 type InternalServerErrorResponse struct {
@@ -339,159 +227,6 @@ type NotFoundResponse struct {
 }
 
 type UnauthorizedAccessResponse struct {
-}
-
-type LogInUserRequestObject struct {
-	Body *LogInUserJSONRequestBody
-}
-
-type LogInUserResponseObject interface {
-	VisitLogInUserResponse(w http.ResponseWriter) error
-}
-
-type LogInUser200ResponseHeaders struct {
-	SetCookie string
-}
-
-type LogInUser200JSONResponse struct {
-	Body    SignInResponse
-	Headers LogInUser200ResponseHeaders
-}
-
-func (response LogInUser200JSONResponse) VisitLogInUserResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Set-Cookie", fmt.Sprint(response.Headers.SetCookie))
-	w.WriteHeader(200)
-
-	return json.NewEncoder(w).Encode(response.Body)
-}
-
-type LogInUser400Response = InvalidInputResponse
-
-func (response LogInUser400Response) VisitLogInUserResponse(w http.ResponseWriter) error {
-	w.WriteHeader(400)
-	return nil
-}
-
-type LogInUser500Response = InternalServerErrorResponse
-
-func (response LogInUser500Response) VisitLogInUserResponse(w http.ResponseWriter) error {
-	w.WriteHeader(500)
-	return nil
-}
-
-type PostAuthLogoutRequestObject struct {
-}
-
-type PostAuthLogoutResponseObject interface {
-	VisitPostAuthLogoutResponse(w http.ResponseWriter) error
-}
-
-type PostAuthLogout200ResponseHeaders struct {
-	SetCookie string
-}
-
-type PostAuthLogout200JSONResponse struct {
-	Body    string
-	Headers PostAuthLogout200ResponseHeaders
-}
-
-func (response PostAuthLogout200JSONResponse) VisitPostAuthLogoutResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Set-Cookie", fmt.Sprint(response.Headers.SetCookie))
-	w.WriteHeader(200)
-
-	return json.NewEncoder(w).Encode(response.Body)
-}
-
-type PostAuthLogout401Response = UnauthorizedAccessResponse
-
-func (response PostAuthLogout401Response) VisitPostAuthLogoutResponse(w http.ResponseWriter) error {
-	w.WriteHeader(401)
-	return nil
-}
-
-type PostAuthLogout500Response = InternalServerErrorResponse
-
-func (response PostAuthLogout500Response) VisitPostAuthLogoutResponse(w http.ResponseWriter) error {
-	w.WriteHeader(500)
-	return nil
-}
-
-type RequestPasswordResetRequestObject struct {
-	Body *RequestPasswordResetJSONRequestBody
-}
-
-type RequestPasswordResetResponseObject interface {
-	VisitRequestPasswordResetResponse(w http.ResponseWriter) error
-}
-
-type UpdatePasswordResetRequestObject struct {
-}
-
-type UpdatePasswordResetResponseObject interface {
-	VisitUpdatePasswordResetResponse(w http.ResponseWriter) error
-}
-
-type VerifySignedUpUserRequestObject struct {
-	Params VerifySignedUpUserParams
-}
-
-type VerifySignedUpUserResponseObject interface {
-	VisitVerifySignedUpUserResponse(w http.ResponseWriter) error
-}
-
-type VerifySignedUpUser200Response struct {
-}
-
-func (response VerifySignedUpUser200Response) VisitVerifySignedUpUserResponse(w http.ResponseWriter) error {
-	w.WriteHeader(200)
-	return nil
-}
-
-type VerifySignedUpUser400Response = InvalidInputResponse
-
-func (response VerifySignedUpUser400Response) VisitVerifySignedUpUserResponse(w http.ResponseWriter) error {
-	w.WriteHeader(400)
-	return nil
-}
-
-type VerifySignedUpUser500Response = InternalServerErrorResponse
-
-func (response VerifySignedUpUser500Response) VisitVerifySignedUpUserResponse(w http.ResponseWriter) error {
-	w.WriteHeader(500)
-	return nil
-}
-
-type UserSignUpHandlerRequestObject struct {
-	Body *UserSignUpHandlerJSONRequestBody
-}
-
-type UserSignUpHandlerResponseObject interface {
-	VisitUserSignUpHandlerResponse(w http.ResponseWriter) error
-}
-
-type UserSignUpHandler201JSONResponse SignUpResponse
-
-func (response UserSignUpHandler201JSONResponse) VisitUserSignUpHandlerResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(201)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type UserSignUpHandler400Response = InvalidInputResponse
-
-func (response UserSignUpHandler400Response) VisitUserSignUpHandlerResponse(w http.ResponseWriter) error {
-	w.WriteHeader(400)
-	return nil
-}
-
-type UserSignUpHandler500Response = InternalServerErrorResponse
-
-func (response UserSignUpHandler500Response) VisitUserSignUpHandlerResponse(w http.ResponseWriter) error {
-	w.WriteHeader(500)
-	return nil
 }
 
 type DeleteUserByIDRequestObject struct {
@@ -510,32 +245,56 @@ type FetchUserInfoByIDResponseObject interface {
 	VisitFetchUserInfoByIDResponse(w http.ResponseWriter) error
 }
 
+type UpdateUserInfoByIDRequestObject struct {
+	UserID UserID `json:"userID"`
+	Body   *UpdateUserInfoByIDJSONRequestBody
+}
+
+type UpdateUserInfoByIDResponseObject interface {
+	VisitUpdateUserInfoByIDResponse(w http.ResponseWriter) error
+}
+
+type UpdateUserInfoByID202JSONResponse UpdateUserResponse
+
+func (response UpdateUserInfoByID202JSONResponse) VisitUpdateUserInfoByIDResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(202)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateUserInfoByID400Response = InvalidInputResponse
+
+func (response UpdateUserInfoByID400Response) VisitUpdateUserInfoByIDResponse(w http.ResponseWriter) error {
+	w.WriteHeader(400)
+	return nil
+}
+
+type UpdateUserInfoByID401Response = UnauthorizedAccessResponse
+
+func (response UpdateUserInfoByID401Response) VisitUpdateUserInfoByIDResponse(w http.ResponseWriter) error {
+	w.WriteHeader(401)
+	return nil
+}
+
+type UpdateUserInfoByID500Response = InternalServerErrorResponse
+
+func (response UpdateUserInfoByID500Response) VisitUpdateUserInfoByIDResponse(w http.ResponseWriter) error {
+	w.WriteHeader(500)
+	return nil
+}
+
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
-	// Log in a user using email and password
-	// (POST /auth/login)
-	LogInUser(ctx context.Context, request LogInUserRequestObject) (LogInUserResponseObject, error)
-	// user logout
-	// (POST /auth/logout)
-	PostAuthLogout(ctx context.Context, request PostAuthLogoutRequestObject) (PostAuthLogoutResponseObject, error)
-	// Request for password update for the user
-	// (POST /auth/reset)
-	RequestPasswordReset(ctx context.Context, request RequestPasswordResetRequestObject) (RequestPasswordResetResponseObject, error)
-	// update password via verify token for the user
-	// (PUT /auth/reset)
-	UpdatePasswordReset(ctx context.Context, request UpdatePasswordResetRequestObject) (UpdatePasswordResetResponseObject, error)
-	// Verify a user with a confirmation token
-	// (GET /auth/verify)
-	VerifySignedUpUser(ctx context.Context, request VerifySignedUpUserRequestObject) (VerifySignedUpUserResponseObject, error)
-	// Create/Sign Up a new user.
-	// (POST /users)
-	UserSignUpHandler(ctx context.Context, request UserSignUpHandlerRequestObject) (UserSignUpHandlerResponseObject, error)
 	// Delete user data
 	// (DELETE /users/{userID})
 	DeleteUserByID(ctx context.Context, request DeleteUserByIDRequestObject) (DeleteUserByIDResponseObject, error)
 	// Get user using userID
 	// (GET /users/{userID})
 	FetchUserInfoByID(ctx context.Context, request FetchUserInfoByIDRequestObject) (FetchUserInfoByIDResponseObject, error)
+	// Update a user information using userID
+	// (PUT /users/{userID})
+	UpdateUserInfoByID(ctx context.Context, request UpdateUserInfoByIDRequestObject) (UpdateUserInfoByIDResponseObject, error)
 }
 
 type StrictHandlerFunc = strictgin.StrictGinHandlerFunc
@@ -548,182 +307,6 @@ func NewStrictHandler(ssi StrictServerInterface, middlewares []StrictMiddlewareF
 type strictHandler struct {
 	ssi         StrictServerInterface
 	middlewares []StrictMiddlewareFunc
-}
-
-// LogInUser operation middleware
-func (sh *strictHandler) LogInUser(ctx *gin.Context) {
-	var request LogInUserRequestObject
-
-	var body LogInUserJSONRequestBody
-	if err := ctx.ShouldBindJSON(&body); err != nil {
-		ctx.Status(http.StatusBadRequest)
-		ctx.Error(err)
-		return
-	}
-	request.Body = &body
-
-	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.LogInUser(ctx, request.(LogInUserRequestObject))
-	}
-	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "LogInUser")
-	}
-
-	response, err := handler(ctx, request)
-
-	if err != nil {
-		ctx.Error(err)
-		ctx.Status(http.StatusInternalServerError)
-	} else if validResponse, ok := response.(LogInUserResponseObject); ok {
-		if err := validResponse.VisitLogInUserResponse(ctx.Writer); err != nil {
-			ctx.Error(err)
-		}
-	} else if response != nil {
-		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
-	}
-}
-
-// PostAuthLogout operation middleware
-func (sh *strictHandler) PostAuthLogout(ctx *gin.Context) {
-	var request PostAuthLogoutRequestObject
-
-	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.PostAuthLogout(ctx, request.(PostAuthLogoutRequestObject))
-	}
-	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "PostAuthLogout")
-	}
-
-	response, err := handler(ctx, request)
-
-	if err != nil {
-		ctx.Error(err)
-		ctx.Status(http.StatusInternalServerError)
-	} else if validResponse, ok := response.(PostAuthLogoutResponseObject); ok {
-		if err := validResponse.VisitPostAuthLogoutResponse(ctx.Writer); err != nil {
-			ctx.Error(err)
-		}
-	} else if response != nil {
-		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
-	}
-}
-
-// RequestPasswordReset operation middleware
-func (sh *strictHandler) RequestPasswordReset(ctx *gin.Context) {
-	var request RequestPasswordResetRequestObject
-
-	var body RequestPasswordResetJSONRequestBody
-	if err := ctx.ShouldBindJSON(&body); err != nil {
-		ctx.Status(http.StatusBadRequest)
-		ctx.Error(err)
-		return
-	}
-	request.Body = &body
-
-	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.RequestPasswordReset(ctx, request.(RequestPasswordResetRequestObject))
-	}
-	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "RequestPasswordReset")
-	}
-
-	response, err := handler(ctx, request)
-
-	if err != nil {
-		ctx.Error(err)
-		ctx.Status(http.StatusInternalServerError)
-	} else if validResponse, ok := response.(RequestPasswordResetResponseObject); ok {
-		if err := validResponse.VisitRequestPasswordResetResponse(ctx.Writer); err != nil {
-			ctx.Error(err)
-		}
-	} else if response != nil {
-		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
-	}
-}
-
-// UpdatePasswordReset operation middleware
-func (sh *strictHandler) UpdatePasswordReset(ctx *gin.Context) {
-	var request UpdatePasswordResetRequestObject
-
-	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.UpdatePasswordReset(ctx, request.(UpdatePasswordResetRequestObject))
-	}
-	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "UpdatePasswordReset")
-	}
-
-	response, err := handler(ctx, request)
-
-	if err != nil {
-		ctx.Error(err)
-		ctx.Status(http.StatusInternalServerError)
-	} else if validResponse, ok := response.(UpdatePasswordResetResponseObject); ok {
-		if err := validResponse.VisitUpdatePasswordResetResponse(ctx.Writer); err != nil {
-			ctx.Error(err)
-		}
-	} else if response != nil {
-		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
-	}
-}
-
-// VerifySignedUpUser operation middleware
-func (sh *strictHandler) VerifySignedUpUser(ctx *gin.Context, params VerifySignedUpUserParams) {
-	var request VerifySignedUpUserRequestObject
-
-	request.Params = params
-
-	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.VerifySignedUpUser(ctx, request.(VerifySignedUpUserRequestObject))
-	}
-	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "VerifySignedUpUser")
-	}
-
-	response, err := handler(ctx, request)
-
-	if err != nil {
-		ctx.Error(err)
-		ctx.Status(http.StatusInternalServerError)
-	} else if validResponse, ok := response.(VerifySignedUpUserResponseObject); ok {
-		if err := validResponse.VisitVerifySignedUpUserResponse(ctx.Writer); err != nil {
-			ctx.Error(err)
-		}
-	} else if response != nil {
-		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
-	}
-}
-
-// UserSignUpHandler operation middleware
-func (sh *strictHandler) UserSignUpHandler(ctx *gin.Context) {
-	var request UserSignUpHandlerRequestObject
-
-	var body UserSignUpHandlerJSONRequestBody
-	if err := ctx.ShouldBindJSON(&body); err != nil {
-		ctx.Status(http.StatusBadRequest)
-		ctx.Error(err)
-		return
-	}
-	request.Body = &body
-
-	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.UserSignUpHandler(ctx, request.(UserSignUpHandlerRequestObject))
-	}
-	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "UserSignUpHandler")
-	}
-
-	response, err := handler(ctx, request)
-
-	if err != nil {
-		ctx.Error(err)
-		ctx.Status(http.StatusInternalServerError)
-	} else if validResponse, ok := response.(UserSignUpHandlerResponseObject); ok {
-		if err := validResponse.VisitUserSignUpHandlerResponse(ctx.Writer); err != nil {
-			ctx.Error(err)
-		}
-	} else if response != nil {
-		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
-	}
 }
 
 // DeleteUserByID operation middleware
@@ -780,40 +363,66 @@ func (sh *strictHandler) FetchUserInfoByID(ctx *gin.Context, userID UserID) {
 	}
 }
 
+// UpdateUserInfoByID operation middleware
+func (sh *strictHandler) UpdateUserInfoByID(ctx *gin.Context, userID UserID) {
+	var request UpdateUserInfoByIDRequestObject
+
+	request.UserID = userID
+
+	var body UpdateUserInfoByIDJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		ctx.Status(http.StatusBadRequest)
+		ctx.Error(err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateUserInfoByID(ctx, request.(UpdateUserInfoByIDRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateUserInfoByID")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(UpdateUserInfoByIDResponseObject); ok {
+		if err := validResponse.VisitUpdateUserInfoByIDResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
