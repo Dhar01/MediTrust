@@ -88,19 +88,3 @@ func (us *userService) UpdateUserInfoByID(ctx context.Context, request users.Upd
 		Role:     updateInfo.Role,
 	}), nil
 }
-
-func updateField(newValue, oldValue string) string {
-	if newValue == "" {
-		return oldValue
-	}
-
-	return newValue
-}
-
-func updateIntPointerField(newValue, oldValue *int32) *int32 {
-	if newValue == nil {
-		return oldValue
-	}
-
-	return newValue
-}
