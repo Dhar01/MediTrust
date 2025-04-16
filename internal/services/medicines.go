@@ -87,21 +87,25 @@ func (mc *medicineService) UpdateMedicineInfoByID(ctx context.Context, request m
 		return med.UpdateMedicineInfoByID400Response{}, nil
 	}
 
-	medicine, err := mc.DB.UpdateMedicine(ctx, database.UpdateMedicineParams{
-		ID:           request.MedicineID,
-		Name:         *request.Body.Name,
-		Dosage:       *request.Body.Dosage,
-		Description:  *request.Body.Description,
-		Manufacturer: *request.Body.Manufacturer,
-		Price:        *request.Body.Price,
-		Stock:        *request.Body.Stock,
-	})
+	oldInfo, err := mc.DB.GetMedicine(ctx, request.MedicineID)
+	if err != nil {
+		return med.UpdateMedicineInfoByID404Response{}, err
+	}
 
+	updateInfo, err := mc.DB.UpdateMedicine(ctx, database.UpdateMedicineParams{
+		ID:           request.MedicineID,
+		Name:         updateField(*request.Body.Name, oldInfo.Name),
+		Dosage:       updateField(*request.Body.Dosage, oldInfo.Dosage),
+		Description:  updateField(*request.Body.Description, oldInfo.Description),
+		Manufacturer: updateField(*request.Body.Manufacturer, oldInfo.Manufacturer),
+		Price:        *updateIntPointerField(request.Body.Price, &oldInfo.Price),
+		Stock:        *updateIntPointerField(request.Body.Stock, &oldInfo.Stock),
+	})
 	if err != nil {
 		return med.UpdateMedicineInfoByID500Response{}, err
 	}
 
-	return med.UpdateMedicineInfoByID202JSONResponse(toMedicineDomain(medicine)), nil
+	return med.UpdateMedicineInfoByID202JSONResponse(toMedicineDomain(updateInfo)), nil
 }
 
 func (mc *medicineService) DeleteMedicineByID(ctx context.Context, request med.DeleteMedicineByIDRequestObject) (med.DeleteMedicineByIDResponseObject, error) {
