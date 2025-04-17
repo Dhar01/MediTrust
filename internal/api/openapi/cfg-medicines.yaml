@@ -1,4 +1,4 @@
-package: medicines
+package: med_gen
 output: ./medicines_gen/medicines.gen.go
 generate:
     models: true
