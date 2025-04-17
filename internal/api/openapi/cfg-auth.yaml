@@ -1,8 +1,9 @@
-package: auth
+package: authentication
 output: ./auth_gen/auth.gen.go
 generate:
     models: true
-    gin-server: true
+    # gin-server: true
+    echo-server: true
     strict-server: true
     embedded-spec: true
 
