@@ -16,10 +16,10 @@ import (
 	"strings"
 
 	"github.com/getkin/kin-openapi/openapi3"
-	"github.com/gin-gonic/gin"
 	googleuuid "github.com/google/uuid"
+	"github.com/labstack/echo/v4"
 	"github.com/oapi-codegen/runtime"
-	strictgin "github.com/oapi-codegen/runtime/strictmiddleware/gin"
+	strictecho "github.com/oapi-codegen/runtime/strictmiddleware/echo"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
@@ -100,132 +100,106 @@ type UpdateUserInfoByIDJSONRequestBody = UpdateUserRequest
 type ServerInterface interface {
 	// Delete user data
 	// (DELETE /users/{userID})
-	DeleteUserByID(c *gin.Context, userID UserID)
+	DeleteUserByID(ctx echo.Context, userID UserID) error
 	// Get user using userID
 	// (GET /users/{userID})
-	FetchUserInfoByID(c *gin.Context, userID UserID)
+	FetchUserInfoByID(ctx echo.Context, userID UserID) error
 	// Update a user information using userID
 	// (PUT /users/{userID})
-	UpdateUserInfoByID(c *gin.Context, userID UserID)
+	UpdateUserInfoByID(ctx echo.Context, userID UserID) error
 }
 
-// ServerInterfaceWrapper converts contexts to parameters.
+// ServerInterfaceWrapper converts echo contexts to parameters.
 type ServerInterfaceWrapper struct {
-	Handler            ServerInterface
-	HandlerMiddlewares []MiddlewareFunc
-	ErrorHandler       func(*gin.Context, error, int)
+	Handler ServerInterface
 }
 
-type MiddlewareFunc func(c *gin.Context)
-
-// DeleteUserByID operation middleware
-func (siw *ServerInterfaceWrapper) DeleteUserByID(c *gin.Context) {
-
+// DeleteUserByID converts echo context to params.
+func (w *ServerInterfaceWrapper) DeleteUserByID(ctx echo.Context) error {
 	var err error
-
 	// ------------- Path parameter "userID" -------------
 	var userID UserID
 
-	err = runtime.BindStyledParameterWithOptions("simple", "userID", c.Param("userID"), &userID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	err = runtime.BindStyledParameterWithOptions("simple", "userID", ctx.Param("userID"), &userID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userID: %w", err), http.StatusBadRequest)
-		return
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter userID: %s", err))
 	}
 
-	c.Set(BearerAuthScopes, []string{})
+	ctx.Set(BearerAuthScopes, []string{})
 
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.DeleteUserByID(c, userID)
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.DeleteUserByID(ctx, userID)
+	return err
 }
 
-// FetchUserInfoByID operation middleware
-func (siw *ServerInterfaceWrapper) FetchUserInfoByID(c *gin.Context) {
-
+// FetchUserInfoByID converts echo context to params.
+func (w *ServerInterfaceWrapper) FetchUserInfoByID(ctx echo.Context) error {
 	var err error
-
 	// ------------- Path parameter "userID" -------------
 	var userID UserID
 
-	err = runtime.BindStyledParameterWithOptions("simple", "userID", c.Param("userID"), &userID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	err = runtime.BindStyledParameterWithOptions("simple", "userID", ctx.Param("userID"), &userID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userID: %w", err), http.StatusBadRequest)
-		return
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter userID: %s", err))
 	}
 
-	c.Set(BearerAuthScopes, []string{})
+	ctx.Set(BearerAuthScopes, []string{})
 
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.FetchUserInfoByID(c, userID)
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.FetchUserInfoByID(ctx, userID)
+	return err
 }
 
-// UpdateUserInfoByID operation middleware
-func (siw *ServerInterfaceWrapper) UpdateUserInfoByID(c *gin.Context) {
-
+// UpdateUserInfoByID converts echo context to params.
+func (w *ServerInterfaceWrapper) UpdateUserInfoByID(ctx echo.Context) error {
 	var err error
-
 	// ------------- Path parameter "userID" -------------
 	var userID UserID
 
-	err = runtime.BindStyledParameterWithOptions("simple", "userID", c.Param("userID"), &userID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	err = runtime.BindStyledParameterWithOptions("simple", "userID", ctx.Param("userID"), &userID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userID: %w", err), http.StatusBadRequest)
-		return
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter userID: %s", err))
 	}
 
-	c.Set(BearerAuthScopes, []string{})
+	ctx.Set(BearerAuthScopes, []string{})
 
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.UpdateUserInfoByID(c, userID)
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.UpdateUserInfoByID(ctx, userID)
+	return err
 }
 
-// GinServerOptions provides options for the Gin server.
-type GinServerOptions struct {
-	BaseURL      string
-	Middlewares  []MiddlewareFunc
-	ErrorHandler func(*gin.Context, error, int)
+// This is a simple interface which specifies echo.Route addition functions which
+// are present on both echo.Echo and echo.Group, since we want to allow using
+// either of them for path registration
+type EchoRouter interface {
+	CONNECT(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
+	DELETE(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
+	GET(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
+	HEAD(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
+	OPTIONS(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
+	PATCH(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
+	POST(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
+	PUT(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
+	TRACE(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
 }
 
-// RegisterHandlers creates http.Handler with routing matching OpenAPI spec.
-func RegisterHandlers(router gin.IRouter, si ServerInterface) {
-	RegisterHandlersWithOptions(router, si, GinServerOptions{})
+// RegisterHandlers adds each server route to the EchoRouter.
+func RegisterHandlers(router EchoRouter, si ServerInterface) {
+	RegisterHandlersWithBaseURL(router, si, "")
 }
 
-// RegisterHandlersWithOptions creates http.Handler with additional options
-func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options GinServerOptions) {
-	errorHandler := options.ErrorHandler
-	if errorHandler == nil {
-		errorHandler = func(c *gin.Context, err error, statusCode int) {
-			c.JSON(statusCode, gin.H{"msg": err.Error()})
-		}
-	}
+// Registers handlers, and prepends BaseURL to the paths, so that the paths
+// can be served under a prefix.
+func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL string) {
 
 	wrapper := ServerInterfaceWrapper{
-		Handler:            si,
-		HandlerMiddlewares: options.Middlewares,
-		ErrorHandler:       errorHandler,
+		Handler: si,
 	}
 
-	router.DELETE(options.BaseURL+"/users/:userID", wrapper.DeleteUserByID)
-	router.GET(options.BaseURL+"/users/:userID", wrapper.FetchUserInfoByID)
-	router.PUT(options.BaseURL+"/users/:userID", wrapper.UpdateUserInfoByID)
+	router.DELETE(baseURL+"/users/:userID", wrapper.DeleteUserByID)
+	router.GET(baseURL+"/users/:userID", wrapper.FetchUserInfoByID)
+	router.PUT(baseURL+"/users/:userID", wrapper.UpdateUserInfoByID)
+
 }
 
 type InternalServerErrorResponse struct {
@@ -353,8 +327,8 @@ type StrictServerInterface interface {
 	UpdateUserInfoByID(ctx context.Context, request UpdateUserInfoByIDRequestObject) (UpdateUserInfoByIDResponseObject, error)
 }
 
-type StrictHandlerFunc = strictgin.StrictGinHandlerFunc
-type StrictMiddlewareFunc = strictgin.StrictGinMiddlewareFunc
+type StrictHandlerFunc = strictecho.StrictEchoHandlerFunc
+type StrictMiddlewareFunc = strictecho.StrictEchoMiddlewareFunc
 
 func NewStrictHandler(ssi StrictServerInterface, middlewares []StrictMiddlewareFunc) ServerInterface {
 	return &strictHandler{ssi: ssi, middlewares: middlewares}
@@ -366,13 +340,13 @@ type strictHandler struct {
 }
 
 // DeleteUserByID operation middleware
-func (sh *strictHandler) DeleteUserByID(ctx *gin.Context, userID UserID) {
+func (sh *strictHandler) DeleteUserByID(ctx echo.Context, userID UserID) error {
 	var request DeleteUserByIDRequestObject
 
 	request.UserID = userID
 
-	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.DeleteUserByID(ctx, request.(DeleteUserByIDRequestObject))
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteUserByID(ctx.Request().Context(), request.(DeleteUserByIDRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
 		handler = middleware(handler, "DeleteUserByID")
@@ -381,25 +355,23 @@ func (sh *strictHandler) DeleteUserByID(ctx *gin.Context, userID UserID) {
 	response, err := handler(ctx, request)
 
 	if err != nil {
-		ctx.Error(err)
-		ctx.Status(http.StatusInternalServerError)
+		return err
 	} else if validResponse, ok := response.(DeleteUserByIDResponseObject); ok {
-		if err := validResponse.VisitDeleteUserByIDResponse(ctx.Writer); err != nil {
-			ctx.Error(err)
-		}
+		return validResponse.VisitDeleteUserByIDResponse(ctx.Response())
 	} else if response != nil {
-		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+		return fmt.Errorf("unexpected response type: %T", response)
 	}
+	return nil
 }
 
 // FetchUserInfoByID operation middleware
-func (sh *strictHandler) FetchUserInfoByID(ctx *gin.Context, userID UserID) {
+func (sh *strictHandler) FetchUserInfoByID(ctx echo.Context, userID UserID) error {
 	var request FetchUserInfoByIDRequestObject
 
 	request.UserID = userID
 
-	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.FetchUserInfoByID(ctx, request.(FetchUserInfoByIDRequestObject))
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.FetchUserInfoByID(ctx.Request().Context(), request.(FetchUserInfoByIDRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
 		handler = middleware(handler, "FetchUserInfoByID")
@@ -408,33 +380,29 @@ func (sh *strictHandler) FetchUserInfoByID(ctx *gin.Context, userID UserID) {
 	response, err := handler(ctx, request)
 
 	if err != nil {
-		ctx.Error(err)
-		ctx.Status(http.StatusInternalServerError)
+		return err
 	} else if validResponse, ok := response.(FetchUserInfoByIDResponseObject); ok {
-		if err := validResponse.VisitFetchUserInfoByIDResponse(ctx.Writer); err != nil {
-			ctx.Error(err)
-		}
+		return validResponse.VisitFetchUserInfoByIDResponse(ctx.Response())
 	} else if response != nil {
-		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+		return fmt.Errorf("unexpected response type: %T", response)
 	}
+	return nil
 }
 
 // UpdateUserInfoByID operation middleware
-func (sh *strictHandler) UpdateUserInfoByID(ctx *gin.Context, userID UserID) {
+func (sh *strictHandler) UpdateUserInfoByID(ctx echo.Context, userID UserID) error {
 	var request UpdateUserInfoByIDRequestObject
 
 	request.UserID = userID
 
 	var body UpdateUserInfoByIDJSONRequestBody
-	if err := ctx.ShouldBindJSON(&body); err != nil {
-		ctx.Status(http.StatusBadRequest)
-		ctx.Error(err)
-		return
+	if err := ctx.Bind(&body); err != nil {
+		return err
 	}
 	request.Body = &body
 
-	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.UpdateUserInfoByID(ctx, request.(UpdateUserInfoByIDRequestObject))
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateUserInfoByID(ctx.Request().Context(), request.(UpdateUserInfoByIDRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
 		handler = middleware(handler, "UpdateUserInfoByID")
@@ -443,15 +411,13 @@ func (sh *strictHandler) UpdateUserInfoByID(ctx *gin.Context, userID UserID) {
 	response, err := handler(ctx, request)
 
 	if err != nil {
-		ctx.Error(err)
-		ctx.Status(http.StatusInternalServerError)
+		return err
 	} else if validResponse, ok := response.(UpdateUserInfoByIDResponseObject); ok {
-		if err := validResponse.VisitUpdateUserInfoByIDResponse(ctx.Writer); err != nil {
-			ctx.Error(err)
-		}
+		return validResponse.VisitUpdateUserInfoByIDResponse(ctx.Response())
 	} else if response != nil {
-		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+		return fmt.Errorf("unexpected response type: %T", response)
 	}
+	return nil
 }
 
 // Base64 encoded, gzipped, json marshaled Swagger object
