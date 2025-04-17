@@ -16,10 +16,10 @@ import (
 	"strings"
 
 	"github.com/getkin/kin-openapi/openapi3"
-	"github.com/gin-gonic/gin"
 	googleuuid "github.com/google/uuid"
+	"github.com/labstack/echo/v4"
 	"github.com/oapi-codegen/runtime"
-	strictgin "github.com/oapi-codegen/runtime/strictmiddleware/gin"
+	strictecho "github.com/oapi-codegen/runtime/strictmiddleware/echo"
 )
 
 const (
@@ -70,166 +70,132 @@ type UpdateMedicineInfoByIDJSONRequestBody = UpdateMedicineDTO
 type ServerInterface interface {
 	// Get all medicines
 	// (GET /medicines)
-	FetchMedicineList(c *gin.Context)
+	FetchMedicineList(ctx echo.Context) error
 	// Create a new medicine (admin only)
 	// (POST /medicines)
-	CreateNewMedicine(c *gin.Context)
+	CreateNewMedicine(ctx echo.Context) error
 	// Delete a medicine by ID (admin only)
 	// (DELETE /medicines/{medicineID})
-	DeleteMedicineByID(c *gin.Context, medicineID MedicineID)
+	DeleteMedicineByID(ctx echo.Context, medicineID MedicineID) error
 	// Get a medicine by ID
 	// (GET /medicines/{medicineID})
-	FetchMedicineByID(c *gin.Context, medicineID MedicineID)
+	FetchMedicineByID(ctx echo.Context, medicineID MedicineID) error
 	// Update a medicine by ID (admin only)
 	// (PUT /medicines/{medicineID})
-	UpdateMedicineInfoByID(c *gin.Context, medicineID MedicineID)
+	UpdateMedicineInfoByID(ctx echo.Context, medicineID MedicineID) error
 }
 
-// ServerInterfaceWrapper converts contexts to parameters.
+// ServerInterfaceWrapper converts echo contexts to parameters.
 type ServerInterfaceWrapper struct {
-	Handler            ServerInterface
-	HandlerMiddlewares []MiddlewareFunc
-	ErrorHandler       func(*gin.Context, error, int)
+	Handler ServerInterface
 }
 
-type MiddlewareFunc func(c *gin.Context)
-
-// FetchMedicineList operation middleware
-func (siw *ServerInterfaceWrapper) FetchMedicineList(c *gin.Context) {
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.FetchMedicineList(c)
-}
-
-// CreateNewMedicine operation middleware
-func (siw *ServerInterfaceWrapper) CreateNewMedicine(c *gin.Context) {
-
-	c.Set(BearerAuthScopes, []string{})
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.CreateNewMedicine(c)
-}
-
-// DeleteMedicineByID operation middleware
-func (siw *ServerInterfaceWrapper) DeleteMedicineByID(c *gin.Context) {
-
+// FetchMedicineList converts echo context to params.
+func (w *ServerInterfaceWrapper) FetchMedicineList(ctx echo.Context) error {
 	var err error
 
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.FetchMedicineList(ctx)
+	return err
+}
+
+// CreateNewMedicine converts echo context to params.
+func (w *ServerInterfaceWrapper) CreateNewMedicine(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.CreateNewMedicine(ctx)
+	return err
+}
+
+// DeleteMedicineByID converts echo context to params.
+func (w *ServerInterfaceWrapper) DeleteMedicineByID(ctx echo.Context) error {
+	var err error
 	// ------------- Path parameter "medicineID" -------------
 	var medicineID MedicineID
 
-	err = runtime.BindStyledParameterWithOptions("simple", "medicineID", c.Param("medicineID"), &medicineID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	err = runtime.BindStyledParameterWithOptions("simple", "medicineID", ctx.Param("medicineID"), &medicineID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter medicineID: %w", err), http.StatusBadRequest)
-		return
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter medicineID: %s", err))
 	}
 
-	c.Set(BearerAuthScopes, []string{})
+	ctx.Set(BearerAuthScopes, []string{})
 
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.DeleteMedicineByID(c, medicineID)
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.DeleteMedicineByID(ctx, medicineID)
+	return err
 }
 
-// FetchMedicineByID operation middleware
-func (siw *ServerInterfaceWrapper) FetchMedicineByID(c *gin.Context) {
-
+// FetchMedicineByID converts echo context to params.
+func (w *ServerInterfaceWrapper) FetchMedicineByID(ctx echo.Context) error {
 	var err error
-
 	// ------------- Path parameter "medicineID" -------------
 	var medicineID MedicineID
 
-	err = runtime.BindStyledParameterWithOptions("simple", "medicineID", c.Param("medicineID"), &medicineID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	err = runtime.BindStyledParameterWithOptions("simple", "medicineID", ctx.Param("medicineID"), &medicineID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter medicineID: %w", err), http.StatusBadRequest)
-		return
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter medicineID: %s", err))
 	}
 
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.FetchMedicineByID(c, medicineID)
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.FetchMedicineByID(ctx, medicineID)
+	return err
 }
 
-// UpdateMedicineInfoByID operation middleware
-func (siw *ServerInterfaceWrapper) UpdateMedicineInfoByID(c *gin.Context) {
-
+// UpdateMedicineInfoByID converts echo context to params.
+func (w *ServerInterfaceWrapper) UpdateMedicineInfoByID(ctx echo.Context) error {
 	var err error
-
 	// ------------- Path parameter "medicineID" -------------
 	var medicineID MedicineID
 
-	err = runtime.BindStyledParameterWithOptions("simple", "medicineID", c.Param("medicineID"), &medicineID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	err = runtime.BindStyledParameterWithOptions("simple", "medicineID", ctx.Param("medicineID"), &medicineID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter medicineID: %w", err), http.StatusBadRequest)
-		return
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter medicineID: %s", err))
 	}
 
-	c.Set(BearerAuthScopes, []string{})
+	ctx.Set(BearerAuthScopes, []string{})
 
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.UpdateMedicineInfoByID(c, medicineID)
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.UpdateMedicineInfoByID(ctx, medicineID)
+	return err
 }
 
-// GinServerOptions provides options for the Gin server.
-type GinServerOptions struct {
-	BaseURL      string
-	Middlewares  []MiddlewareFunc
-	ErrorHandler func(*gin.Context, error, int)
+// This is a simple interface which specifies echo.Route addition functions which
+// are present on both echo.Echo and echo.Group, since we want to allow using
+// either of them for path registration
+type EchoRouter interface {
+	CONNECT(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
+	DELETE(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
+	GET(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
+	HEAD(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
+	OPTIONS(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
+	PATCH(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
+	POST(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
+	PUT(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
+	TRACE(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
 }
 
-// RegisterHandlers creates http.Handler with routing matching OpenAPI spec.
-func RegisterHandlers(router gin.IRouter, si ServerInterface) {
-	RegisterHandlersWithOptions(router, si, GinServerOptions{})
+// RegisterHandlers adds each server route to the EchoRouter.
+func RegisterHandlers(router EchoRouter, si ServerInterface) {
+	RegisterHandlersWithBaseURL(router, si, "")
 }
 
-// RegisterHandlersWithOptions creates http.Handler with additional options
-func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options GinServerOptions) {
-	errorHandler := options.ErrorHandler
-	if errorHandler == nil {
-		errorHandler = func(c *gin.Context, err error, statusCode int) {
-			c.JSON(statusCode, gin.H{"msg": err.Error()})
-		}
-	}
+// Registers handlers, and prepends BaseURL to the paths, so that the paths
+// can be served under a prefix.
+func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL string) {
 
 	wrapper := ServerInterfaceWrapper{
-		Handler:            si,
-		HandlerMiddlewares: options.Middlewares,
-		ErrorHandler:       errorHandler,
+		Handler: si,
 	}
 
-	router.GET(options.BaseURL+"/medicines", wrapper.FetchMedicineList)
-	router.POST(options.BaseURL+"/medicines", wrapper.CreateNewMedicine)
-	router.DELETE(options.BaseURL+"/medicines/:medicineID", wrapper.DeleteMedicineByID)
-	router.GET(options.BaseURL+"/medicines/:medicineID", wrapper.FetchMedicineByID)
-	router.PUT(options.BaseURL+"/medicines/:medicineID", wrapper.UpdateMedicineInfoByID)
+	router.GET(baseURL+"/medicines", wrapper.FetchMedicineList)
+	router.POST(baseURL+"/medicines", wrapper.CreateNewMedicine)
+	router.DELETE(baseURL+"/medicines/:medicineID", wrapper.DeleteMedicineByID)
+	router.GET(baseURL+"/medicines/:medicineID", wrapper.FetchMedicineByID)
+	router.PUT(baseURL+"/medicines/:medicineID", wrapper.UpdateMedicineInfoByID)
+
 }
 
 type InternalServerErrorResponse struct {
@@ -414,8 +380,8 @@ type StrictServerInterface interface {
 	UpdateMedicineInfoByID(ctx context.Context, request UpdateMedicineInfoByIDRequestObject) (UpdateMedicineInfoByIDResponseObject, error)
 }
 
-type StrictHandlerFunc = strictgin.StrictGinHandlerFunc
-type StrictMiddlewareFunc = strictgin.StrictGinMiddlewareFunc
+type StrictHandlerFunc = strictecho.StrictEchoHandlerFunc
+type StrictMiddlewareFunc = strictecho.StrictEchoMiddlewareFunc
 
 func NewStrictHandler(ssi StrictServerInterface, middlewares []StrictMiddlewareFunc) ServerInterface {
 	return &strictHandler{ssi: ssi, middlewares: middlewares}
@@ -427,11 +393,11 @@ type strictHandler struct {
 }
 
 // FetchMedicineList operation middleware
-func (sh *strictHandler) FetchMedicineList(ctx *gin.Context) {
+func (sh *strictHandler) FetchMedicineList(ctx echo.Context) error {
 	var request FetchMedicineListRequestObject
 
-	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.FetchMedicineList(ctx, request.(FetchMedicineListRequestObject))
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.FetchMedicineList(ctx.Request().Context(), request.(FetchMedicineListRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
 		handler = middleware(handler, "FetchMedicineList")
@@ -440,31 +406,27 @@ func (sh *strictHandler) FetchMedicineList(ctx *gin.Context) {
 	response, err := handler(ctx, request)
 
 	if err != nil {
-		ctx.Error(err)
-		ctx.Status(http.StatusInternalServerError)
+		return err
 	} else if validResponse, ok := response.(FetchMedicineListResponseObject); ok {
-		if err := validResponse.VisitFetchMedicineListResponse(ctx.Writer); err != nil {
-			ctx.Error(err)
-		}
+		return validResponse.VisitFetchMedicineListResponse(ctx.Response())
 	} else if response != nil {
-		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+		return fmt.Errorf("unexpected response type: %T", response)
 	}
+	return nil
 }
 
 // CreateNewMedicine operation middleware
-func (sh *strictHandler) CreateNewMedicine(ctx *gin.Context) {
+func (sh *strictHandler) CreateNewMedicine(ctx echo.Context) error {
 	var request CreateNewMedicineRequestObject
 
 	var body CreateNewMedicineJSONRequestBody
-	if err := ctx.ShouldBindJSON(&body); err != nil {
-		ctx.Status(http.StatusBadRequest)
-		ctx.Error(err)
-		return
+	if err := ctx.Bind(&body); err != nil {
+		return err
 	}
 	request.Body = &body
 
-	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.CreateNewMedicine(ctx, request.(CreateNewMedicineRequestObject))
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateNewMedicine(ctx.Request().Context(), request.(CreateNewMedicineRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
 		handler = middleware(handler, "CreateNewMedicine")
@@ -473,25 +435,23 @@ func (sh *strictHandler) CreateNewMedicine(ctx *gin.Context) {
 	response, err := handler(ctx, request)
 
 	if err != nil {
-		ctx.Error(err)
-		ctx.Status(http.StatusInternalServerError)
+		return err
 	} else if validResponse, ok := response.(CreateNewMedicineResponseObject); ok {
-		if err := validResponse.VisitCreateNewMedicineResponse(ctx.Writer); err != nil {
-			ctx.Error(err)
-		}
+		return validResponse.VisitCreateNewMedicineResponse(ctx.Response())
 	} else if response != nil {
-		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+		return fmt.Errorf("unexpected response type: %T", response)
 	}
+	return nil
 }
 
 // DeleteMedicineByID operation middleware
-func (sh *strictHandler) DeleteMedicineByID(ctx *gin.Context, medicineID MedicineID) {
+func (sh *strictHandler) DeleteMedicineByID(ctx echo.Context, medicineID MedicineID) error {
 	var request DeleteMedicineByIDRequestObject
 
 	request.MedicineID = medicineID
 
-	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.DeleteMedicineByID(ctx, request.(DeleteMedicineByIDRequestObject))
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteMedicineByID(ctx.Request().Context(), request.(DeleteMedicineByIDRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
 		handler = middleware(handler, "DeleteMedicineByID")
@@ -500,25 +460,23 @@ func (sh *strictHandler) DeleteMedicineByID(ctx *gin.Context, medicineID Medicin
 	response, err := handler(ctx, request)
 
 	if err != nil {
-		ctx.Error(err)
-		ctx.Status(http.StatusInternalServerError)
+		return err
 	} else if validResponse, ok := response.(DeleteMedicineByIDResponseObject); ok {
-		if err := validResponse.VisitDeleteMedicineByIDResponse(ctx.Writer); err != nil {
-			ctx.Error(err)
-		}
+		return validResponse.VisitDeleteMedicineByIDResponse(ctx.Response())
 	} else if response != nil {
-		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+		return fmt.Errorf("unexpected response type: %T", response)
 	}
+	return nil
 }
 
 // FetchMedicineByID operation middleware
-func (sh *strictHandler) FetchMedicineByID(ctx *gin.Context, medicineID MedicineID) {
+func (sh *strictHandler) FetchMedicineByID(ctx echo.Context, medicineID MedicineID) error {
 	var request FetchMedicineByIDRequestObject
 
 	request.MedicineID = medicineID
 
-	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.FetchMedicineByID(ctx, request.(FetchMedicineByIDRequestObject))
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.FetchMedicineByID(ctx.Request().Context(), request.(FetchMedicineByIDRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
 		handler = middleware(handler, "FetchMedicineByID")
@@ -527,33 +485,29 @@ func (sh *strictHandler) FetchMedicineByID(ctx *gin.Context, medicineID Medicine
 	response, err := handler(ctx, request)
 
 	if err != nil {
-		ctx.Error(err)
-		ctx.Status(http.StatusInternalServerError)
+		return err
 	} else if validResponse, ok := response.(FetchMedicineByIDResponseObject); ok {
-		if err := validResponse.VisitFetchMedicineByIDResponse(ctx.Writer); err != nil {
-			ctx.Error(err)
-		}
+		return validResponse.VisitFetchMedicineByIDResponse(ctx.Response())
 	} else if response != nil {
-		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+		return fmt.Errorf("unexpected response type: %T", response)
 	}
+	return nil
 }
 
 // UpdateMedicineInfoByID operation middleware
-func (sh *strictHandler) UpdateMedicineInfoByID(ctx *gin.Context, medicineID MedicineID) {
+func (sh *strictHandler) UpdateMedicineInfoByID(ctx echo.Context, medicineID MedicineID) error {
 	var request UpdateMedicineInfoByIDRequestObject
 
 	request.MedicineID = medicineID
 
 	var body UpdateMedicineInfoByIDJSONRequestBody
-	if err := ctx.ShouldBindJSON(&body); err != nil {
-		ctx.Status(http.StatusBadRequest)
-		ctx.Error(err)
-		return
+	if err := ctx.Bind(&body); err != nil {
+		return err
 	}
 	request.Body = &body
 
-	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.UpdateMedicineInfoByID(ctx, request.(UpdateMedicineInfoByIDRequestObject))
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateMedicineInfoByID(ctx.Request().Context(), request.(UpdateMedicineInfoByIDRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
 		handler = middleware(handler, "UpdateMedicineInfoByID")
@@ -562,15 +516,13 @@ func (sh *strictHandler) UpdateMedicineInfoByID(ctx *gin.Context, medicineID Med
 	response, err := handler(ctx, request)
 
 	if err != nil {
-		ctx.Error(err)
-		ctx.Status(http.StatusInternalServerError)
+		return err
 	} else if validResponse, ok := response.(UpdateMedicineInfoByIDResponseObject); ok {
-		if err := validResponse.VisitUpdateMedicineInfoByIDResponse(ctx.Writer); err != nil {
-			ctx.Error(err)
-		}
+		return validResponse.VisitUpdateMedicineInfoByIDResponse(ctx.Response())
 	} else if response != nil {
-		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+		return fmt.Errorf("unexpected response type: %T", response)
 	}
+	return nil
 }
 
 // Base64 encoded, gzipped, json marshaled Swagger object

@@ -75,6 +75,10 @@ paths:
                                 $ref: '#/components/schemas/SignInResponse'
                 "400":
                     $ref: '#/components/responses/InvalidInput'
+                "401":
+                    $ref: '#/components/responses/UnauthorizedAccess'
+                "404":
+                    $ref: '#/components/responses/NotFound'
                 "500":
                     $ref: '#/components/responses/InternalServerError'
 
@@ -87,7 +91,7 @@ paths:
             tags:
                 - auth
             security:
-                - BearerAuth: [ ]
+                - BearerAuth: []
             responses:
                 "200":
                     description: logout successfully
@@ -124,8 +128,8 @@ paths:
             responses:
                 "200":
                     description: successfully verified
-                "400":
-                    $ref: '#/components/responses/InvalidInput'
+                "401":
+                    $ref: '#/components/responses/UnauthorizedAccess'
                 "500":
                     $ref: '#/components/responses/InternalServerError'
 
@@ -144,15 +148,16 @@ paths:
                     application/json:
                         schema:
                             $ref: '#/components/schemas/RequestPasswordReset'
-            response:
+            responses:
                 "202":
                     description: status accepted, please check email
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/responses/RequestPasswordReset'
+                    type: string
                 "400":
                     $ref: '#/components/responses/InvalidInput'
+                "401":
+                    $ref: '#/components/responses/UnauthorizedAccess'
+                "404":
+                    $ref: '#/components/responses/NotFound'
                 "500":
                     $ref: '#/components/responses/InternalServerError'
 
@@ -164,21 +169,32 @@ paths:
             operationID: updatePasswordReset
             tags:
                 - auth
-            response:
+            parameters:
+                - in: query
+                  name: token
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdatePasswordRequest'
+            responses:
                 "202":
                     description: password updated
-                    content:
-                        application/json:
-                            schema:
-                                type: string
+                    type: string
                 "400":
                     $ref: '#/components/responses/InvalidInput'
+                "401":
+                    $ref: '#/components/responses/UnauthorizedAccess'
                 "500":
                     $ref: '#/components/responses/InternalServerError'
 
 components:
 
-    securitySchemas:
+    securitySchemes:
         BearerAuth:
             type: http
             scheme: bearer
@@ -263,3 +279,14 @@ components:
                     type: string
                     format: email
                     example: 'user@example.com'
+
+        UpdatePasswordRequest:
+            type: object
+            required:
+                - password
+            properties:
+                password:
+                    type: string
+                    format: password
+                    minLength: 8
+                    example: 'SecureP@ss123'
