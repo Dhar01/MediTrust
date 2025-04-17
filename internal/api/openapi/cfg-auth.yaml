@@ -1,4 +1,4 @@
-package: authentication
+package: auth_gen
 output: ./auth_gen/auth.gen.go
 generate:
     models: true

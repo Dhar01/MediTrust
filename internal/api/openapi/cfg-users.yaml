@@ -1,4 +1,4 @@
-package: users
+package: user_gen
 output: ./users_gen/users.gen.go
 generate:
     models: true

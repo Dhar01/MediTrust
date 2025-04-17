@@ -37,9 +37,9 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/FetchUserInfoResponse'
                 "400":
-                    $ref: '#/components/responses/InvalidInput'
+                    $ref: '#/components/responses/BadRequestError'
                 "404":
-                    $ref: '#/components/responses/NotFound'
+                    $ref: '#/components/responses/NotFoundError'
                 "500":
                     $ref: '#/components/responses/InternalServerError'
 
@@ -58,7 +58,7 @@ paths:
                     description: successfully deleted user
                     type: string
                 "401":
-                    $ref: '#/components/responses/UnauthorizedAccess'
+                    $ref: '#/components/responses/UnauthorizedAccessError'
 
         # PUT /api/v1/users/{userID}
         put:
@@ -85,9 +85,9 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/UpdateUserResponse'
                 "400":
-                    $ref: '#/components/responses/InvalidInput'
+                    $ref: '#/components/responses/BadRequestError'
                 "401":
-                    $ref: '#/components/responses/UnauthorizedAccess'
+                    $ref: '#/components/responses/UnauthorizedAccessError'
                 "500":
                     $ref: '#/components/responses/InternalServerError'
 
@@ -109,13 +109,13 @@ components:
         InternalServerError:
             description: Internal server error
 
-        InvalidInput:
+        BadRequestError:
             description: Invalid input
 
-        UnauthorizedAccess:
+        UnauthorizedAccessError:
             description: Unauthorized access
 
-        NotFound:
+        NotFoundError:
             description: status not found
 
     securitySchemas:
