@@ -44,7 +44,7 @@ func (e *EmailSender) SendVerificationEmail(opts EmailOptions) error {
 	subject := "User Verification Email - MediTrust"
 	body := fmt.Sprintf(`
 		<h3>Hello %s,</h3>
-		<p>To verify your email, click here: <a href="http://%s:%s/api/v1/verify?token=%s">Verify Email</a></p>
+		<p>To verify your email, click here: <a href="http://%s:%s/api/v1/auth/verify?token=%s">Verify Email</a></p>
 	`, opts.FirstName, opts.Domain, opts.DomainPort, opts.Token)
 
 	return e.sendEmail(opts.To, subject, body)
@@ -54,7 +54,7 @@ func (e *EmailSender) SendResetPasswordEmail(opts EmailOptions) error {
 	subject := "Reset your password"
 	body := fmt.Sprintf(`
 <h3>Hello %s,</h3>
-<p>To reset your password, click here: <a href="http://%s:%s/api/v1/users/reset?token=%s">Reset password</a></p>
+<p>To reset your password, click here: <a href="http://%s:%s/api/v1/auth/reset?token=%s">Reset password</a></p>
 	`, opts.FirstName, opts.Domain, opts.DomainPort, opts.Token)
 
 	return e.sendEmail(opts.To, subject, body)
