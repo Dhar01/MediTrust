@@ -1,7 +1,7 @@
 package config
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
 	"log"
 	"medicine-app/internal/database"
@@ -9,13 +9,14 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/jackc/pgx/v5/pgxpool"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/joho/godotenv"
-	_ "github.com/lib/pq"
 )
 
 type Config struct {
-	DB          *database.Queries
-	DBConn      *sql.DB
+	DB          *database.DB
+	DBConn      *pgxpool.Pool
 	Platform    string
 	Domain      string
 	Port        string
@@ -40,7 +41,7 @@ func LoadConfig() (*Config, error) {
 	}
 
 	if checkPort < 5000 || checkPort > 10000 {
-		return nil, fmt.Errorf("Invalid port number")
+		return nil, fmt.Errorf("invalid port number")
 	}
 
 	dbConn, dbQueries, err := connectDB()
@@ -87,20 +88,20 @@ func initEmailSender() (*utils.EmailSender, error) {
 }
 
 // connectDB initializes and returns a database connection
-func connectDB() (*sql.DB, *database.Queries, error) {
+func connectDB() (*pgxpool.Pool, *database.DB, error) {
 	dbURL := mustGetEnv("DB_URL")
 
-	dbConn, err := sql.Open("postgres", dbURL)
+	pool, err := pgxpool.New(context.Background(), dbURL)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	if err := dbConn.Ping(); err != nil {
-		dbConn.Close()
+	if err = pool.Ping(context.Background()); err != nil {
+		pool.Close()
 		return nil, nil, err
 	}
 
-	return dbConn, database.New(dbConn), nil
+	return pool, database.New(pool), nil
 }
 
 // mustGetEnv retrieves an environment variable or logs a fatal error if missing.
