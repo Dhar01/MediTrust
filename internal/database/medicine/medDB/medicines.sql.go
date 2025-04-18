@@ -3,12 +3,12 @@
 //   sqlc v1.27.0
 // source: medicines.sql
 
-package database
+package medDB
 
 import (
 	"context"
 
-	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createMedicine = `-- name: CreateMedicine :one
@@ -38,7 +38,7 @@ type CreateMedicineParams struct {
 }
 
 func (q *Queries) CreateMedicine(ctx context.Context, arg CreateMedicineParams) (Medicine, error) {
-	row := q.db.QueryRowContext(ctx, createMedicine,
+	row := q.db.QueryRow(ctx, createMedicine,
 		arg.Name,
 		arg.Dosage,
 		arg.Description,
@@ -66,8 +66,8 @@ DELETE FROM medicines
 WHERE id = $1
 `
 
-func (q *Queries) DeleteMedicine(ctx context.Context, id uuid.UUID) error {
-	_, err := q.db.ExecContext(ctx, deleteMedicine, id)
+func (q *Queries) DeleteMedicine(ctx context.Context, id pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteMedicine, id)
 	return err
 }
 
@@ -76,8 +76,8 @@ SELECT id, name, dosage, description, manufacturer, price, stock, created_at, up
 WHERE id = $1
 `
 
-func (q *Queries) GetMedicine(ctx context.Context, id uuid.UUID) (Medicine, error) {
-	row := q.db.QueryRowContext(ctx, getMedicine, id)
+func (q *Queries) GetMedicine(ctx context.Context, id pgtype.UUID) (Medicine, error) {
+	row := q.db.QueryRow(ctx, getMedicine, id)
 	var i Medicine
 	err := row.Scan(
 		&i.ID,
@@ -98,7 +98,7 @@ SELECT id, name, dosage, description, manufacturer, price, stock, created_at, up
 `
 
 func (q *Queries) GetMedicines(ctx context.Context) ([]Medicine, error) {
-	rows, err := q.db.QueryContext(ctx, getMedicines)
+	rows, err := q.db.Query(ctx, getMedicines)
 	if err != nil {
 		return nil, err
 	}
@@ -121,9 +121,6 @@ func (q *Queries) GetMedicines(ctx context.Context) ([]Medicine, error) {
 		}
 		items = append(items, i)
 	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -135,7 +132,7 @@ DELETE FROM medicines
 `
 
 func (q *Queries) ResetMedicines(ctx context.Context) error {
-	_, err := q.db.ExecContext(ctx, resetMedicines)
+	_, err := q.db.Exec(ctx, resetMedicines)
 	return err
 }
 
@@ -160,11 +157,11 @@ type UpdateMedicineParams struct {
 	Manufacturer string
 	Price        int32
 	Stock        int32
-	ID           uuid.UUID
+	ID           pgtype.UUID
 }
 
 func (q *Queries) UpdateMedicine(ctx context.Context, arg UpdateMedicineParams) (Medicine, error) {
-	row := q.db.QueryRowContext(ctx, updateMedicine,
+	row := q.db.QueryRow(ctx, updateMedicine,
 		arg.Name,
 		arg.Dosage,
 		arg.Description,
