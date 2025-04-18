@@ -3,12 +3,12 @@
 //   sqlc v1.27.0
 // source: refresh_token.sql
 
-package database
+package tokenDB
 
 import (
 	"context"
 
-	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createRefreshToken = `-- name: CreateRefreshToken :exec
@@ -22,11 +22,11 @@ RETURNING refreshtoken, user_id, expires_at, revoked_at, created_at, updated_at
 
 type CreateRefreshTokenParams struct {
 	Refreshtoken string
-	UserID       uuid.UUID
+	UserID       pgtype.UUID
 }
 
 func (q *Queries) CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) error {
-	_, err := q.db.ExecContext(ctx, createRefreshToken, arg.Refreshtoken, arg.UserID)
+	_, err := q.db.Exec(ctx, createRefreshToken, arg.Refreshtoken, arg.UserID)
 	return err
 }
 
@@ -39,7 +39,7 @@ WHERE refreshToken = $1
 `
 
 func (q *Queries) GetUserFromRefreshToken(ctx context.Context, refreshtoken string) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUserFromRefreshToken, refreshtoken)
+	row := q.db.QueryRow(ctx, getUserFromRefreshToken, refreshtoken)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -66,7 +66,7 @@ WHERE refreshToken = $1
 `
 
 func (q *Queries) RevokeRefreshToken(ctx context.Context, refreshtoken string) error {
-	_, err := q.db.ExecContext(ctx, revokeRefreshToken, refreshtoken)
+	_, err := q.db.Exec(ctx, revokeRefreshToken, refreshtoken)
 	return err
 }
 
@@ -78,7 +78,7 @@ SET
 WHERE user_id = $1
 `
 
-func (q *Queries) RevokeTokenByID(ctx context.Context, userID uuid.UUID) error {
-	_, err := q.db.ExecContext(ctx, revokeTokenByID, userID)
+func (q *Queries) RevokeTokenByID(ctx context.Context, userID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, revokeTokenByID, userID)
 	return err
 }

@@ -3,22 +3,20 @@
 //   sqlc v1.27.0
 // source: address.sql
 
-package database
+package userDB
 
 import (
 	"context"
-	"database/sql"
-	"time"
 
-	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const checkAddressExist = `-- name: CheckAddressExist :one
 SELECT EXISTS (SELECT 1 FROM user_address WHERE user_id = $1)
 `
 
-func (q *Queries) CheckAddressExist(ctx context.Context, userID uuid.UUID) (bool, error) {
-	row := q.db.QueryRowContext(ctx, checkAddressExist, userID)
+func (q *Queries) CheckAddressExist(ctx context.Context, userID pgtype.UUID) (bool, error) {
+	row := q.db.QueryRow(ctx, checkAddressExist, userID)
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
@@ -40,15 +38,15 @@ RETURNING user_id, country, city, street_address, postal_code, created_at, updat
 `
 
 type CreateUserAddressParams struct {
-	UserID        uuid.UUID
+	UserID        pgtype.UUID
 	Country       string
 	City          string
 	StreetAddress string
-	PostalCode    sql.NullString
+	PostalCode    pgtype.Text
 }
 
 func (q *Queries) CreateUserAddress(ctx context.Context, arg CreateUserAddressParams) (UserAddress, error) {
-	row := q.db.QueryRowContext(ctx, createUserAddress,
+	row := q.db.QueryRow(ctx, createUserAddress,
 		arg.UserID,
 		arg.Country,
 		arg.City,
@@ -73,8 +71,8 @@ SELECT user_id, country, city, street_address, postal_code, created_at, updated_
 WHERE user_id = $1
 `
 
-func (q *Queries) GetAddress(ctx context.Context, userID uuid.UUID) (UserAddress, error) {
-	row := q.db.QueryRowContext(ctx, getAddress, userID)
+func (q *Queries) GetAddress(ctx context.Context, userID pgtype.UUID) (UserAddress, error) {
+	row := q.db.QueryRow(ctx, getAddress, userID)
 	var i UserAddress
 	err := row.Scan(
 		&i.UserID,
@@ -96,7 +94,7 @@ WHERE users.id = $1
 `
 
 type GetUserWithAddressRow struct {
-	ID            uuid.UUID
+	ID            pgtype.UUID
 	FirstName     string
 	LastName      string
 	Age           int32
@@ -105,19 +103,19 @@ type GetUserWithAddressRow struct {
 	Verified      bool
 	Phone         string
 	PasswordHash  string
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
-	UserID        uuid.NullUUID
-	Country       sql.NullString
-	City          sql.NullString
-	StreetAddress sql.NullString
-	PostalCode    sql.NullString
-	CreatedAt_2   sql.NullTime
-	UpdatedAt_2   sql.NullTime
+	CreatedAt     pgtype.Timestamp
+	UpdatedAt     pgtype.Timestamp
+	UserID        pgtype.UUID
+	Country       pgtype.Text
+	City          pgtype.Text
+	StreetAddress pgtype.Text
+	PostalCode    pgtype.Text
+	CreatedAt_2   pgtype.Timestamp
+	UpdatedAt_2   pgtype.Timestamp
 }
 
-func (q *Queries) GetUserWithAddress(ctx context.Context, id uuid.UUID) (GetUserWithAddressRow, error) {
-	row := q.db.QueryRowContext(ctx, getUserWithAddress, id)
+func (q *Queries) GetUserWithAddress(ctx context.Context, id pgtype.UUID) (GetUserWithAddressRow, error) {
+	row := q.db.QueryRow(ctx, getUserWithAddress, id)
 	var i GetUserWithAddressRow
 	err := row.Scan(
 		&i.ID,
@@ -147,7 +145,7 @@ DELETE FROM user_address
 `
 
 func (q *Queries) ResetAddress(ctx context.Context) error {
-	_, err := q.db.ExecContext(ctx, resetAddress)
+	_, err := q.db.Exec(ctx, resetAddress)
 	return err
 }
 
@@ -167,12 +165,12 @@ type UpdateAddressParams struct {
 	Country       string
 	City          string
 	StreetAddress string
-	PostalCode    sql.NullString
-	UserID        uuid.UUID
+	PostalCode    pgtype.Text
+	UserID        pgtype.UUID
 }
 
 func (q *Queries) UpdateAddress(ctx context.Context, arg UpdateAddressParams) (UserAddress, error) {
-	row := q.db.QueryRowContext(ctx, updateAddress,
+	row := q.db.QueryRow(ctx, updateAddress,
 		arg.Country,
 		arg.City,
 		arg.StreetAddress,

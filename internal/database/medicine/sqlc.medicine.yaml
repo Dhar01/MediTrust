@@ -1,0 +1,11 @@
+version: "2"
+
+sql:
+    - engine: "postgresql"
+      schema: "../../../sql/schema"
+      queries: "../../../sql/queries/medicines.sql"
+      gen:
+        go:
+            package: "medDB"
+            out: "./medDB"
+            sql_package: "pgx/v5"

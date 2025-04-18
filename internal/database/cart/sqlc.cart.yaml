@@ -1,0 +1,12 @@
+version: "2"
+
+sql:
+    - engine: "postgresql"
+      schema: "../../../sql/schema"
+      queries:
+        - "../../../sql/queries/carts.sql"
+      gen:
+        go:
+            package: "cartDB"
+            out: "./cartDB"
+            sql_package: "pgx/v5"
