@@ -30,7 +30,7 @@ SET
     manufacturer = $4,
     price = $5,
     stock = $6,
-    updated_at = NOW()
+    updated_at = NOW() + interval '1 second'
 WHERE id = $7
 RETURNING *;
 
