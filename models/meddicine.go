@@ -7,6 +7,7 @@ const CompanyName = ""
 var (
 	Admin    string = "admin"
 	Customer string = "customer"
+	Dev      string = "dev"
 )
 
 // CreateMedicineDTO defines model for CreateMedicineDTO.
