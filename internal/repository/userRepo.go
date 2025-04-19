@@ -12,9 +12,9 @@ import (
 )
 
 type UserRepository interface {
-	FetchUserByID(ctx context.Context, id uuid.UUID) (models.User, error)
+	FetchUserByID(ctx context.Context, id uuid.UUID) (*models.User, error)
 	DeleteUserByID(ctx context.Context, id uuid.UUID) error
-	UpdateUserInfo(ctx context.Context, updateInfo models.User) (models.User, error)
+	UpdateUserInfo(ctx context.Context, updateInfo models.User) (*models.User, error)
 }
 
 type userRepo struct {
@@ -22,12 +22,16 @@ type userRepo struct {
 }
 
 func NewUserRepo(db *userDB.Queries) UserRepository {
+	if db == nil {
+		panic("userDB can't be empty/nil")
+	}
+
 	return &userRepo{
 		DB: db,
 	}
 }
 
-func (repo *userRepo) FetchUserByID(ctx context.Context, id uuid.UUID) (models.User, error) {
+func (repo *userRepo) FetchUserByID(ctx context.Context, id uuid.UUID) (*models.User, error) {
 	user, err := repo.DB.GetUserByID(ctx, id)
 	if err != nil {
 		return wrapUserErr(err)
@@ -36,7 +40,7 @@ func (repo *userRepo) FetchUserByID(ctx context.Context, id uuid.UUID) (models.U
 	return toUserDomain(user), nil
 }
 
-func (repo *userRepo) UpdateUserInfo(ctx context.Context, updateInfo models.User) (models.User, error) {
+func (repo *userRepo) UpdateUserInfo(ctx context.Context, updateInfo models.User) (*models.User, error) {
 	user, err := repo.DB.UpdateUser(ctx, userDB.UpdateUserParams{
 		FirstName: updateInfo.Name.FirstName,
 		LastName:  updateInfo.Name.LastName,
@@ -56,8 +60,8 @@ func (repo *userRepo) DeleteUserByID(ctx context.Context, id uuid.UUID) error {
 	return wrapUserSpecErr(repo.DB.DeleteUser(ctx, id))
 }
 
-func toUserDomain(dbUser userDB.User) models.User {
-	return models.User{
+func toUserDomain(dbUser userDB.User) *models.User {
+	return &models.User{
 		Id: dbUser.ID,
 		Name: models.FullName{
 			FirstName: dbUser.FirstName,
@@ -71,8 +75,8 @@ func toUserDomain(dbUser userDB.User) models.User {
 	}
 }
 
-func wrapUserErr(err error) (models.User, error) {
-	return models.User{}, wrapUserSpecErr(err)
+func wrapUserErr(err error) (*models.User, error) {
+	return nil, wrapUserSpecErr(err)
 }
 
 func wrapUserSpecErr(err error) error {
