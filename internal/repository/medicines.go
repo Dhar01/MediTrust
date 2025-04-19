@@ -2,10 +2,13 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"medicine-app/internal/database/medicine/medDB"
+	"medicine-app/internal/errs"
 	"medicine-app/models"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 )
 
 type MedicineRepository interface {
@@ -53,6 +56,10 @@ func (repo MedRepoImpl) UpdateMedicine(ctx context.Context, med models.Medicine)
 		Stock:        med.Stock,
 	})
 
+	if errors.Is(err, pgx.ErrNoRows) {
+		return wrapMedicineErr(errs.ErrMedicineNotUpdate)
+	}
+
 	if err != nil {
 		return wrapMedicineErr(err)
 	}
@@ -66,6 +73,10 @@ func (repo MedRepoImpl) DeleteMedicine(ctx context.Context, medID uuid.UUID) err
 
 func (repo MedRepoImpl) FetchMedicineByID(ctx context.Context, medID uuid.UUID) (models.Medicine, error) {
 	medicine, err := repo.DB.GetMedicine(ctx, medID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return wrapMedicineErr(errs.ErrNotFound)
+	}
+
 	if err != nil {
 		return wrapMedicineErr(err)
 	}
