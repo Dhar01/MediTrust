@@ -18,25 +18,25 @@ type MedService interface {
 	FetchMedicineByID(ctx context.Context, medID uuid.UUID) (models.Medicine, error)
 }
 
-type medicineServiceImpl struct {
+type medicineService struct {
 	medicineRepo repository.MedicineRepository
 }
 
 func NewMedicineService(repo repository.MedicineRepository) MedService {
-	return medicineServiceImpl{
+	return &medicineService{
 		medicineRepo: repo,
 	}
 }
 
-func (srv medicineServiceImpl) CreateMedicine(ctx context.Context, med models.CreateMedicineDTO) (models.Medicine, error) {
+func (srv *medicineService) CreateMedicine(ctx context.Context, med models.CreateMedicineDTO) (models.Medicine, error) {
 	return srv.medicineRepo.CreateMedicine(ctx, med)
 }
 
-func (srv medicineServiceImpl) DeleteMedicine(ctx context.Context, medID uuid.UUID) error {
+func (srv *medicineService) DeleteMedicine(ctx context.Context, medID uuid.UUID) error {
 	return srv.medicineRepo.DeleteMedicine(ctx, medID)
 }
 
-func (srv medicineServiceImpl) UpdateMedicine(ctx context.Context, medID uuid.UUID, med models.UpdateMedicineDTO) (models.Medicine, error) {
+func (srv *medicineService) UpdateMedicine(ctx context.Context, medID uuid.UUID, med models.UpdateMedicineDTO) (models.Medicine, error) {
 	oldMedicine, err := srv.medicineRepo.FetchMedicineByID(ctx, medID)
 	if err != nil {
 		return wrapMedicineErr(err)
@@ -61,7 +61,7 @@ func (srv medicineServiceImpl) UpdateMedicine(ctx context.Context, medID uuid.UU
 	return srv.medicineRepo.UpdateMedicine(ctx, newMedicine)
 }
 
-func (srv medicineServiceImpl) FetchMedicineByID(ctx context.Context, medID uuid.UUID) (models.Medicine, error) {
+func (srv *medicineService) FetchMedicineByID(ctx context.Context, medID uuid.UUID) (models.Medicine, error) {
 	return srv.medicineRepo.FetchMedicineByID(ctx, medID)
 }
 

@@ -17,17 +17,17 @@ type medicineAPI struct {
 
 var _ med_gen.StrictServerInterface = (*medicineAPI)(nil)
 
-func newMedicineAPI(srv services.MedService) medicineAPI {
-	return medicineAPI{
+func newMedicineAPI(srv services.MedService) *medicineAPI {
+	return &medicineAPI{
 		medService: srv,
 	}
 }
 
-func (api medicineAPI) FetchMedicineList(ctx context.Context, request med_gen.FetchMedicineListRequestObject) (med_gen.FetchMedicineListResponseObject, error) {
+func (api *medicineAPI) FetchMedicineList(ctx context.Context, request med_gen.FetchMedicineListRequestObject) (med_gen.FetchMedicineListResponseObject, error) {
 	return med_gen.FetchMedicineList200JSONResponse{}, nil
 }
 
-func (api medicineAPI) CreateNewMedicine(ctx context.Context, request med_gen.CreateNewMedicineRequestObject) (med_gen.CreateNewMedicineResponseObject, error) {
+func (api *medicineAPI) CreateNewMedicine(ctx context.Context, request med_gen.CreateNewMedicineRequestObject) (med_gen.CreateNewMedicineResponseObject, error) {
 	medicine, err := api.medService.CreateMedicine(ctx, models.CreateMedicineDTO{
 		Name:         request.Body.Name,
 		Dosage:       request.Body.Dosage,
@@ -44,7 +44,7 @@ func (api medicineAPI) CreateNewMedicine(ctx context.Context, request med_gen.Cr
 	return med_gen.CreateNewMedicine201JSONResponse(toMedicineDomain(medicine)), nil
 }
 
-func (api medicineAPI) DeleteMedicineByID(ctx context.Context, request med_gen.DeleteMedicineByIDRequestObject) (med_gen.DeleteMedicineByIDResponseObject, error) {
+func (api *medicineAPI) DeleteMedicineByID(ctx context.Context, request med_gen.DeleteMedicineByIDRequestObject) (med_gen.DeleteMedicineByIDResponseObject, error) {
 	if err := api.medService.DeleteMedicine(ctx, request.MedicineID); err != nil {
 		return med_gen.BadRequestErrorResponse{}, err
 	}
@@ -52,7 +52,7 @@ func (api medicineAPI) DeleteMedicineByID(ctx context.Context, request med_gen.D
 	return med_gen.DeleteMedicineByID204Response{}, nil
 }
 
-func (api medicineAPI) FetchMedicineByID(ctx context.Context, request med_gen.FetchMedicineByIDRequestObject) (med_gen.FetchMedicineByIDResponseObject, error) {
+func (api *medicineAPI) FetchMedicineByID(ctx context.Context, request med_gen.FetchMedicineByIDRequestObject) (med_gen.FetchMedicineByIDResponseObject, error) {
 	medicine, err := api.medService.FetchMedicineByID(ctx, request.MedicineID)
 	if err != nil {
 		return med_gen.NotFoundErrorResponse{}, err
@@ -61,7 +61,7 @@ func (api medicineAPI) FetchMedicineByID(ctx context.Context, request med_gen.Fe
 	return med_gen.FetchMedicineByID200JSONResponse(toMedicineDomain(medicine)), nil
 }
 
-func (api medicineAPI) UpdateMedicineInfoByID(ctx context.Context, request med_gen.UpdateMedicineInfoByIDRequestObject) (med_gen.UpdateMedicineInfoByIDResponseObject, error) {
+func (api *medicineAPI) UpdateMedicineInfoByID(ctx context.Context, request med_gen.UpdateMedicineInfoByIDRequestObject) (med_gen.UpdateMedicineInfoByIDResponseObject, error) {
 	medicine, err := api.medService.UpdateMedicine(ctx, request.MedicineID, models.UpdateMedicineDTO{
 		Name:         *request.Body.Name,
 		Dosage:       *request.Body.Dosage,
