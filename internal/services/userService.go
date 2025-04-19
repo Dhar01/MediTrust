@@ -11,9 +11,9 @@ import (
 )
 
 type UserService interface {
-	FetchUserByID(ctx context.Context, id uuid.UUID) (models.User, error)
+	FetchUserByID(ctx context.Context, id uuid.UUID) (*models.User, error)
 	DeleteUserByID(ctx context.Context, id uuid.UUID) error
-	UpdateUserInfoByID(ctx context.Context, id uuid.UUID, updateInfo models.UpdateUserRequest) (models.User, error)
+	UpdateUserInfoByID(ctx context.Context, id uuid.UUID, updateInfo models.UpdateUserRequest) (*models.User, error)
 }
 
 type userService struct {
@@ -21,12 +21,16 @@ type userService struct {
 }
 
 func NewUserService(repo repository.UserRepository) UserService {
+	if repo == nil {
+		panic("user repository can't be empty/nil")
+	}
+
 	return &userService{
 		userRepo: repo,
 	}
 }
 
-func (srv *userService) FetchUserByID(ctx context.Context, id uuid.UUID) (models.User, error) {
+func (srv *userService) FetchUserByID(ctx context.Context, id uuid.UUID) (*models.User, error) {
 	user, err := srv.userRepo.FetchUserByID(ctx, id)
 	if err != nil {
 		return wrapUserErr(err)
@@ -39,7 +43,7 @@ func (srv *userService) DeleteUserByID(ctx context.Context, id uuid.UUID) error 
 	return wrapUserSpecErr(srv.userRepo.DeleteUserByID(ctx, id))
 }
 
-func (srv *userService) UpdateUserInfoByID(ctx context.Context, id uuid.UUID, updateInfo models.UpdateUserRequest) (models.User, error) {
+func (srv *userService) UpdateUserInfoByID(ctx context.Context, id uuid.UUID, updateInfo models.UpdateUserRequest) (*models.User, error) {
 	oldInfo, err := srv.userRepo.FetchUserByID(ctx, id)
 	if err != nil {
 		return wrapUserErr(err)
@@ -61,8 +65,8 @@ func (srv *userService) UpdateUserInfoByID(ctx context.Context, id uuid.UUID, up
 	return user, nil
 }
 
-func wrapUserErr(err error) (models.User, error) {
-	return models.User{}, wrapUserSpecErr(err)
+func wrapUserErr(err error) (*models.User, error) {
+	return nil, wrapUserSpecErr(err)
 }
 
 func wrapUserSpecErr(err error) error {

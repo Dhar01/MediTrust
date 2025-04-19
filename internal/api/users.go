@@ -16,6 +16,10 @@ type userAPI struct {
 }
 
 func newUserAPI(srv services.UserService) *userAPI {
+	if srv == nil {
+		panic("user service can't be empty/nil")
+	}
+
 	return &userAPI{
 		userService: srv,
 	}
@@ -92,17 +96,3 @@ func (api *userAPI) UpdateUserInfoByID(ctx context.Context, request user_gen.Upd
 			Role:     user.Role,
 		}), nil
 }
-
-// func toUserDomain(user models.User) user_gen.User {
-// 	return user_gen.User{
-// 		Name: &user_gen.FullName{
-// 			FirstName: &user.Name.FirstName,
-// 			LastName:  &user.Name.LastName,
-// 		},
-// 		Age:      &user.Age,
-// 		Phone:    &user.Phone,
-// 		Email:    (*types.Email)(&user.Email),
-// 		Role:     &user.Role,
-// 		IsActive: &user.IsActive,
-// 	}
-// }
