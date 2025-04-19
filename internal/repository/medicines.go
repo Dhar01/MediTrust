@@ -18,17 +18,17 @@ type MedicineRepository interface {
 	FetchMedicineByID(ctx context.Context, medID uuid.UUID) (models.Medicine, error)
 }
 
-type MedRepoImpl struct {
+type medRepoImpl struct {
 	DB medDB.Queries
 }
 
 func NewMedicineRepo(db medDB.Queries) MedicineRepository {
-	return MedRepoImpl{
+	return medRepoImpl{
 		DB: db,
 	}
 }
 
-func (repo MedRepoImpl) CreateMedicine(ctx context.Context, med models.CreateMedicineDTO) (models.Medicine, error) {
+func (repo medRepoImpl) CreateMedicine(ctx context.Context, med models.CreateMedicineDTO) (models.Medicine, error) {
 	medicine, err := repo.DB.CreateMedicine(ctx, medDB.CreateMedicineParams{
 		Name:         med.Name,
 		Dosage:       med.Dosage,
@@ -37,7 +37,6 @@ func (repo MedRepoImpl) CreateMedicine(ctx context.Context, med models.CreateMed
 		Price:        med.Price,
 		Stock:        med.Stock,
 	})
-
 	if err != nil {
 		return wrapMedicineErr(err)
 	}
@@ -45,7 +44,7 @@ func (repo MedRepoImpl) CreateMedicine(ctx context.Context, med models.CreateMed
 	return toMedicineDomain(medicine), nil
 }
 
-func (repo MedRepoImpl) UpdateMedicine(ctx context.Context, med models.Medicine) (models.Medicine, error) {
+func (repo medRepoImpl) UpdateMedicine(ctx context.Context, med models.Medicine) (models.Medicine, error) {
 	updatedMedicine, err := repo.DB.UpdateMedicine(ctx, medDB.UpdateMedicineParams{
 		ID:           med.Id,
 		Name:         med.Name,
@@ -55,11 +54,6 @@ func (repo MedRepoImpl) UpdateMedicine(ctx context.Context, med models.Medicine)
 		Price:        med.Price,
 		Stock:        med.Stock,
 	})
-
-	if errors.Is(err, pgx.ErrNoRows) {
-		return wrapMedicineErr(errs.ErrMedicineNotUpdate)
-	}
-
 	if err != nil {
 		return wrapMedicineErr(err)
 	}
@@ -67,16 +61,12 @@ func (repo MedRepoImpl) UpdateMedicine(ctx context.Context, med models.Medicine)
 	return toMedicineDomain(updatedMedicine), nil
 }
 
-func (repo MedRepoImpl) DeleteMedicine(ctx context.Context, medID uuid.UUID) error {
-	return repo.DB.DeleteMedicine(ctx, medID)
+func (repo medRepoImpl) DeleteMedicine(ctx context.Context, medID uuid.UUID) error {
+	return wrapMedSpecErr(repo.DB.DeleteMedicine(ctx, medID))
 }
 
-func (repo MedRepoImpl) FetchMedicineByID(ctx context.Context, medID uuid.UUID) (models.Medicine, error) {
+func (repo medRepoImpl) FetchMedicineByID(ctx context.Context, medID uuid.UUID) (models.Medicine, error) {
 	medicine, err := repo.DB.GetMedicine(ctx, medID)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return wrapMedicineErr(errs.ErrNotFound)
-	}
-
 	if err != nil {
 		return wrapMedicineErr(err)
 	}
@@ -97,5 +87,13 @@ func toMedicineDomain(dbMed medDB.Medicine) models.Medicine {
 }
 
 func wrapMedicineErr(err error) (models.Medicine, error) {
-	return models.Medicine{}, err
+	return models.Medicine{}, wrapMedSpecErr(err)
+}
+
+func wrapMedSpecErr(err error) error {
+	if errors.Is(err, pgx.ErrNoRows) {
+		return errs.ErrNotFound
+	}
+
+	return err
 }
