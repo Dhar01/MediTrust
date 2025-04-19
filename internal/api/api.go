@@ -1,56 +1,40 @@
 package api
 
-import "medicine-app/internal/services"
+import (
+	"medicine-app/config"
+	med_gen "medicine-app/internal/api/medicines_gen"
+	"medicine-app/internal/repository"
+	"medicine-app/internal/services"
 
-// type API struct {
-// 	userAPI UserAPI
-// 	authAPI AuthAPI
-// 	medAPI  MedicineAPI
-// }
+	"github.com/labstack/echo/v4"
+)
 
 type API struct {
-	services   *services.Services
-	MedService services.MedService
+	services *services.Services
+	MedAPI   MedicineAPI
 }
 
-func NewAPI(srv *services.Services) API {
+func NewAPI(srv *services.Services) *API {
 	if srv == nil {
 		panic("services can't be nil")
 	}
 
-	return API{
-		services:   srv,
-		MedService: srv.MedService,
+	return &API{
+		services: srv,
+		MedAPI:   NewMedicineAPI(srv.MedService),
 	}
 }
 
-// type AuthAPI struct {
-// 	service *services.Services
+// func Routes(router *echo.Echo, cfg *config.Config, baseURL string) {
+// 	repo := repository.NewRepository(cfg.DB)
+// 	srv := services.NewServices(repo)
+// 	medRoutes := med_gen.NewStrictHandler(NewMedicineAPI(srv.MedService), nil)
 // }
 
-// type MedicineAPI struct {
-// 	service *services.Services
-// }
-
-// func NewAPI(srv *services.Services) API {
-// 	if srv == nil {
-// 		panic("service can't be nil")
-// 	}
-// 	return API{
-// 		userAPI: newUserAPI(srv),
-// 		authAPI: newAuthAPI(srv),
-// 		medAPI:  newMedicineAPI(srv),
-// 	}
-// }
-
-// func newAuthAPI(srv *services.Services) AuthAPI {
-// 	return AuthAPI{
-// 		service: srv,
-// 	}
-// }
-
-// func newMedicineAPI(srv *services.Services) MedicineAPI {
-// 	return MedicineAPI{
-// 		service: srv,
-// 	}
-// }
+func MedicineRoutes(router *echo.Echo, cfg *config.Config, baseURL string) {
+	repo := repository.NewMedicineRepo(cfg.DB.Medicine)
+	srv := services.NewMedicineService(repo)
+	api := NewMedicineAPI(srv)
+	server := med_gen.NewStrictHandler(api, nil)
+	med_gen.RegisterHandlersWithBaseURL(router, server, baseURL)
+}

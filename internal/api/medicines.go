@@ -2,7 +2,9 @@ package api
 
 import (
 	"context"
+	"errors"
 	med_gen "medicine-app/internal/api/medicines_gen"
+	"medicine-app/internal/errs"
 	"medicine-app/internal/services"
 	"medicine-app/models"
 
@@ -53,7 +55,7 @@ func (api MedicineAPI) DeleteMedicineByID(ctx context.Context, request med_gen.D
 func (api MedicineAPI) FetchMedicineByID(ctx context.Context, request med_gen.FetchMedicineByIDRequestObject) (med_gen.FetchMedicineByIDResponseObject, error) {
 	medicine, err := api.medService.FetchMedicineByID(ctx, request.MedicineID)
 	if err != nil {
-		return med_gen.InternalServerErrorResponse{}, err
+		return med_gen.NotFoundErrorResponse{}, err
 	}
 
 	return med_gen.FetchMedicineByID200JSONResponse(toMedicineDomain(medicine)), nil
@@ -69,8 +71,12 @@ func (api MedicineAPI) UpdateMedicineInfoByID(ctx context.Context, request med_g
 		Stock:        *request.Body.Stock,
 	})
 
+	if errors.Is(err, errs.ErrMedicineNotExist) {
+		return med_gen.NotFoundErrorResponse{}, errs.ErrMedicineNotExist
+	}
+
 	if err != nil {
-		return med_gen.NotFoundErrorResponse{}, err
+		return med_gen.InternalServerErrorResponse{}, err
 	}
 
 	return med_gen.UpdateMedicineInfoByID202JSONResponse(toMedicineDomain(medicine)), nil

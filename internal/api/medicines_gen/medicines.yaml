@@ -88,8 +88,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Medicine'
-                "400":
-                    $ref: '#/components/responses/BadRequestError'
+                "404":
+                    $ref: '#/components/responses/NotFoundError'
                 "500":
                     $ref: '#/components/responses/InternalServerError'
 
