@@ -1,9 +1,11 @@
 package services
 
-import "medicine-app/internal/repository"
+import (
+	"medicine-app/internal/repository"
+)
 
 type Services struct {
-	MedService MedService
+	MedService  MedService
 	AuthService AuthService
 	UserService UserService
 }
