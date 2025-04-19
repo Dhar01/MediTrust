@@ -12,10 +12,10 @@ import (
 )
 
 type MedicineRepository interface {
-	CreateMedicine(ctx context.Context, med models.CreateMedicineDTO) (models.Medicine, error)
+	CreateMedicine(ctx context.Context, med models.CreateMedicineDTO) (*models.Medicine, error)
 	DeleteMedicine(ctx context.Context, medID uuid.UUID) error
-	UpdateMedicine(ctx context.Context, med models.Medicine) (models.Medicine, error)
-	FetchMedicineByID(ctx context.Context, medID uuid.UUID) (models.Medicine, error)
+	UpdateMedicine(ctx context.Context, med models.Medicine) (*models.Medicine, error)
+	FetchMedicineByID(ctx context.Context, medID uuid.UUID) (*models.Medicine, error)
 }
 
 type medRepo struct {
@@ -23,12 +23,16 @@ type medRepo struct {
 }
 
 func NewMedicineRepo(db *medDB.Queries) MedicineRepository {
+	if db == nil {
+		panic("database can't be nil")
+	}
+
 	return &medRepo{
 		DB: db,
 	}
 }
 
-func (repo *medRepo) CreateMedicine(ctx context.Context, med models.CreateMedicineDTO) (models.Medicine, error) {
+func (repo *medRepo) CreateMedicine(ctx context.Context, med models.CreateMedicineDTO) (*models.Medicine, error) {
 	medicine, err := repo.DB.CreateMedicine(ctx, medDB.CreateMedicineParams{
 		Name:         med.Name,
 		Dosage:       med.Dosage,
@@ -44,7 +48,7 @@ func (repo *medRepo) CreateMedicine(ctx context.Context, med models.CreateMedici
 	return toMedicineDomain(medicine), nil
 }
 
-func (repo *medRepo) UpdateMedicine(ctx context.Context, med models.Medicine) (models.Medicine, error) {
+func (repo *medRepo) UpdateMedicine(ctx context.Context, med models.Medicine) (*models.Medicine, error) {
 	updatedMedicine, err := repo.DB.UpdateMedicine(ctx, medDB.UpdateMedicineParams{
 		ID:           med.Id,
 		Name:         med.Name,
@@ -65,7 +69,7 @@ func (repo *medRepo) DeleteMedicine(ctx context.Context, medID uuid.UUID) error 
 	return wrapMedSpecErr(repo.DB.DeleteMedicine(ctx, medID))
 }
 
-func (repo *medRepo) FetchMedicineByID(ctx context.Context, medID uuid.UUID) (models.Medicine, error) {
+func (repo *medRepo) FetchMedicineByID(ctx context.Context, medID uuid.UUID) (*models.Medicine, error) {
 	medicine, err := repo.DB.GetMedicine(ctx, medID)
 	if err != nil {
 		return wrapMedicineErr(err)
@@ -74,8 +78,8 @@ func (repo *medRepo) FetchMedicineByID(ctx context.Context, medID uuid.UUID) (mo
 	return toMedicineDomain(medicine), nil
 }
 
-func toMedicineDomain(dbMed medDB.Medicine) models.Medicine {
-	return models.Medicine{
+func toMedicineDomain(dbMed medDB.Medicine) *models.Medicine {
+	return &models.Medicine{
 		Id:           dbMed.ID,
 		Name:         dbMed.Name,
 		Dosage:       dbMed.Dosage,
@@ -86,8 +90,8 @@ func toMedicineDomain(dbMed medDB.Medicine) models.Medicine {
 	}
 }
 
-func wrapMedicineErr(err error) (models.Medicine, error) {
-	return models.Medicine{}, wrapMedSpecErr(err)
+func wrapMedicineErr(err error) (*models.Medicine, error) {
+	return nil, wrapMedSpecErr(err)
 }
 
 func wrapMedSpecErr(err error) error {

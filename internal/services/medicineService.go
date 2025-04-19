@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"errors"
-	"log"
 	"medicine-app/internal/errs"
 	"medicine-app/internal/repository"
 	"medicine-app/models"
@@ -12,10 +11,10 @@ import (
 )
 
 type MedService interface {
-	CreateMedicine(ctx context.Context, med models.CreateMedicineDTO) (models.Medicine, error)
-	UpdateMedicine(ctx context.Context, medID uuid.UUID, med models.UpdateMedicineDTO) (models.Medicine, error)
+	CreateMedicine(ctx context.Context, med models.CreateMedicineDTO) (*models.Medicine, error)
+	UpdateMedicine(ctx context.Context, medID uuid.UUID, med models.UpdateMedicineDTO) (*models.Medicine, error)
 	DeleteMedicine(ctx context.Context, medID uuid.UUID) error
-	FetchMedicineByID(ctx context.Context, medID uuid.UUID) (models.Medicine, error)
+	FetchMedicineByID(ctx context.Context, medID uuid.UUID) (*models.Medicine, error)
 }
 
 type medicineService struct {
@@ -23,12 +22,16 @@ type medicineService struct {
 }
 
 func NewMedicineService(repo repository.MedicineRepository) MedService {
+	if repo == nil {
+		panic("repository can't be nil/empty")
+	}
+
 	return &medicineService{
 		medicineRepo: repo,
 	}
 }
 
-func (srv *medicineService) CreateMedicine(ctx context.Context, med models.CreateMedicineDTO) (models.Medicine, error) {
+func (srv *medicineService) CreateMedicine(ctx context.Context, med models.CreateMedicineDTO) (*models.Medicine, error) {
 	return srv.medicineRepo.CreateMedicine(ctx, med)
 }
 
@@ -36,7 +39,7 @@ func (srv *medicineService) DeleteMedicine(ctx context.Context, medID uuid.UUID)
 	return srv.medicineRepo.DeleteMedicine(ctx, medID)
 }
 
-func (srv *medicineService) UpdateMedicine(ctx context.Context, medID uuid.UUID, med models.UpdateMedicineDTO) (models.Medicine, error) {
+func (srv *medicineService) UpdateMedicine(ctx context.Context, medID uuid.UUID, med models.UpdateMedicineDTO) (*models.Medicine, error) {
 	oldMedicine, err := srv.medicineRepo.FetchMedicineByID(ctx, medID)
 	if err != nil {
 		return wrapMedicineErr(err)
@@ -51,24 +54,21 @@ func (srv *medicineService) UpdateMedicine(ctx context.Context, medID uuid.UUID,
 		Price:        *updateIntPointerField(&med.Price, &oldMedicine.Price),
 		Stock:        *updateIntPointerField(&med.Price, &oldMedicine.Price),
 	})
-
-	log.Println(newMedicine)
-	log.Println(err)
 	if err != nil {
 		return wrapMedicineErr(err)
 	}
 
-	return srv.medicineRepo.UpdateMedicine(ctx, newMedicine)
+	return newMedicine, nil
 }
 
-func (srv *medicineService) FetchMedicineByID(ctx context.Context, medID uuid.UUID) (models.Medicine, error) {
+func (srv *medicineService) FetchMedicineByID(ctx context.Context, medID uuid.UUID) (*models.Medicine, error) {
 	return srv.medicineRepo.FetchMedicineByID(ctx, medID)
 }
 
-func wrapMedicineErr(err error) (models.Medicine, error) {
+func wrapMedicineErr(err error) (*models.Medicine, error) {
 	if errors.Is(err, errs.ErrNotFound) {
-		return models.Medicine{}, errs.ErrMedicineNotExist
+		return nil, errs.ErrMedicineNotExist
 	}
 
-	return models.Medicine{}, err
+	return nil, err
 }

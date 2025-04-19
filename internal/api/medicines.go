@@ -94,7 +94,7 @@ func (api *medicineAPI) UpdateMedicineInfoByID(ctx context.Context, request med_
 // 	return med_gen.FetchMedicineList200JSONResponse(medList), nil
 // }
 
-func toMedicineDomain(medicine models.Medicine) med_gen.Medicine {
+func toMedicineDomain(medicine *models.Medicine) med_gen.Medicine {
 	return med_gen.Medicine{
 		Id:           (*uuid.UUID)(&medicine.Id),
 		Name:         &medicine.Name,
