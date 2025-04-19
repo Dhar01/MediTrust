@@ -18,25 +18,25 @@ type MedService interface {
 	FetchMedicineByID(ctx context.Context, medID uuid.UUID) (models.Medicine, error)
 }
 
-type MedicineServiceImpl struct {
+type medicineServiceImpl struct {
 	medicineRepo repository.MedicineRepository
 }
 
 func NewMedicineService(repo repository.MedicineRepository) MedService {
-	return MedicineServiceImpl{
+	return medicineServiceImpl{
 		medicineRepo: repo,
 	}
 }
 
-func (srv MedicineServiceImpl) CreateMedicine(ctx context.Context, med models.CreateMedicineDTO) (models.Medicine, error) {
+func (srv medicineServiceImpl) CreateMedicine(ctx context.Context, med models.CreateMedicineDTO) (models.Medicine, error) {
 	return srv.medicineRepo.CreateMedicine(ctx, med)
 }
 
-func (srv MedicineServiceImpl) DeleteMedicine(ctx context.Context, medID uuid.UUID) error {
+func (srv medicineServiceImpl) DeleteMedicine(ctx context.Context, medID uuid.UUID) error {
 	return srv.medicineRepo.DeleteMedicine(ctx, medID)
 }
 
-func (srv MedicineServiceImpl) UpdateMedicine(ctx context.Context, medID uuid.UUID, med models.UpdateMedicineDTO) (models.Medicine, error) {
+func (srv medicineServiceImpl) UpdateMedicine(ctx context.Context, medID uuid.UUID, med models.UpdateMedicineDTO) (models.Medicine, error) {
 	oldMedicine, err := srv.medicineRepo.FetchMedicineByID(ctx, medID)
 	if err != nil {
 		return wrapMedicineErr(err)
@@ -61,24 +61,8 @@ func (srv MedicineServiceImpl) UpdateMedicine(ctx context.Context, medID uuid.UU
 	return srv.medicineRepo.UpdateMedicine(ctx, newMedicine)
 }
 
-func (srv MedicineServiceImpl) FetchMedicineByID(ctx context.Context, medID uuid.UUID) (models.Medicine, error) {
+func (srv medicineServiceImpl) FetchMedicineByID(ctx context.Context, medID uuid.UUID) (models.Medicine, error) {
 	return srv.medicineRepo.FetchMedicineByID(ctx, medID)
-}
-
-func updateField(newValue, oldValue string) string {
-	if newValue == "" {
-		return oldValue
-	}
-
-	return newValue
-}
-
-func updateIntPointerField(newValue, oldValue *int32) *int32 {
-	if newValue == nil {
-		return oldValue
-	}
-
-	return newValue
 }
 
 func wrapMedicineErr(err error) (models.Medicine, error) {
