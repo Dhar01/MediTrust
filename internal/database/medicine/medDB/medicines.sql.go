@@ -8,7 +8,7 @@ package medDB
 import (
 	"context"
 
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/google/uuid"
 )
 
 const createMedicine = `-- name: CreateMedicine :one
@@ -66,7 +66,7 @@ DELETE FROM medicines
 WHERE id = $1
 `
 
-func (q *Queries) DeleteMedicine(ctx context.Context, id pgtype.UUID) error {
+func (q *Queries) DeleteMedicine(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.Exec(ctx, deleteMedicine, id)
 	return err
 }
@@ -76,7 +76,7 @@ SELECT id, name, dosage, description, manufacturer, price, stock, created_at, up
 WHERE id = $1
 `
 
-func (q *Queries) GetMedicine(ctx context.Context, id pgtype.UUID) (Medicine, error) {
+func (q *Queries) GetMedicine(ctx context.Context, id uuid.UUID) (Medicine, error) {
 	row := q.db.QueryRow(ctx, getMedicine, id)
 	var i Medicine
 	err := row.Scan(
@@ -145,7 +145,7 @@ SET
     manufacturer = $4,
     price = $5,
     stock = $6,
-    updated_at = NOW()
+    updated_at = NOW() + interval '1 second'
 WHERE id = $7
 RETURNING id, name, dosage, description, manufacturer, price, stock, created_at, updated_at
 `
@@ -157,7 +157,7 @@ type UpdateMedicineParams struct {
 	Manufacturer string
 	Price        int32
 	Stock        int32
-	ID           pgtype.UUID
+	ID           uuid.UUID
 }
 
 func (q *Queries) UpdateMedicine(ctx context.Context, arg UpdateMedicineParams) (Medicine, error) {

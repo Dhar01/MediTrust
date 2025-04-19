@@ -5,33 +5,34 @@
 package medDB
 
 import (
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Admin struct {
-	AdminID      pgtype.UUID
+	AdminID      uuid.UUID
 	IsSuperAdmin bool
 	CreatedAt    pgtype.Timestamp
 	UpdatedAt    pgtype.Timestamp
 }
 
 type Cart struct {
-	ID        pgtype.UUID
-	UserID    pgtype.UUID
+	ID        uuid.UUID
+	UserID    uuid.UUID
 	CreatedAt pgtype.Timestamp
 }
 
 type CartItem struct {
 	ID         int32
-	CartID     pgtype.UUID
-	MedicineID pgtype.UUID
+	CartID     uuid.UUID
+	MedicineID uuid.UUID
 	Quantity   int32
 	Price      int32
 	CreatedAt  pgtype.Timestamp
 }
 
 type Medicine struct {
-	ID           pgtype.UUID
+	ID           uuid.UUID
 	Name         string
 	Dosage       string
 	Description  string
@@ -44,7 +45,7 @@ type Medicine struct {
 
 type RefreshToken struct {
 	Refreshtoken string
-	UserID       pgtype.UUID
+	UserID       uuid.UUID
 	ExpiresAt    pgtype.Timestamp
 	RevokedAt    pgtype.Timestamp
 	CreatedAt    pgtype.Timestamp
@@ -52,7 +53,7 @@ type RefreshToken struct {
 }
 
 type User struct {
-	ID           pgtype.UUID
+	ID           uuid.UUID
 	FirstName    string
 	LastName     string
 	Age          int32
@@ -66,7 +67,7 @@ type User struct {
 }
 
 type UserAddress struct {
-	UserID        pgtype.UUID
+	UserID        uuid.UUID
 	Country       string
 	City          string
 	StreetAddress string
