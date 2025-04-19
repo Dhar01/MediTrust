@@ -3,6 +3,8 @@ package services
 import (
 	"context"
 	"errors"
+	"log"
+	"medicine-app/internal/errs"
 	"medicine-app/internal/repository"
 	"medicine-app/models"
 
@@ -37,10 +39,11 @@ func (srv MedicineServiceImpl) DeleteMedicine(ctx context.Context, medID uuid.UU
 func (srv MedicineServiceImpl) UpdateMedicine(ctx context.Context, medID uuid.UUID, med models.UpdateMedicineDTO) (models.Medicine, error) {
 	oldMedicine, err := srv.medicineRepo.FetchMedicineByID(ctx, medID)
 	if err != nil {
-		return wrapMedicineErr(errors.New("medicine doesn't exist"))
+		return wrapMedicineErr(err)
 	}
 
 	newMedicine, err := srv.medicineRepo.UpdateMedicine(ctx, models.Medicine{
+		Id:           medID,
 		Name:         updateField(med.Name, oldMedicine.Name),
 		Dosage:       updateField(med.Dosage, oldMedicine.Dosage),
 		Manufacturer: updateField(med.Manufacturer, oldMedicine.Manufacturer),
@@ -49,6 +52,8 @@ func (srv MedicineServiceImpl) UpdateMedicine(ctx context.Context, medID uuid.UU
 		Stock:        *updateIntPointerField(&med.Price, &oldMedicine.Price),
 	})
 
+	log.Println(newMedicine)
+	log.Println(err)
 	if err != nil {
 		return wrapMedicineErr(err)
 	}
@@ -77,5 +82,9 @@ func updateIntPointerField(newValue, oldValue *int32) *int32 {
 }
 
 func wrapMedicineErr(err error) (models.Medicine, error) {
+	if errors.Is(err, errs.ErrNotFound) {
+		return models.Medicine{}, errs.ErrMedicineNotExist
+	}
+
 	return models.Medicine{}, err
 }
