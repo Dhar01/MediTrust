@@ -125,9 +125,6 @@ components:
             bearerFormat: JWT
 
     schemas:
-
-        # ==================== MODELS ======================
-
         User:
             type: object
             properties:
@@ -194,16 +191,6 @@ components:
                 postal_code:
                     type: string
                     example: '1207'
-
-        Error500Problem:
-            type: object
-            properties:
-                message:
-                    type: string
-                status:
-                    type: integer
-                    format: int32
-                    example: 500
 
         # ==================== UserInformation =========================
 

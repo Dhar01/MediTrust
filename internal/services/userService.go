@@ -2,89 +2,73 @@ package services
 
 import (
 	"context"
-	"medicine-app/config"
-	users "medicine-app/internal/api/users_gen"
-	"medicine-app/internal/database"
+	"errors"
+	"medicine-app/internal/errs"
+	"medicine-app/internal/repository"
+	"medicine-app/models"
 
-	"github.com/gin-gonic/gin"
-	"github.com/oapi-codegen/runtime/types"
+	"github.com/google/uuid"
 )
 
-func UserRoutes(router *gin.RouterGroup, cfg *config.Config) {
-	userServer := newUserServer(cfg.DB)
-	handlers := users.NewStrictHandler(userServer, []users.StrictMiddlewareFunc{})
-	users.RegisterHandlers(router, handlers)
+type UserService interface {
+	FetchUserByID(ctx context.Context, id uuid.UUID) (models.User, error)
+	DeleteUserByID(ctx context.Context, id uuid.UUID) error
+	UpdateUserInfoByID(ctx context.Context, id uuid.UUID, updateInfo models.UpdateUserRequest) (models.User, error)
 }
 
 type userService struct {
-	DB *database.Queries
+	userRepo repository.UserRepository
 }
 
-var _ users.StrictServerInterface = (*userService)(nil)
-
-func newUserServer(db *database.Queries) *userService {
-	if db == nil {
-		panic("database can't be nil")
-	}
-
+func NewUserService(repo repository.UserRepository) UserService {
 	return &userService{
-		DB: db,
+		userRepo: repo,
 	}
 }
 
-func (us *userService) DeleteUserByID(ctx context.Context, request users.DeleteUserByIDRequestObject) (users.DeleteUserByIDResponseObject, error) {
-	if err := us.DB.DeleteUser(ctx, request.UserID); err != nil {
-		return users.DeleteUserByID401Response{}, err
-	}
-
-	return users.DeleteUserByID204Response{}, nil
-}
-
-func (us *userService) FetchUserInfoByID(ctx context.Context, request users.FetchUserInfoByIDRequestObject) (users.FetchUserInfoByIDResponseObject, error) {
-	user, err := us.DB.GetUserByID(ctx, request.UserID)
+func (srv *userService) FetchUserByID(ctx context.Context, id uuid.UUID) (models.User, error) {
+	user, err := srv.userRepo.FetchUserByID(ctx, id)
 	if err != nil {
-		return users.FetchUserInfoByID404Response{}, err
+		return wrapUserErr(err)
 	}
 
-	return users.FetchUserInfoByID200JSONResponse(users.FetchUserInfoResponse{
-		Name: &users.FullName{
-			FirstName: &user.FirstName,
-			LastName:  &user.LastName,
+	return user, nil
+}
+
+func (srv *userService) DeleteUserByID(ctx context.Context, id uuid.UUID) error {
+	return wrapUserSpecErr(srv.userRepo.DeleteUserByID(ctx, id))
+}
+
+func (srv *userService) UpdateUserInfoByID(ctx context.Context, id uuid.UUID, updateInfo models.UpdateUserRequest) (models.User, error) {
+	oldInfo, err := srv.userRepo.FetchUserByID(ctx, id)
+	if err != nil {
+		return wrapUserErr(err)
+	}
+
+	user, err := srv.userRepo.UpdateUserInfo(ctx, models.User{
+		Name: models.FullName{
+			FirstName: updateField(updateInfo.Name.FirstName, oldInfo.Name.FirstName),
+			LastName:  updateField(updateInfo.Name.LastName, oldInfo.Name.LastName),
 		},
-		Age:      &user.Age,
-		Email:    (*types.Email)(&user.Email),
-		IsActive: &user.Verified,
-		Phone:    &user.Phone,
-		Role:     &user.Role,
-	}), nil
-
-}
-
-func (us *userService) UpdateUserInfoByID(ctx context.Context, request users.UpdateUserInfoByIDRequestObject) (users.UpdateUserInfoByIDResponseObject, error) {
-	oldInfo, err := us.DB.GetUserByID(ctx, request.UserID)
-	if err != nil {
-		return users.UpdateUserInfoByID401Response{}, err
-	}
-
-	updateInfo, err := us.DB.UpdateUser(ctx, database.UpdateUserParams{
-		FirstName: updateField(*request.Body.Name.FirstName, oldInfo.FirstName),
-		LastName:  updateField(*request.Body.Name.LastName, oldInfo.LastName),
-		Phone:     updateField(*request.Body.Phone, oldInfo.Phone),
-		Age:       *updateIntPointerField(request.Body.Age, &oldInfo.Age),
+		Age:   *updateIntPointerField(&updateInfo.Age, &oldInfo.Age),
+		Phone: updateField(updateInfo.Phone, oldInfo.Phone),
+		Email: updateField(updateInfo.Email, oldInfo.Email),
 	})
 	if err != nil {
-		return users.UpdateUserInfoByID500Response{}, err
+		return wrapUserErr(err)
 	}
 
-	return users.UpdateUserInfoByID202JSONResponse(users.UpdateUserResponse{
-		Name: users.FullName{
-			FirstName: &updateInfo.FirstName,
-			LastName:  &updateInfo.LastName,
-		},
-		Email:    types.Email(updateInfo.Email),
-		IsActive: updateInfo.Verified,
-		Phone:    updateInfo.Phone,
-		Age:      updateInfo.Age,
-		Role:     updateInfo.Role,
-	}), nil
+	return user, nil
+}
+
+func wrapUserErr(err error) (models.User, error) {
+	return models.User{}, wrapUserSpecErr(err)
+}
+
+func wrapUserSpecErr(err error) error {
+	if errors.Is(err, errs.ErrNotFound) {
+		return errs.ErrUserNotExist
+	}
+
+	return err
 }
