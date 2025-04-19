@@ -8,6 +8,7 @@ package userDB
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -15,7 +16,7 @@ const checkAddressExist = `-- name: CheckAddressExist :one
 SELECT EXISTS (SELECT 1 FROM user_address WHERE user_id = $1)
 `
 
-func (q *Queries) CheckAddressExist(ctx context.Context, userID pgtype.UUID) (bool, error) {
+func (q *Queries) CheckAddressExist(ctx context.Context, userID uuid.UUID) (bool, error) {
 	row := q.db.QueryRow(ctx, checkAddressExist, userID)
 	var exists bool
 	err := row.Scan(&exists)
@@ -38,7 +39,7 @@ RETURNING user_id, country, city, street_address, postal_code, created_at, updat
 `
 
 type CreateUserAddressParams struct {
-	UserID        pgtype.UUID
+	UserID        uuid.UUID
 	Country       string
 	City          string
 	StreetAddress string
@@ -71,7 +72,7 @@ SELECT user_id, country, city, street_address, postal_code, created_at, updated_
 WHERE user_id = $1
 `
 
-func (q *Queries) GetAddress(ctx context.Context, userID pgtype.UUID) (UserAddress, error) {
+func (q *Queries) GetAddress(ctx context.Context, userID uuid.UUID) (UserAddress, error) {
 	row := q.db.QueryRow(ctx, getAddress, userID)
 	var i UserAddress
 	err := row.Scan(
@@ -94,7 +95,7 @@ WHERE users.id = $1
 `
 
 type GetUserWithAddressRow struct {
-	ID            pgtype.UUID
+	ID            uuid.UUID
 	FirstName     string
 	LastName      string
 	Age           int32
@@ -114,7 +115,7 @@ type GetUserWithAddressRow struct {
 	UpdatedAt_2   pgtype.Timestamp
 }
 
-func (q *Queries) GetUserWithAddress(ctx context.Context, id pgtype.UUID) (GetUserWithAddressRow, error) {
+func (q *Queries) GetUserWithAddress(ctx context.Context, id uuid.UUID) (GetUserWithAddressRow, error) {
 	row := q.db.QueryRow(ctx, getUserWithAddress, id)
 	var i GetUserWithAddressRow
 	err := row.Scan(
@@ -166,7 +167,7 @@ type UpdateAddressParams struct {
 	City          string
 	StreetAddress string
 	PostalCode    pgtype.Text
-	UserID        pgtype.UUID
+	UserID        uuid.UUID
 }
 
 func (q *Queries) UpdateAddress(ctx context.Context, arg UpdateAddressParams) (UserAddress, error) {

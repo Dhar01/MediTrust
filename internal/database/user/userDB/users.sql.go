@@ -8,7 +8,7 @@ package userDB
 import (
 	"context"
 
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/google/uuid"
 )
 
 const countUsers = `-- name: CountUsers :one
@@ -82,7 +82,7 @@ DELETE FROM users
 WHERE id = $1
 `
 
-func (q *Queries) DeleteUser(ctx context.Context, id pgtype.UUID) error {
+func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.Exec(ctx, deleteUser, id)
 	return err
 }
@@ -93,7 +93,7 @@ SELECT password_hash, id FROM users WHERE email = $1
 
 type GetPassRow struct {
 	PasswordHash string
-	ID           pgtype.UUID
+	ID           uuid.UUID
 }
 
 func (q *Queries) GetPass(ctx context.Context, email string) (GetPassRow, error) {
@@ -107,7 +107,7 @@ const getRole = `-- name: GetRole :one
 SELECT role FROM users WHERE id = $1
 `
 
-func (q *Queries) GetRole(ctx context.Context, id pgtype.UUID) (string, error) {
+func (q *Queries) GetRole(ctx context.Context, id uuid.UUID) (string, error) {
 	row := q.db.QueryRow(ctx, getRole, id)
 	var role string
 	err := row.Scan(&role)
@@ -141,7 +141,7 @@ const getUserByID = `-- name: GetUserByID :one
 SELECT id, first_name, last_name, age, role, email, verified, phone, password_hash, created_at, updated_at FROM users WHERE id = $1
 `
 
-func (q *Queries) GetUserByID(ctx context.Context, id pgtype.UUID) (User, error) {
+func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 	row := q.db.QueryRow(ctx, getUserByID, id)
 	var i User
 	err := row.Scan(
@@ -188,7 +188,7 @@ SELECT verified FROM users
 WHERE id = $1
 `
 
-func (q *Queries) GetVerified(ctx context.Context, id pgtype.UUID) (bool, error) {
+func (q *Queries) GetVerified(ctx context.Context, id uuid.UUID) (bool, error) {
 	row := q.db.QueryRow(ctx, getVerified, id)
 	var verified bool
 	err := row.Scan(&verified)
@@ -205,7 +205,7 @@ WHERE id = $2
 
 type ResetPasswordParams struct {
 	PasswordHash string
-	ID           pgtype.UUID
+	ID           uuid.UUID
 }
 
 func (q *Queries) ResetPassword(ctx context.Context, arg ResetPasswordParams) error {
@@ -230,7 +230,7 @@ SET
 WHERE id = $1
 `
 
-func (q *Queries) SetVerified(ctx context.Context, id pgtype.UUID) error {
+func (q *Queries) SetVerified(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.Exec(ctx, setVerified, id)
 	return err
 }
@@ -254,7 +254,7 @@ type UpdateUserParams struct {
 	Email     string
 	Age       int32
 	Phone     string
-	ID        pgtype.UUID
+	ID        uuid.UUID
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
