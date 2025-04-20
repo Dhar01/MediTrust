@@ -18,6 +18,10 @@ type medicineAPI struct {
 var _ med_gen.StrictServerInterface = (*medicineAPI)(nil)
 
 func newMedicineAPI(srv services.MedService) *medicineAPI {
+	if srv == nil {
+		panic("medicine service can't be empty/nil")
+	}
+
 	return &medicineAPI{
 		medService: srv,
 	}
