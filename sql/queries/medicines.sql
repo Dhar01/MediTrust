@@ -37,6 +37,3 @@ RETURNING *;
 -- name: DeleteMedicine :exec
 DELETE FROM medicines
 WHERE id = $1;
-
--- name: ResetMedicines :exec
-DELETE FROM medicines;
