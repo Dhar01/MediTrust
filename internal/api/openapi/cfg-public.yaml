@@ -1,5 +1,5 @@
-package: auth_gen
-output: ./auth_gen/auth.gen.go
+package: public_gen
+output: ./public_gen/public.gen.go
 generate:
     models: true
     # gin-server: true
