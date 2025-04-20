@@ -35,6 +35,3 @@ SET
     updated_at = NOW()
 WHERE user_id = $5
 RETURNING *;
-
--- name: ResetAddress :exec
-DELETE FROM user_address;
