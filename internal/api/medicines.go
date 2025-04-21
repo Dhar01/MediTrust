@@ -28,6 +28,7 @@ func newMedicineAPI(srv services.MedService) *medicineAPI {
 }
 
 func (api *medicineAPI) FetchMedicineList(ctx context.Context, request med_gen.FetchMedicineListRequestObject) (med_gen.FetchMedicineListResponseObject, error) {
+
 	return med_gen.FetchMedicineList200JSONResponse{}, nil
 }
 
