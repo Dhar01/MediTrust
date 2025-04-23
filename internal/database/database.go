@@ -1,8 +1,8 @@
 package database
 
 import (
-	"medicine-app/internal/database/auth/tokenDB"
 	"medicine-app/internal/database/cart/cartDB"
+	"medicine-app/internal/database/general/genDB"
 	"medicine-app/internal/database/medicine/medDB"
 	"medicine-app/internal/database/user/userDB"
 
@@ -13,7 +13,7 @@ type DB struct {
 	User     userDB.Queries
 	Medicine medDB.Queries
 	Cart     cartDB.Queries
-	Token    tokenDB.Queries
+	Helper   genDB.Queries
 }
 
 func New(pool *pgxpool.Pool) *DB {
@@ -21,6 +21,6 @@ func New(pool *pgxpool.Pool) *DB {
 		User:     *userDB.New(pool),
 		Medicine: *medDB.New(pool),
 		Cart:     *cartDB.New(pool),
-		Token:    *tokenDB.New(pool),
+		Helper:   *genDB.New(pool),
 	}
 }
