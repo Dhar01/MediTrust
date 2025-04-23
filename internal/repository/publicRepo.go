@@ -71,12 +71,12 @@ func (repo *publicRepo) SaveRefreshToken(ctx context.Context, id uuid.UUID, toke
 
 func (repo *publicRepo) CreateUser(ctx context.Context, user models.User) (*models.User, error) {
 	userInfo, err := repo.DB.CreateUser(ctx, userDB.CreateUserParams{
-		FirstName:    user.Name.FirstName,
-		LastName:     user.Name.LastName,
-		Email:        user.Email,
-		Age:          user.Age,
-		Phone:        user.Phone,
-		Role:         user.Role,
+		// FirstName:    user.Name.FirstName,
+		// LastName:     user.Name.LastName,
+		Email: user.Email,
+		// Age:          user.Age,
+		// Phone:        user.Phone,
+		// Role:         user.Role,
 		PasswordHash: user.HashPassword,
 	})
 	if err != nil {
