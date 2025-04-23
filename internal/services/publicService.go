@@ -70,7 +70,7 @@ func (srv *publicService) SignUp(ctx context.Context, user models.User) (uuid.UU
 	// * first user will be admin
 	count, err := srv.publicRepo.CountUsers(ctx)
 	if err != nil {
-		return uuid.Nil, err
+		return uuid.Nil, wrapUserSpecErr(fmt.Errorf("can't get the count: %w", err))
 	}
 
 	var role string
@@ -82,18 +82,18 @@ func (srv *publicService) SignUp(ctx context.Context, user models.User) (uuid.UU
 
 	person, err := newUser(user, role)
 	if err != nil {
-		return uuid.Nil, wrapUserSpecErr(err)
+		return uuid.Nil, wrapUserSpecErr(fmt.Errorf("can't create new user: %w", err))
 	}
 
 	userInfo, err := srv.publicRepo.CreateUser(ctx, *person)
 	if err != nil {
-		return uuid.Nil, wrapUserSpecErr(err)
+		return uuid.Nil, wrapUserSpecErr(fmt.Errorf("new user server save error: %w", err))
 	}
 
 	// ! need to handle error properly
 	verificationToken, err := auth.GenerateVerificationToken(userInfo.Id, userInfo.Role, srv.cfg.SecretKey)
 	if err != nil {
-		return uuid.Nil, wrapUserSpecErr(err)
+		return uuid.Nil, wrapUserSpecErr(fmt.Errorf("cant generate verification token: %w", err))
 	}
 
 	// ! need to work on email verification
@@ -108,7 +108,7 @@ func (srv *publicService) SignUp(ctx context.Context, user models.User) (uuid.UU
 
 	// ! need to handle error properly
 	if err := srv.cfg.EmailSender.SendEmail(emailOpts); err != nil {
-		return uuid.Nil, wrapUserSpecErr(err)
+		return uuid.Nil, wrapUserSpecErr(fmt.Errorf("cant send verification email: %w", err))
 	}
 
 	return userInfo.Id, nil
@@ -184,7 +184,7 @@ func wrapUserErr(err error) (*models.User, error) {
 }
 
 func wrapUserSpecErr(err error) error {
-	fmt.Println("! Error:", err)
+	fmt.Println("!>:", err)
 	err = errors.Unwrap(err)
 	if errors.Is(err, errs.ErrNotFound) {
 		return errs.ErrUserNotExist
