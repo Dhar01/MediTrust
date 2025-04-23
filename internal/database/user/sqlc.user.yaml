@@ -6,6 +6,7 @@ sql:
       queries:
         - "../../../sql/queries/users.sql"
         - "../../../sql/queries/address.sql"
+        - "../../../sql/queries/refresh_token.sql"
       gen:
         go:
             package: "userDB"
