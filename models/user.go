@@ -3,15 +3,15 @@ package models
 import "github.com/google/uuid"
 
 type User struct {
-	Address      Address
-	Age          int32
-	Email        string
-	HashPassword string
-	Id           uuid.UUID
-	IsActive     bool
-	Name         FullName
-	Phone        string
-	Role         string
+	Address  Address
+	Age      int32
+	Email    string
+	Password string
+	Id       uuid.UUID
+	IsActive bool
+	Name     FullName
+	Phone    string
+	Role     string
 }
 
 type FullName struct {
