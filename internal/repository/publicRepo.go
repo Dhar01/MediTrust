@@ -77,7 +77,7 @@ func (repo *publicRepo) CreateUser(ctx context.Context, user models.User) (*mode
 		// Age:          user.Age,
 		// Phone:        user.Phone,
 		// Role:         user.Role,
-		PasswordHash: user.HashPassword,
+		PasswordHash: user.Password,
 	})
 	if err != nil {
 		return wrapUserErr(err)
@@ -101,12 +101,12 @@ func toUserDomain(dbUser userDB.User) *models.User {
 			FirstName: dbUser.FirstName,
 			LastName:  dbUser.LastName,
 		},
-		Role:         dbUser.Role,
-		Email:        dbUser.Email,
-		Phone:        dbUser.Phone,
-		Age:          dbUser.Age,
-		IsActive:     dbUser.Verified,
-		HashPassword: dbUser.PasswordHash,
+		Role:     dbUser.Role,
+		Email:    dbUser.Email,
+		Phone:    dbUser.Phone,
+		Age:      dbUser.Age,
+		IsActive: dbUser.Verified,
+		Password: dbUser.PasswordHash,
 	}
 }
 
