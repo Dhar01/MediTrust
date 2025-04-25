@@ -62,8 +62,8 @@ func (api *publicAPI) LogInUserHandler(ctx context.Context, request public_gen.L
 
 func (api *publicAPI) RegisterUserHandler(ctx context.Context, request public_gen.RegisterUserHandlerRequestObject) (public_gen.RegisterUserHandlerResponseObject, error) {
 	id, err := api.publicService.SignUp(ctx, models.User{
-		Email:        string(request.Body.Email),
-		HashPassword: request.Body.Password,
+		Email:    string(request.Body.Email),
+		Password: request.Body.Password,
 	})
 
 	if errors.Is(err, errs.ErrEmailAlreadyExists) {
