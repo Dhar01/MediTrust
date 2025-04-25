@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"medicine-app/config"
 	med_gen "medicine-app/internal/api/medicines_gen"
 	"medicine-app/internal/auth"
@@ -26,6 +25,25 @@ func NewMiddleware(cfg *config.Config) *middleware {
 	}
 }
 
+func (m *middleware) IsUser(next med_gen.StrictHandlerFunc, operationID string) med_gen.StrictHandlerFunc {
+	return func(ctx echo.Context, request any) (any, error) {
+		if err := m.requireLoggedIn(ctx); err != nil {
+			return wrapErr(err)
+		}
+
+		role, ok := ctx.Get("role").(string)
+		if !ok {
+			return wrapErr(errs.ErrUserRoleNotFound)
+		}
+
+		if role != models.Customer {
+			return wrapErr(errs.ErrUserNotExist)
+		}
+
+		return next(ctx, request)
+	}
+}
+
 func (m *middleware) IsAdmin(next med_gen.StrictHandlerFunc, operationID string) med_gen.StrictHandlerFunc {
 	// admin protected
 	protected := map[string]bool{
@@ -45,7 +63,7 @@ func (m *middleware) IsAdmin(next med_gen.StrictHandlerFunc, operationID string)
 
 		role, ok := ctx.Get("role").(string)
 		if !ok {
-			return wrapErr(fmt.Errorf("role not found in context"))
+			return wrapErr(errs.ErrUserRoleNotFound)
 		}
 
 		if role != models.Admin {
