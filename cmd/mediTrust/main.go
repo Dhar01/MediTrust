@@ -29,9 +29,10 @@ func main() {
 
 	router := echo.New()
 	router.Use(middleware.Recover())
-	router.Use(middleware.Secure())
-	router.Logger.SetLevel(0)
 	router.Use(middleware.Logger())
+	router.Use(middleware.Secure())
+	router.Use(middleware.RequestID())
+	router.Use(middleware.CORS())
 
 	// medicines
 	api.MedicineRoutes(router, cfg, apiBase)
