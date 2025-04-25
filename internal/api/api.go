@@ -37,7 +37,7 @@ func MedicineRoutes(router *echo.Echo, cfg *config.Config, baseURL string) {
 	middle := middleware.NewMiddleware(cfg)
 
 	server := med_gen.NewStrictHandler(api, []med_gen.StrictMiddlewareFunc{
-		middle.RequireLoggedIn,
+		middle.IsAdmin,
 	})
 
 	med_gen.RegisterHandlersWithBaseURL(router, server, baseURL)
@@ -57,7 +57,13 @@ func AuthUserRoutes(router *echo.Echo, cfg *config.Config, baseURL string) {
 	authSrv := services.NewAuthUserService(authRepo, publicRepo, cfg)
 	pubSrv := services.NewPublicService(publicRepo, cfg)
 	api := newAuthUserAPI(authSrv, pubSrv)
-	server := auth_gen.NewStrictHandler(api, nil)
+
+	middle := middleware.NewMiddleware(cfg)
+
+	server := auth_gen.NewStrictHandler(api, []med_gen.StrictMiddlewareFunc{
+		middle.IsUser,
+	})
+
 	auth_gen.RegisterHandlersWithBaseURL(router, server, baseURL)
 }
 
