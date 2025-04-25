@@ -42,7 +42,7 @@ func NewPublicService(
 }
 
 func newUser(user models.User, role string) (*models.User, error) {
-	hashedPass, err := auth.HashPassword(user.HashPassword)
+	hashedPass, err := auth.HashPassword(user.Password)
 	if err != nil {
 		return nil, err
 	}
@@ -52,12 +52,12 @@ func newUser(user models.User, role string) (*models.User, error) {
 			FirstName: user.Name.FirstName,
 			LastName:  user.Name.LastName,
 		},
-		Age:          user.Age,
-		Phone:        user.Phone,
-		Email:        user.Email,
-		Role:         role,
-		IsActive:     false,
-		HashPassword: hashedPass,
+		Age:      user.Age,
+		Phone:    user.Phone,
+		Email:    user.Email,
+		Role:     role,
+		IsActive: false,
+		Password: hashedPass,
 	}, nil
 }
 
@@ -146,7 +146,7 @@ func (srv *publicService) LogInUser(ctx context.Context, email, password string)
 		return nil, wrapUserSpecErr(errs.ErrUserInactive)
 	}
 
-	if err = auth.CheckPasswordHash(password, user.HashPassword); err != nil {
+	if err = auth.CheckPasswordHash(password, user.Password); err != nil {
 		return nil, wrapUserSpecErr(errs.ErrUserNotAuthorized)
 	}
 
