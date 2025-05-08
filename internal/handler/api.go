@@ -1,33 +1,18 @@
-package api
+package handler
 
 import (
 	"log"
 	"medicine-app/config"
-	auth_gen "medicine-app/internal/api/authUser_gen"
-	general_gen "medicine-app/internal/api/gen_gen"
-	med_gen "medicine-app/internal/api/medicines_gen"
-	"medicine-app/internal/api/public_gen"
+	auth_gen "medicine-app/internal/handler/authUser_gen"
+	general_gen "medicine-app/internal/handler/gen_gen"
+	med_gen "medicine-app/internal/handler/medicines_gen"
+	"medicine-app/internal/handler/public_gen"
 	"medicine-app/internal/middleware"
 	"medicine-app/internal/repository"
 	"medicine-app/internal/services"
 
 	"github.com/labstack/echo/v4"
 )
-
-// type API struct {
-// 	services *services.Services
-// 	MedAPI   MedicineAPI
-// }
-
-// func NewAPI(srv *services.Services) *API {
-// 	if srv == nil {
-// 		panic("services can't be nil")
-// 	}
-// 	return &API{
-// 		services: srv,
-// 		MedAPI:   NewMedicineAPI(srv.MedService),
-// 	}
-// }
 
 func MedicineRoutes(router *echo.Echo, cfg *config.Config, baseURL string) {
 	repo := repository.NewMedicineRepo(&cfg.DB.Medicine)

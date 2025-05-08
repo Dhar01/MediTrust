@@ -1,9 +1,9 @@
-package api
+package handler
 
 import (
 	"context"
 	"errors"
-	med_gen "medicine-app/internal/api/medicines_gen"
+	med_gen "medicine-app/internal/handler/medicines_gen"
 	"medicine-app/internal/errs"
 	"medicine-app/internal/services"
 	"medicine-app/models"
