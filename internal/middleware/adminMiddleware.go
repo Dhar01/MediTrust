@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"medicine-app/config"
-	med_gen "medicine-app/internal/api/medicines_gen"
+	med_gen "medicine-app/internal/handler/medicines_gen"
 	"medicine-app/internal/auth"
 	"medicine-app/internal/errs"
 	"medicine-app/models"
@@ -75,7 +75,12 @@ func (m *middleware) IsAdmin(next med_gen.StrictHandlerFunc, operationID string)
 }
 
 func (m *middleware) requireLoggedIn(ctx echo.Context) error {
-	id, role, err := m.getUserAuth(ctx)
+	token, err := getToken(ctx)
+	if err != nil {
+		return err
+	}
+
+	id, role, err := m.getUserAuth(token)
 	if err != nil {
 		return err
 	}
@@ -94,18 +99,22 @@ func (m *middleware) requireLoggedIn(ctx echo.Context) error {
 	return nil
 }
 
-func (m *middleware) getUserAuth(ctx echo.Context) (uuid.UUID, string, error) {
-	token, err := auth.GetBearerToken(ctx.Request().Header)
-	if err != nil {
-		return wrapNilError(err)
-	}
-
+func (m *middleware) getUserAuth(token string) (uuid.UUID, string, error) {
 	id, role, err := auth.ValidateAccessToken(token, m.cfg.SecretKey)
 	if err != nil {
 		return wrapNilError(err)
 	}
 
 	return id, role, nil
+}
+
+func getToken(ctx echo.Context) (string, error) {
+	token, err := auth.GetBearerToken(ctx.Request().Header)
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
 }
 
 func wrapNilError(err error) (uuid.UUID, string, error) {

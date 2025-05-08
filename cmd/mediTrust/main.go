@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 	"medicine-app/config"
-	"medicine-app/internal/api"
+	api "medicine-app/internal/handler"
 	"medicine-app/models"
 	"net/http"
 

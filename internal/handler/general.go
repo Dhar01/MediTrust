@@ -1,8 +1,8 @@
-package api
+package handler
 
 import (
 	"context"
-	general_gen "medicine-app/internal/api/gen_gen"
+	general_gen "medicine-app/internal/handler/gen_gen"
 	"medicine-app/internal/services"
 )
 
