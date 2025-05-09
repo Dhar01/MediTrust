@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"medicine-app/models"
 	"net/http"
 	"strings"
 	"time"
@@ -20,6 +19,8 @@ var (
 	errNoRoleProvided     = errors.New("no role provided")
 	errNoUUIDProvided     = errors.New("no user ID provided")
 	errNoTimeProvided     = errors.New("time not provided")
+
+	companyName = "Meditrust"
 )
 
 type Claims struct {
@@ -38,7 +39,7 @@ func GenerateAccessToken(userID uuid.UUID, role, tokenSecret string, expiresIn t
 		UserID: userID,
 		Role:   role,
 		RegisteredClaims: jwt.RegisteredClaims{
-			Issuer:    models.CompanyName,
+			Issuer:    companyName,
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(expiresIn)),
 		},
@@ -64,7 +65,7 @@ func ValidateAccessToken(tokenString, tokenSecret string) (uuid.UUID, string, er
 		return wrapUUIDError(fmt.Errorf("ValidateJWT: %w", jwt.ErrTokenSignatureInvalid))
 	}
 
-	if claims.Issuer != models.CompanyName {
+	if claims.Issuer != companyName {
 		return wrapUUIDError(fmt.Errorf("ValidateJWT: %w", jwt.ErrTokenInvalidIssuer))
 	}
 
@@ -84,7 +85,7 @@ func GenerateVerificationToken(userid uuid.UUID, role, tokenSecret string) (stri
 		UserID: userid,
 		Role:   role,
 		RegisteredClaims: jwt.RegisteredClaims{
-			Issuer:    models.CompanyName,
+			Issuer:    companyName,
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 10)),
 		},
@@ -110,7 +111,7 @@ func ValidateVerificationToken(tokenString, tokenSecret string) (uuid.UUID, erro
 		return uuid.Nil, fmt.Errorf("ValidateVerificationToken: %w", jwt.ErrSignatureInvalid)
 	}
 
-	if claims.Issuer != models.CompanyName {
+	if claims.Issuer != companyName {
 		return uuid.Nil, fmt.Errorf("ValidateVerificationToken: %w", jwt.ErrTokenInvalidIssuer)
 	}
 
