@@ -3,8 +3,6 @@ package main
 import (
 	"log"
 	"medicine-app/config"
-	api "medicine-app/internal/handler"
-	"medicine-app/models"
 	"net/http"
 
 	_ "medicine-app/docs"
@@ -23,7 +21,7 @@ func main() {
 	}
 	defer cfg.DBConn.Close()
 
-	if cfg.Platform != models.Dev {
+	if cfg.Platform != "dev" {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
@@ -35,22 +33,22 @@ func main() {
 	router.Use(middleware.CORS())
 
 	// medicines
-	api.MedicineRoutes(router, cfg, apiBase)
+	// product.MedicineRoutes(router, cfg, apiBase)
 
 	// authentication & authorization
 	// srv.AuthRoutes(router, cfg, apiBase)
 
 	// users
-	api.AuthUserRoutes(router, cfg, apiBase)
+	// api.AuthUserRoutes(router, cfg, apiBase)
 
 	// public
-	api.PublicRoutes(router, cfg, apiBase)
+	// api.PublicRoutes(router, cfg, apiBase)
 
 	// admin
 	// api.AdminRoutes(router.Group(apiBase), cfg)
 
 	// general routes
-	api.GeneralRoutes(router, cfg, apiBase)
+	// api.GeneralRoutes(router, cfg, apiBase)
 
 	// documentation routes
 	// handlers.DocumentationRoute(router.Group(apiBase))
