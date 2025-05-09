@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"medicine-app/models"
 	"testing"
 	"time"
 
@@ -35,7 +34,7 @@ func TestJWT(t *testing.T) {
 	// })
 
 	t.Run("testing AccessToken - OK", func(t *testing.T) {
-		tokenString, err := GenerateAccessToken(userID, models.Customer, tokenST, expiresIn)
+		tokenString, err := GenerateAccessToken(userID, "customer", tokenST, expiresIn)
 		assertMessage(t, err)
 
 		id, _, err := ValidateAccessToken(tokenString, tokenST)
@@ -46,7 +45,7 @@ func TestJWT(t *testing.T) {
 		}
 	})
 	t.Run("testing VerificationToken - OK", func(t *testing.T) {
-		tokenString, err := GenerateVerificationToken(userID, models.Customer, tokenST)
+		tokenString, err := GenerateVerificationToken(userID, "customer", tokenST)
 		assertMessage(t, err)
 
 		id, err := ValidateVerificationToken(tokenString, tokenST)
@@ -57,7 +56,7 @@ func TestJWT(t *testing.T) {
 		}
 	})
 	t.Run("testing VerificationToken - Not OK", func(t *testing.T) {
-		tokenString, err := GenerateVerificationToken(userID, models.Admin, "noSecret")
+		tokenString, err := GenerateVerificationToken(userID, "admin", "noSecret")
 		assertMessage(t, err)
 
 		_, err = ValidateVerificationToken(tokenString, tokenST)
@@ -69,7 +68,7 @@ func TestJWT(t *testing.T) {
 
 func TestInputChecker(t *testing.T) {
 	id := uuid.New()
-	role := models.Customer
+	role := "customer"
 	tokenSecret := "myTokenSecret"
 	expiresIn := time.Minute
 

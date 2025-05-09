@@ -1,9 +1,0 @@
-package: general_gen
-output: ./gen_gen/general.gen.go
-generate:
-    models: true
-    echo-server: true
-    strict-server: true
-
-output-options:
-    skip-prune: true

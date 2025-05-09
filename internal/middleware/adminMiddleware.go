@@ -2,14 +2,14 @@ package middleware
 
 import (
 	"medicine-app/config"
-	med_gen "medicine-app/internal/handler/medicines_gen"
 	"medicine-app/internal/auth"
 	"medicine-app/internal/errs"
-	"medicine-app/models"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
+
+type HandlerFunc func(ctx echo.Context, request any) (response any, err error)
 
 type middleware struct {
 	cfg *config.Config
@@ -25,7 +25,7 @@ func NewMiddleware(cfg *config.Config) *middleware {
 	}
 }
 
-func (m *middleware) IsUser(next med_gen.StrictHandlerFunc, operationID string) med_gen.StrictHandlerFunc {
+func (m *middleware) IsUser(next HandlerFunc, operationID string) HandlerFunc {
 	return func(ctx echo.Context, request any) (any, error) {
 		if err := m.requireLoggedIn(ctx); err != nil {
 			return wrapErr(err)
@@ -36,7 +36,7 @@ func (m *middleware) IsUser(next med_gen.StrictHandlerFunc, operationID string) 
 			return wrapErr(errs.ErrUserRoleNotFound)
 		}
 
-		if role != models.Customer {
+		if role != "customer" {
 			return wrapErr(errs.ErrUserNotExist)
 		}
 
@@ -44,7 +44,7 @@ func (m *middleware) IsUser(next med_gen.StrictHandlerFunc, operationID string) 
 	}
 }
 
-func (m *middleware) IsAdmin(next med_gen.StrictHandlerFunc, operationID string) med_gen.StrictHandlerFunc {
+func (m *middleware) IsAdmin(next HandlerFunc, operationID string) HandlerFunc {
 	// admin protected
 	protected := map[string]bool{
 		"CreateNewMedicine":      true,
@@ -66,7 +66,7 @@ func (m *middleware) IsAdmin(next med_gen.StrictHandlerFunc, operationID string)
 			return wrapErr(errs.ErrUserRoleNotFound)
 		}
 
-		if role != models.Admin {
+		if role != "admin" {
 			return wrapErr(errs.ErrUserNotAdmin)
 		}
 
