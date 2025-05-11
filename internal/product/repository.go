@@ -3,7 +3,7 @@ package product
 import (
 	"context"
 	"errors"
-	"medicine-app/internal/database/medicine/medDB"
+	medicineDB "medicine-app/internal/database/medicine/medDB"
 	"medicine-app/internal/errs"
 
 	"github.com/google/uuid"
@@ -15,15 +15,16 @@ type MedicineRepository interface {
 	DeleteMedicine(ctx context.Context, medID uuid.UUID) error
 	UpdateMedicine(ctx context.Context, med medicine) (*medicine, error)
 	FetchMedicineByID(ctx context.Context, medID uuid.UUID) (*medicine, error)
+	FetchMedicineList(ctx context.Context) ([]*medicine, error)
 }
 
 type medRepo struct {
-	DB *medDB.Queries
+	DB *medicineDB.Queries
 }
 
 // type StrictEchoHandlerFunc func(ctx echo.Context, request interface{}) (response interface{}, err error)
 
-func NewMedicineRepo(db *medDB.Queries) MedicineRepository {
+func NewMedicineRepo(db *medicineDB.Queries) MedicineRepository {
 	if db == nil {
 		panic("database can't be nil")
 	}
@@ -52,7 +53,7 @@ func (repo *medRepo) CreateMedicine(ctx context.Context, med medicine) (*medicin
 }
 
 func (repo *medRepo) UpdateMedicine(ctx context.Context, med medicine) (*medicine, error) {
-	updatedMedicine, err := repo.DB.UpdateMedicine(ctx, medDB.UpdateMedicineParams{
+	updatedMedicine, err := repo.DB.UpdateMedicine(ctx, medicineDB.UpdateMedicineParams{
 		ID:           med.ID,
 		Name:         med.Name,
 		Dosage:       med.Dosage,
@@ -81,7 +82,16 @@ func (repo *medRepo) FetchMedicineByID(ctx context.Context, medID uuid.UUID) (*m
 	return toMedicineDomain(med), nil
 }
 
-func toMedicineDomain(dbMed medDB.Medicine) *medicine {
+func (repo *medRepo) FetchMedicineList(ctx context.Context) ([]*medicine, error) {
+	_, err := repo.DB.GetMedicines(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return []*medicine{}, nil
+}
+
+func toMedicineDomain(dbMed medicineDB.Medicine) *medicine {
 	return &medicine{
 		ID:           dbMed.ID,
 		Name:         dbMed.Name,

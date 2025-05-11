@@ -8,14 +8,6 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type medicineHandler struct {
-	service medService
-}
-
-// type medicineAPI struct {
-// 	medService MedService
-// }
-
 // func MedicineRoutes(router *echo.Echo, cfg *config.Config, baseURL string) {
 // 	repo := NewMedicineRepo(&cfg.DB.Medicine)
 // 	srv := NewMedicineService(repo)
@@ -27,7 +19,10 @@ type medicineHandler struct {
 // 	RegisterHandlersWithBaseURL(router, server, baseURL)
 // }
 
-// var _ StrictServerInterface = (*medicineAPI)(nil)
+
+type medicineHandler struct {
+	service medService
+}
 
 var _ ServerInterface = (*medicineHandler)(nil)
 
@@ -42,11 +37,39 @@ func newMedicineHandler(srv medService) *medicineHandler {
 }
 
 func (h *medicineHandler) FetchMedicineList(ctx echo.Context) error {
-	return nil
+	medicines, err := h.service.FetchMedicineList(ctx.Request().Context())
+	if err != nil {
+		// ! need to handle different error cases
+		return echo.NewHTTPError(http.StatusInternalServerError, "no entry found")
+	}
+
+	return ctx.JSON(http.StatusOK, medicines)
 }
 
 func (h *medicineHandler) CreateMedicine(ctx echo.Context) error {
-	return nil
+	/*
+		- learning note!
+
+		We could use `new()` to create a pointer to the request struct for binding, but it would
+		allocate on the heap, which requires garbage collection. That's slightly slower, although
+		irrelevant for most web apps.
+
+		Instead, we're going to use a stack-allocated value and passing its address to the binder.
+		It would be idiomatic and avoids unnecessary heap use.
+	*/
+	var req medicineRequest
+
+	if err := ctx.Bind(&req); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid body request")
+	}
+
+	result, err := h.service.CreateMedicine(ctx.Request().Context(), fromRequest(req))
+	// ! need to handle different types of errors
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "can't create medicine")
+	}
+
+	return ctx.JSON(http.StatusCreated, result)
 }
 
 func (h *medicineHandler) FetchMedicineByID(ctx echo.Context, medicineID MedicineID) error {
@@ -58,17 +81,35 @@ func (h *medicineHandler) FetchMedicineByID(ctx echo.Context, medicineID Medicin
 		return echo.NewHTTPError(http.StatusInternalServerError, "internal server error")
 	}
 
-	resp := toResponse(med)
-
-	return ctx.JSON(http.StatusOK, resp)
+	return ctx.JSON(http.StatusOK, toResponse(med))
 }
 
 func (h *medicineHandler) UpdateMedicineInfoByID(ctx echo.Context, medicineID MedicineID) error {
-	return nil
+	var req medicineRequest
+
+	if err := ctx.Bind(&req); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid body request")
+	}
+
+	med, err := h.service.UpdateMedicine(ctx.Request().Context(), medicineID, fromRequest(req))
+	// ! need to handle different types of errors
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "can't update medicine")
+	}
+
+	return ctx.JSON(http.StatusAccepted, med)
 }
 
 func (h *medicineHandler) DeleteMedicineByID(ctx echo.Context, medicineID MedicineID) error {
-	return nil
+	if err := h.service.DeleteMedicine(ctx.Request().Context(), medicineID); err != nil {
+		return echo.NewHTTPError(http.StatusNotFound, "need to work")
+	}
+
+	// return ctx.JSON(http.StatusAccepted, map[string]string{
+	// 	"message": "medicine deleted",
+	// })
+
+	return ctx.NoContent(http.StatusAccepted)
 }
 
 func toResponse(m *medicine) MedicineResponse {
@@ -95,59 +136,3 @@ func fromRequest(req MedicineRequest) medicine {
 		Stock:        req.Stock,
 	}
 }
-
-// func (api *medicineAPI) FetchMedicineList(ctx context.Context, request FetchMedicineListRequestObject) (FetchMedicineListResponseObject, error) {
-// 	return FetchMedicineList200JSONResponse{}, nil
-// }
-
-// func (api *medicineAPI) CreateNewMedicine(ctx context.Context, request CreateNewMedicineRequestObject) (CreateNewMedicineResponseObject, error) {
-// 	medicine, err := api.medService.CreateMedicine(ctx, CreateMedicineDTO{
-// 		Name:         request.Body.Name,
-// 		Dosage:       request.Body.Dosage,
-// 		Manufacturer: request.Body.Manufacturer,
-// 		Description:  request.Body.Description,
-// 		Price:        request.Body.Price,
-// 		Stock:        request.Body.Stock,
-// 	})
-// 	if err != nil {
-// 		return InternalServerErrorResponse{}, err
-// 	}
-// 	return CreateNewMedicine201JSONResponse(toResponseDomain(medicine)), nil
-// }
-
-// func (api *medicineAPI) DeleteMedicineByID(ctx context.Context, request DeleteMedicineByIDRequestObject) (DeleteMedicineByIDResponseObject, error) {
-// 	if err := api.medService.DeleteMedicine(ctx, request.MedicineID); err != nil {
-// 		return BadRequestErrorResponse{}, err
-// 	}
-// 	return DeleteMedicineByID204Response{}, nil
-// }
-
-// func (api *medicineAPI) UpdateMedicineInfoByID(ctx context.Context, request UpdateMedicineInfoByIDRequestObject) (UpdateMedicineInfoByIDResponseObject, error) {
-// 	med, err := api.medService.UpdateMedicine(ctx, request.MedicineID, medicine{
-// 		Name:         *request.Body.Name,
-// 		Dosage:       *request.Body.Dosage,
-// 		Description:  *request.Body.Description,
-// 		Manufacturer: *request.Body.Manufacturer,
-// 		Price:        *request.Body.Price,
-// 		Stock:        *request.Body.Stock,
-// 	})
-// 	if errors.Is(err, errs.ErrMedicineNotExist) {
-// 		return NotFoundErrorResponse{}, errs.ErrMedicineNotExist
-// 	}
-// 	if err != nil {
-// 		return InternalServerErrorResponse{}, err
-// 	}
-// 	return UpdateMedicineInfoByID202JSONResponse(toResponseDomain(med)), nil
-// }
-
-// func (mc *medicineService) FetchMedicineList(ctx context.Context, request med_gen.FetchMedicineListRequestObject) (med_gen.FetchMedicineListResponseObject, error) {
-// 	medicines, err := mc.DB.GetMedicines(ctx)
-// 	if err != nil {
-// 		return med_gen.InternalServerErrorResponse{}, err
-// 	}
-// 	var medList []med_gen.Medicine
-// 	for _, medicine := range medicines {
-// 		medList = append(medList, toResponseDomain(medicine))
-// 	}
-// 	return med_gen.FetchMedicineList200JSONResponse(medList), nil
-// }

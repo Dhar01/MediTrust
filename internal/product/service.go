@@ -13,6 +13,7 @@ type medService interface {
 	UpdateMedicine(ctx context.Context, medID uuid.UUID, med medicine) (*medicine, error)
 	DeleteMedicine(ctx context.Context, medID uuid.UUID) error
 	FetchMedicineByID(ctx context.Context, medID uuid.UUID) (*medicine, error)
+	FetchMedicineList(ctx context.Context) ([]medicine, error)
 }
 
 type medicineService struct {
@@ -63,6 +64,10 @@ func (srv *medicineService) FetchMedicineByID(ctx context.Context, medID uuid.UU
 	return srv.medicineRepo.FetchMedicineByID(ctx, medID)
 }
 
+func (srv *medicineService) FetchMedicineList(ctx context.Context) ([]medicine, error) {
+	return []medicine{}, nil
+}
+
 func wrapServiceErr(err error) (*medicine, error) {
 	if errors.Is(err, errs.ErrNotFound) {
 		return nil, errs.ErrMedicineNotExist
@@ -70,7 +75,6 @@ func wrapServiceErr(err error) (*medicine, error) {
 
 	return nil, err
 }
-
 
 func updateField(newValue, oldValue string) string {
 	if newValue == "" {
