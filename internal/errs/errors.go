@@ -3,7 +3,7 @@ package errs
 import "errors"
 
 var (
-	ErrNotFound = errors.New("not found")
+	ErrNotFound = errors.New("resource not found")
 
 	ErrMedicineNotExist = errors.New("medicine not exist")
 	ErrMedicineExist    = errors.New("medicine with same ID/Name exists")
