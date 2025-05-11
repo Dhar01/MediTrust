@@ -26,8 +26,8 @@ func main() {
 	}
 
 	router := echo.New()
-	router.Use(middleware.Recover())
 	router.Use(middleware.Logger())
+	router.Use(middleware.Recover())
 	router.Use(middleware.Secure())
 	router.Use(middleware.RequestID())
 	router.Use(middleware.CORS())
