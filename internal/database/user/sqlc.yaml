@@ -2,7 +2,10 @@ version: "2"
 
 sql:
     - engine: "postgresql"
-      schema: "../../../sql/schema"
+      schema:
+        - "../../../sql/schema/002_user.sql"
+        - "../../../sql/schema/003_address.sql"
+        - "../../../sql/schema/005_refreshToken.sql"
       queries:
         - "../../../sql/queries/users.sql"
         - "../../../sql/queries/address.sql"

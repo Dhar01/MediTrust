@@ -2,7 +2,10 @@ version: "2"
 
 sql:
     - engine: "postgresql"
-      schema: "../../../sql/schema"
+      schema:
+        - "../../../sql/schema/006_carts.sql"
+        - "../../../sql/schema/007_cartItems.sql"
+        - "../../../sql/schema/001_medicines.sql"
       queries:
         - "../../../sql/queries/carts.sql"
       gen:

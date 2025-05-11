@@ -8,13 +8,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type Admin struct {
-	AdminID      pgtype.UUID
-	IsSuperAdmin bool
-	CreatedAt    pgtype.Timestamp
-	UpdatedAt    pgtype.Timestamp
-}
-
 type Cart struct {
 	ID        pgtype.UUID
 	UserID    pgtype.UUID
@@ -40,37 +33,4 @@ type Medicine struct {
 	Stock        int32
 	CreatedAt    pgtype.Timestamp
 	UpdatedAt    pgtype.Timestamp
-}
-
-type RefreshToken struct {
-	Refreshtoken string
-	UserID       pgtype.UUID
-	ExpiresAt    pgtype.Timestamp
-	RevokedAt    pgtype.Timestamp
-	CreatedAt    pgtype.Timestamp
-	UpdatedAt    pgtype.Timestamp
-}
-
-type User struct {
-	ID           pgtype.UUID
-	FirstName    string
-	LastName     string
-	Age          int32
-	Role         string
-	Email        string
-	Verified     bool
-	Phone        string
-	PasswordHash string
-	CreatedAt    pgtype.Timestamp
-	UpdatedAt    pgtype.Timestamp
-}
-
-type UserAddress struct {
-	UserID        pgtype.UUID
-	Country       string
-	City          string
-	StreetAddress string
-	PostalCode    pgtype.Text
-	CreatedAt     pgtype.Timestamp
-	UpdatedAt     pgtype.Timestamp
 }
