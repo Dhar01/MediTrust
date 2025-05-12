@@ -3,57 +3,45 @@ package product
 import (
 	"context"
 	"errors"
-	medicineDB "medicine-app/internal/database/medicine/medDB"
-	"medicine-app/internal/errs"
+
+	"medicine-app/internal/database/medicine/pgMedicineDB"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx"
 )
 
-type MedicineRepository interface {
-	CreateMedicine(ctx context.Context, med medicine) (*medicine, error)
-	DeleteMedicine(ctx context.Context, medID uuid.UUID) error
-	UpdateMedicine(ctx context.Context, med medicine) (*medicine, error)
-	FetchMedicineByID(ctx context.Context, medID uuid.UUID) (*medicine, error)
-	FetchMedicineList(ctx context.Context) ([]*medicine, error)
+type pgMedicineRepo struct {
+	DB *pgMedicineDB.Queries
 }
 
-type medRepo struct {
-	DB *medicineDB.Queries
-}
-
-// type StrictEchoHandlerFunc func(ctx echo.Context, request interface{}) (response interface{}, err error)
-
-func NewMedicineRepo(db *medicineDB.Queries) MedicineRepository {
+func newMedicineRepo(db *pgMedicineDB.Queries) medicineRepository {
 	if db == nil {
 		panic("database can't be nil")
 	}
 
-	return &medRepo{
+	return &pgMedicineRepo{
 		DB: db,
 	}
 }
 
-func (repo *medRepo) CreateMedicine(ctx context.Context, med medicine) (*medicine, error) {
+func (repo *pgMedicineRepo) Create(ctx context.Context, med medicine) (*medicine, error) {
+	created, err := repo.DB.CreateMedicine(ctx, pgMedicineDB.CreateMedicineParams{
+		Name:         med.Name,
+		Dosage:       med.Dosage,
+		Description:  med.Description,
+		Manufacturer: med.Manufacturer,
+		Price:        med.Price,
+		Stock:        med.Stock,
+	})
+	if err != nil {
+		return nil, wrapRepoErr(err)
+	}
 
-	// med, err := repo.DB.CreateMedicine(ctx, CreateMedicineParams{
-	// 	Name:         med.Name,
-	// 	Dosage:       med.Dosage,
-	// 	Description:  med.Description,
-	// 	Manufacturer: med.Manufacturer,
-	// 	Price:        med.Price,
-	// 	Stock:        med.Stock,
-	// })
-	// if err != nil {
-	// 	return wrapMedicineErr(err)
-	// }
-	// return toMedicineDomain(med), nil
-
-	return &medicine{}, nil
+	return toMedicineDomain(created), nil
 }
 
-func (repo *medRepo) UpdateMedicine(ctx context.Context, med medicine) (*medicine, error) {
-	updatedMedicine, err := repo.DB.UpdateMedicine(ctx, medicineDB.UpdateMedicineParams{
+func (repo *pgMedicineRepo) Update(ctx context.Context, med medicine) (*medicine, error) {
+	updated, err := repo.DB.UpdateMedicine(ctx, pgMedicineDB.UpdateMedicineParams{
 		ID:           med.ID,
 		Name:         med.Name,
 		Dosage:       med.Dosage,
@@ -63,35 +51,35 @@ func (repo *medRepo) UpdateMedicine(ctx context.Context, med medicine) (*medicin
 		Stock:        med.Stock,
 	})
 	if err != nil {
-		return wrapMedicineErr(err)
+		return nil, wrapRepoErr(err)
 	}
 
-	return toMedicineDomain(updatedMedicine), nil
+	return toMedicineDomain(updated), nil
 }
 
-func (repo *medRepo) DeleteMedicine(ctx context.Context, medID uuid.UUID) error {
-	return wrapMedSpecErr(repo.DB.DeleteMedicine(ctx, medID))
+func (repo *pgMedicineRepo) Delete(ctx context.Context, medID uuid.UUID) error {
+	return wrapRepoErr(repo.DB.DeleteMedicine(ctx, medID))
 }
 
-func (repo *medRepo) FetchMedicineByID(ctx context.Context, medID uuid.UUID) (*medicine, error) {
+func (repo *pgMedicineRepo) FetchByID(ctx context.Context, medID uuid.UUID) (*medicine, error) {
 	med, err := repo.DB.GetMedicine(ctx, medID)
 	if err != nil {
-		return wrapMedicineErr(err)
+		return nil, wrapRepoErr(err)
 	}
 
 	return toMedicineDomain(med), nil
 }
 
-func (repo *medRepo) FetchMedicineList(ctx context.Context) ([]*medicine, error) {
+func (repo *pgMedicineRepo) FetchList(ctx context.Context) ([]*medicine, error) {
 	_, err := repo.DB.GetMedicines(ctx)
 	if err != nil {
-		return nil, err
+		return nil, wrapRepoErr(err)
 	}
 
 	return []*medicine{}, nil
 }
 
-func toMedicineDomain(dbMed medicineDB.Medicine) *medicine {
+func toMedicineDomain(dbMed pgMedicineDB.Medicine) *medicine {
 	return &medicine{
 		ID:           dbMed.ID,
 		Name:         dbMed.Name,
@@ -103,14 +91,12 @@ func toMedicineDomain(dbMed medicineDB.Medicine) *medicine {
 	}
 }
 
-func wrapMedicineErr(err error) (*medicine, error) {
-	return nil, wrapMedSpecErr(err)
-}
-
-func wrapMedSpecErr(err error) error {
+func wrapRepoErr(err error) error {
 	if errors.Is(err, pgx.ErrNoRows) {
-		return errs.ErrNotFound
+		return errNotFound
 	}
+
+	// handle other errors: constraint violation messages, duplicate key, etc..
 
 	return err
 }
