@@ -19,14 +19,13 @@ import (
 // 	RegisterHandlersWithBaseURL(router, server, baseURL)
 // }
 
-
 type medicineHandler struct {
-	service medService
+	service medicineService
 }
 
 var _ ServerInterface = (*medicineHandler)(nil)
 
-func newMedicineHandler(srv medService) *medicineHandler {
+func newMedicineHandler(srv medicineService) *medicineHandler {
 	if srv == nil {
 		panic("medicine service can't be nil")
 	}

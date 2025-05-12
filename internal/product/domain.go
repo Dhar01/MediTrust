@@ -1,11 +1,24 @@
 package product
 
 import (
+	"context"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
+
+var (
+	errNotFound        = errors.New("medicine not found")
+	errInvalidMedicine = errors.New("invalid medicine data")
+)
+
+func ProductRoutes() {
+	repo := newMedicineRepo(nil)
+	svc := newMedicineService(repo)
+	_ = newMedicineHandler(svc)
+}
 
 type medicine struct {
 	ID           uuid.UUID      `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
@@ -39,4 +52,20 @@ type medicineResponse struct {
 	Stock        int32     `json:"stock"`
 	CreatedAt    time.Time `json:"createdAt"`
 	UpdatedAt    time.Time `json:"updatedAt"`
+}
+
+type medicineService interface {
+	CreateMedicine(ctx context.Context, med medicine) (*medicine, error)
+	UpdateMedicine(ctx context.Context, medID uuid.UUID, med medicine) (*medicine, error)
+	DeleteMedicine(ctx context.Context, medID uuid.UUID) error
+	FetchMedicineByID(ctx context.Context, medID uuid.UUID) (*medicine, error)
+	FetchMedicineList(ctx context.Context) ([]medicine, error)
+}
+
+type medicineRepository interface {
+	Create(ctx context.Context, med medicine) (*medicine, error)
+	Delete(ctx context.Context, medID uuid.UUID) error
+	Update(ctx context.Context, med medicine) (*medicine, error)
+	FetchByID(ctx context.Context, medID uuid.UUID) (*medicine, error)
+	FetchList(ctx context.Context) ([]*medicine, error)
 }
