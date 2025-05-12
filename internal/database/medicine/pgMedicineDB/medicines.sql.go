@@ -3,7 +3,7 @@
 //   sqlc v1.27.0
 // source: medicines.sql
 
-package medDB
+package pgMedicineDB
 
 import (
 	"context"

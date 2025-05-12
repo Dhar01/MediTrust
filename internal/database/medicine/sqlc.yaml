@@ -6,8 +6,8 @@ sql:
       queries: "../../../sql/queries/medicines.sql"
       gen:
         go:
-            package: "medDB"
-            out: "./medDB"
+            package: "pgMedicineDB"
+            out: "./pgMedicineDB"
             sql_package: "pgx/v5"
             overrides:
                 - db_type: "uuid"

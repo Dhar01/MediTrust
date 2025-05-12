@@ -3,7 +3,7 @@ package database
 import (
 	"medicine-app/internal/database/cart/cartDB"
 	"medicine-app/internal/database/general/genDB"
-	"medicine-app/internal/database/medicine/medDB"
+	"medicine-app/internal/database/medicine/pgMedicineDB"
 	"medicine-app/internal/database/user/userDB"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -11,7 +11,7 @@ import (
 
 type DB struct {
 	User     userDB.Queries
-	Medicine medDB.Queries
+	Medicine pgMedicineDB.Queries
 	Cart     cartDB.Queries
 	Helper   genDB.Queries
 }
@@ -19,7 +19,7 @@ type DB struct {
 func New(pool *pgxpool.Pool) *DB {
 	return &DB{
 		User:     *userDB.New(pool),
-		Medicine: *medDB.New(pool),
+		Medicine: *pgMedicineDB.New(pool),
 		Cart:     *cartDB.New(pool),
 		Helper:   *genDB.New(pool),
 	}
