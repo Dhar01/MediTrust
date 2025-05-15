@@ -3,7 +3,7 @@
 //   sqlc v1.27.0
 // source: address.sql
 
-package userDB
+package database
 
 import (
 	"context"
@@ -139,15 +139,6 @@ func (q *Queries) GetUserWithAddress(ctx context.Context, id uuid.UUID) (GetUser
 		&i.UpdatedAt_2,
 	)
 	return i, err
-}
-
-const resetAddress = `-- name: ResetAddress :exec
-DELETE FROM user_address
-`
-
-func (q *Queries) ResetAddress(ctx context.Context) error {
-	_, err := q.db.Exec(ctx, resetAddress)
-	return err
 }
 
 const updateAddress = `-- name: UpdateAddress :one

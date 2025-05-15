@@ -2,7 +2,7 @@
 // versions:
 //   sqlc v1.27.0
 
-package userDB
+package database
 
 import (
 	"github.com/google/uuid"

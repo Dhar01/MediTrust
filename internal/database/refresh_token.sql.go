@@ -3,7 +3,7 @@
 //   sqlc v1.27.0
 // source: refresh_token.sql
 
-package userDB
+package database
 
 import (
 	"context"
