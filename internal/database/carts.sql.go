@@ -3,11 +3,12 @@
 //   sqlc v1.27.0
 // source: carts.sql
 
-package cartDB
+package database
 
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -24,20 +25,20 @@ RETURNING cart_id
 `
 
 type AddItemToCartParams struct {
-	MedicineID pgtype.UUID
-	CartID     pgtype.UUID
+	MedicineID uuid.UUID
+	CartID     uuid.UUID
 	Quantity   int32
 	Price      int32
 }
 
-func (q *Queries) AddItemToCart(ctx context.Context, arg AddItemToCartParams) (pgtype.UUID, error) {
+func (q *Queries) AddItemToCart(ctx context.Context, arg AddItemToCartParams) (uuid.UUID, error) {
 	row := q.db.QueryRow(ctx, addItemToCart,
 		arg.MedicineID,
 		arg.CartID,
 		arg.Quantity,
 		arg.Price,
 	)
-	var cart_id pgtype.UUID
+	var cart_id uuid.UUID
 	err := row.Scan(&cart_id)
 	return cart_id, err
 }
@@ -46,9 +47,9 @@ const createCart = `-- name: CreateCart :one
 INSERT INTO cart(user_id) VALUES($1) RETURNING id
 `
 
-func (q *Queries) CreateCart(ctx context.Context, userID pgtype.UUID) (pgtype.UUID, error) {
+func (q *Queries) CreateCart(ctx context.Context, userID uuid.UUID) (uuid.UUID, error) {
 	row := q.db.QueryRow(ctx, createCart, userID)
-	var id pgtype.UUID
+	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
 }
@@ -58,7 +59,7 @@ DELETE FROM cart
 WHERE cart.user_id = $1
 `
 
-func (q *Queries) DeleteCart(ctx context.Context, userID pgtype.UUID) error {
+func (q *Queries) DeleteCart(ctx context.Context, userID uuid.UUID) error {
 	_, err := q.db.Exec(ctx, deleteCart, userID)
 	return err
 }
@@ -79,7 +80,7 @@ WHERE cart.user_id = $1
 `
 
 type GetCartRow struct {
-	CartID       pgtype.UUID
+	CartID       uuid.UUID
 	CreatedAt    pgtype.Timestamp
 	ID           pgtype.Int4
 	MedicineID   pgtype.UUID
@@ -88,7 +89,7 @@ type GetCartRow struct {
 	Price        pgtype.Int4
 }
 
-func (q *Queries) GetCart(ctx context.Context, userID pgtype.UUID) ([]GetCartRow, error) {
+func (q *Queries) GetCart(ctx context.Context, userID uuid.UUID) ([]GetCartRow, error) {
 	rows, err := q.db.Query(ctx, getCart, userID)
 	if err != nil {
 		return nil, err
@@ -120,9 +121,9 @@ const getCartByUserID = `-- name: GetCartByUserID :one
 SELECT id FROM cart WHERE user_id = $1
 `
 
-func (q *Queries) GetCartByUserID(ctx context.Context, userID pgtype.UUID) (pgtype.UUID, error) {
+func (q *Queries) GetCartByUserID(ctx context.Context, userID uuid.UUID) (uuid.UUID, error) {
 	row := q.db.QueryRow(ctx, getCartByUserID, userID)
-	var id pgtype.UUID
+	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
 }
@@ -134,8 +135,8 @@ AND medicine_id = $2
 `
 
 type RemoveCartItemParams struct {
-	CartID     pgtype.UUID
-	MedicineID pgtype.UUID
+	CartID     uuid.UUID
+	MedicineID uuid.UUID
 }
 
 func (q *Queries) RemoveCartItem(ctx context.Context, arg RemoveCartItemParams) error {
@@ -154,8 +155,8 @@ WHERE
 
 type UpdateCartItemParams struct {
 	Quantity   int32
-	MedicineID pgtype.UUID
-	CartID     pgtype.UUID
+	MedicineID uuid.UUID
+	CartID     uuid.UUID
 }
 
 func (q *Queries) UpdateCartItem(ctx context.Context, arg UpdateCartItemParams) error {

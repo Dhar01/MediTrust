@@ -3,7 +3,7 @@
 //   sqlc v1.27.0
 // source: users.sql
 
-package userDB
+package database
 
 import (
 	"context"
@@ -210,15 +210,6 @@ type ResetPasswordParams struct {
 
 func (q *Queries) ResetPassword(ctx context.Context, arg ResetPasswordParams) error {
 	_, err := q.db.Exec(ctx, resetPassword, arg.PasswordHash, arg.ID)
-	return err
-}
-
-const resetUsers = `-- name: ResetUsers :exec
-DELETE FROM users
-`
-
-func (q *Queries) ResetUsers(ctx context.Context) error {
-	_, err := q.db.Exec(ctx, resetUsers)
 	return err
 }
 

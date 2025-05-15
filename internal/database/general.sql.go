@@ -3,7 +3,7 @@
 //   sqlc v1.27.0
 // source: general.sql
 
-package genDB
+package database
 
 import (
 	"context"
