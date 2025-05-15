@@ -15,7 +15,7 @@ import (
 )
 
 type Config struct {
-	DB          *database.DB
+	DB          *database.Queries
 	DBConn      *pgxpool.Pool
 	Platform    string
 	Domain      string
@@ -88,7 +88,7 @@ func initEmailSender() (*utils.EmailSender, error) {
 }
 
 // connectDB initializes and returns a database connection
-func connectDB() (*pgxpool.Pool, *database.DB, error) {
+func connectDB() (*pgxpool.Pool, *database.Queries, error) {
 	dbURL := mustGetEnv("DB_URL")
 
 	pool, err := pgxpool.New(context.Background(), dbURL)
