@@ -4,17 +4,17 @@ import (
 	"context"
 	"errors"
 
-	"medicine-app/internal/database/medicine/pgMedicineDB"
+	db "medicine-app/internal/database"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx"
 )
 
 type pgMedicineRepo struct {
-	DB *pgMedicineDB.Queries
+	DB *db.Queries
 }
 
-func newMedicineRepo(db *pgMedicineDB.Queries) medicineRepository {
+func newMedicineRepo(db *db.Queries) medicineRepository {
 	if db == nil {
 		panic("database can't be nil")
 	}
@@ -25,7 +25,7 @@ func newMedicineRepo(db *pgMedicineDB.Queries) medicineRepository {
 }
 
 func (repo *pgMedicineRepo) Create(ctx context.Context, med medicine) (*medicine, error) {
-	created, err := repo.DB.CreateMedicine(ctx, pgMedicineDB.CreateMedicineParams{
+	created, err := repo.DB.CreateMedicine(ctx, db.CreateMedicineParams{
 		Name:         med.Name,
 		Dosage:       med.Dosage,
 		Description:  med.Description,
@@ -41,7 +41,7 @@ func (repo *pgMedicineRepo) Create(ctx context.Context, med medicine) (*medicine
 }
 
 func (repo *pgMedicineRepo) Update(ctx context.Context, med medicine) (*medicine, error) {
-	updated, err := repo.DB.UpdateMedicine(ctx, pgMedicineDB.UpdateMedicineParams{
+	updated, err := repo.DB.UpdateMedicine(ctx, db.UpdateMedicineParams{
 		ID:           med.ID,
 		Name:         med.Name,
 		Dosage:       med.Dosage,
@@ -79,7 +79,7 @@ func (repo *pgMedicineRepo) FetchList(ctx context.Context) ([]*medicine, error) 
 	return []*medicine{}, nil
 }
 
-func toMedicineDomain(dbMed pgMedicineDB.Medicine) *medicine {
+func toMedicineDomain(dbMed db.Medicine) *medicine {
 	return &medicine{
 		ID:           dbMed.ID,
 		Name:         dbMed.Name,
