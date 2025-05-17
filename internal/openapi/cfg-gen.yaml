@@ -3,7 +3,7 @@ output: ./gen_gen/general.gen.go
 generate:
     models: true
     echo-server: true
-    strict-server: true
+    embedded-spec: true
 
 output-options:
     skip-prune: true
