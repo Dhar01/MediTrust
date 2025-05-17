@@ -3,27 +3,23 @@ package main
 import (
 	"log"
 	"medicine-app/config"
+	"medicine-app/internal/product"
 	"net/http"
 
 	_ "medicine-app/docs"
 
-	"github.com/gin-gonic/gin"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
 
-const apiBase = "/api/v1"
+const apiBase string = "/api/v1"
 
 func main() {
-	cfg, err := config.LoadConfig()
-	if err != nil {
+	if err := config.LoadConfig(); err != nil {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
-	defer cfg.DBConn.Close()
 
-	if cfg.Platform != "dev" {
-		gin.SetMode(gin.ReleaseMode)
-	}
+	cfg := config.GetConfig()
 
 	router := echo.New()
 	router.Use(middleware.Logger())
@@ -31,6 +27,9 @@ func main() {
 	router.Use(middleware.Secure())
 	router.Use(middleware.RequestID())
 	router.Use(middleware.CORS())
+
+	// products
+	product.ProductRoutes(*router.Group(apiBase))
 
 	// medicines
 	// product.MedicineRoutes(router, cfg, apiBase)
@@ -56,9 +55,7 @@ func main() {
 	// cart routes
 	// handlers.CartRoute(router.Group(apiBase), cfg)
 
-	port := ":" + cfg.Port
-
-	if err := router.Start(port); err != http.ErrServerClosed {
-		log.Fatalf("cant run in port %s: %v", cfg.Port, err)
+	if err := router.Start(cfg.Server.ServerHost + ":" + cfg.Server.ServerPort); err != http.ErrServerClosed {
+		log.Fatalf("cant run in port %s: %v", cfg.Server.ServerPort, err)
 	}
 }
