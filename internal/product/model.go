@@ -14,12 +14,6 @@ var (
 	errInvalidMedicine = errors.New("invalid medicine data")
 )
 
-func ProductRoutes() {
-	repo := newMedicineRepo(nil)
-	svc := newMedicineService(repo)
-	_ = newMedicineHandler(svc)
-}
-
 type medicine struct {
 	ID           uuid.UUID      `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
 	Name         string         `gorm:"type:varchar(100);not null"`
