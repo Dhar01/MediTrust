@@ -67,7 +67,7 @@ func LoadConfig() error {
 	return nil
 }
 
-// helper functions
+// helper: this function will only retrieve the key in string format
 func getEnvOrErr(key string) (string, error) {
 	value := strings.TrimSpace(os.Getenv(key))
 
@@ -80,6 +80,7 @@ func getEnvOrErr(key string) (string, error) {
 	return value, nil
 }
 
+// helper: this function will retrieve the key and convert to integer format
 func getEnvNumber(key string) (int, error) {
 	value, err := getEnvOrErr(key)
 	if err != nil {

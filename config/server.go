@@ -10,7 +10,7 @@ type ServerConfig struct {
 	ServerEnv  string
 }
 
-// server - host, port and env
+// get configuration for server - host, port and env
 func server() (serverConfig ServerConfig, err error) {
 	host, err := getEnvOrErr("SERVER_HOST")
 	if err != nil {
