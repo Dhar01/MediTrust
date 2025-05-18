@@ -57,7 +57,7 @@ type REDIS struct {
 	}
 }
 
-// Get configuration for relational database - postgres
+// Get configuration of relational database - postgres
 func databaseRDbms() (rDbms RDBMS, err error) {
 	host, err := getEnvOrErr("DB_HOST")
 	if err != nil {
