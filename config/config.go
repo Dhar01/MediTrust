@@ -1,15 +1,27 @@
 package config
 
 import (
-	"log"
+	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/joho/godotenv"
 )
 
-const Activated string = "yes"
+const (
+	Activated string = "yes"
+	BaseURL   string = "/api/v1"
+)
+
+type MissingEnvError struct {
+	Key string
+}
+
+func (e *MissingEnvError) Error() string {
+	return fmt.Sprintf("environment variable %s is required", e.Key)
+}
 
 type Configuration struct {
 	Database DatabaseConfig
@@ -31,18 +43,23 @@ func LoadConfig() error {
 
 	var config Configuration
 
-	config.Server = server()
+	server, err := server()
+	if err != nil {
+		return err
+	}
 
 	rDbms, err := databaseRDbms()
 	if err != nil {
 		return err
 	}
-	config.Database.RDbms = rDbms
 
 	redis, err := databaseRedis()
 	if err != nil {
 		return err
 	}
+
+	config.Server = server
+	config.Database.RDbms = rDbms
 	config.Database.Redis = redis
 
 	configAll = &config
@@ -50,13 +67,31 @@ func LoadConfig() error {
 	return nil
 }
 
-// helper function
-func mustGetEnv(key string) string {
+// helper functions
+func getEnvOrErr(key string) (string, error) {
 	value := strings.TrimSpace(os.Getenv(key))
 
 	if value == "" {
-		log.Fatalf("ENV variable %s is required", key)
+		return "", &MissingEnvError{
+			Key: key,
+		}
 	}
 
-	return value
+	return value, nil
+}
+
+func getEnvNumber(key string) (int, error) {
+	value, err := getEnvOrErr(key)
+	if err != nil {
+		return 0, err
+	}
+
+	number, err := strconv.Atoi(value)
+	if err != nil {
+		return 0, &MissingEnvError{
+			Key: key,
+		}
+	}
+
+	return number, nil
 }
