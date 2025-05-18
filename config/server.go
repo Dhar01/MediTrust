@@ -11,10 +11,25 @@ type ServerConfig struct {
 }
 
 // server - host, port and env
-func server() (serverConfig ServerConfig) {
-	serverConfig.ServerHost = mustGetEnv("SERVER_HOST")
-	serverConfig.ServerPort = mustGetEnv("SERVER_PORT")
-	serverConfig.ServerEnv = strings.ToLower(mustGetEnv("SERVER_ENV"))
+func server() (serverConfig ServerConfig, err error) {
+	host, err := getEnvOrErr("SERVER_HOST")
+	if err != nil {
+		return
+	}
+
+	port, err := getEnvOrErr("SERVER_PORT")
+	if err != nil {
+		return
+	}
+
+	environment, err := getEnvOrErr("SERVER_ENV")
+	if err != nil {
+		return
+	}
+
+	serverConfig.ServerHost = host
+	serverConfig.ServerPort = port
+	serverConfig.ServerEnv = strings.ToLower(environment)
 
 	return
 }

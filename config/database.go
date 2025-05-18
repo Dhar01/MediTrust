@@ -1,7 +1,6 @@
 package config
 
 import (
-	"strconv"
 	"time"
 )
 
@@ -58,16 +57,47 @@ type REDIS struct {
 	}
 }
 
+// Get configuration for relational database - postgres
 func databaseRDbms() (rDbms RDBMS, err error) {
+	host, err := getEnvOrErr("DB_HOST")
+	if err != nil {
+		return
+	}
+
+	port, err := getEnvOrErr("DB_PORT")
+	if err != nil {
+		return
+	}
+
+	timezone, err := getEnvOrErr("DB_TIMEZONE")
+	if err != nil {
+		return
+	}
+
+	dbName, err := getEnvOrErr("DB_NAME")
+	if err != nil {
+		return
+	}
+
+	username, err := getEnvOrErr("DB_USER")
+	if err != nil {
+		return
+	}
+
+	password, err := getEnvOrErr("DB_PASS")
+	if err != nil {
+		return
+	}
+
 	// ENV
-	rDbms.Env.Host = mustGetEnv("DB_HOST")
-	rDbms.Env.Port = mustGetEnv("DB_PORT")
-	rDbms.Env.TimeZone = mustGetEnv("DB_TIMEZONE")
+	rDbms.Env.Host = host
+	rDbms.Env.Port = port
+	rDbms.Env.TimeZone = timezone
 
 	// ACCESS
-	rDbms.Access.DbName = mustGetEnv("DB_NAME")
-	rDbms.Access.User = mustGetEnv("DB_USER")
-	rDbms.Access.Pass = mustGetEnv("DB_PASS")
+	rDbms.Access.DbName = dbName
+	rDbms.Access.User = username
+	rDbms.Access.Pass = password
 
 	// SSL
 	// rDbms.Ssl.SslMode = mustGetEnv("DB_SSL_MODE")
@@ -78,20 +108,32 @@ func databaseRDbms() (rDbms RDBMS, err error) {
 	return
 }
 
+// Get configuration of REDIS database
 func databaseRedis() (redis REDIS, err error) {
-	poolSize, err := strconv.Atoi(mustGetEnv("POOL_SIZE"))
+	poolSize, err := getEnvNumber("POOL_SIZE")
 	if err != nil {
 		return
 	}
 
-	connTTL, err := strconv.Atoi(mustGetEnv("CONN_TTL"))
+	connTTL, err := getEnvNumber("CONN_TTL")
 	if err != nil {
 		return
 	}
 
-	redis.Env.Host = mustGetEnv("REDIS_HOST")
-	redis.Env.Port = mustGetEnv("REDIS_PORT")
+	host, err := getEnvOrErr("REDIS_HOST")
+	if err != nil {
+		return
+	}
+
+	port, err := getEnvOrErr("REDIS_PORT")
+	if err != nil {
+		return
+	}
+
+	redis.Env.Host = host
+	redis.Env.Port = port
 	redis.Conn.PoolSize = poolSize
 	redis.Conn.ConnTTL = connTTL
+
 	return
 }
