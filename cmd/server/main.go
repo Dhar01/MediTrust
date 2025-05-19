@@ -15,12 +15,15 @@ import (
 const apiBase string = "/api/v1"
 
 func main() {
+	// load the configuration file
 	if err := config.LoadConfig(); err != nil {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
 
+	// get the configuration
 	cfg := config.GetConfig()
 
+	// defining defaults
 	router := echo.New()
 	router.Use(middleware.Logger())
 	router.Use(middleware.Recover())
@@ -29,7 +32,7 @@ func main() {
 	router.Use(middleware.CORS())
 
 	// products
-	product.ProductRoutes(*router.Group(apiBase))
+	product.ProductRoutes(*router.Group(apiBase), *cfg)
 
 	// medicines
 	// product.MedicineRoutes(router, cfg, apiBase)
@@ -55,6 +58,7 @@ func main() {
 	// cart routes
 	// handlers.CartRoute(router.Group(apiBase), cfg)
 
+	// starting the server
 	if err := router.Start(cfg.Server.ServerHost + ":" + cfg.Server.ServerPort); err != http.ErrServerClosed {
 		log.Fatalf("cant run in port %s: %v", cfg.Server.ServerPort, err)
 	}
