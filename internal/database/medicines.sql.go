@@ -71,13 +71,13 @@ func (q *Queries) DeleteMedicine(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
-const getMedicine = `-- name: GetMedicine :one
+const getMedicineByID = `-- name: GetMedicineByID :one
 SELECT id, name, dosage, description, manufacturer, price, stock, created_at, updated_at FROM medicines
 WHERE id = $1
 `
 
-func (q *Queries) GetMedicine(ctx context.Context, id uuid.UUID) (Medicine, error) {
-	row := q.db.QueryRow(ctx, getMedicine, id)
+func (q *Queries) GetMedicineByID(ctx context.Context, id uuid.UUID) (Medicine, error) {
+	row := q.db.QueryRow(ctx, getMedicineByID, id)
 	var i Medicine
 	err := row.Scan(
 		&i.ID,
@@ -91,6 +91,16 @@ func (q *Queries) GetMedicine(ctx context.Context, id uuid.UUID) (Medicine, erro
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const getMedicineByName = `-- name: GetMedicineByName :exec
+SELECT id, name, dosage, description, manufacturer, price, stock, created_at, updated_at FROM medicines
+WHERE name = $1
+`
+
+func (q *Queries) GetMedicineByName(ctx context.Context, name string) error {
+	_, err := q.db.Exec(ctx, getMedicineByName, name)
+	return err
 }
 
 const getMedicines = `-- name: GetMedicines :many
