@@ -17,9 +17,13 @@ RETURNING *;
 -- name: GetMedicines :many
 SELECT * FROM medicines;
 
--- name: GetMedicine :one
+-- name: GetMedicineByID :one
 SELECT * FROM medicines
 WHERE id = $1;
+
+-- name: GetMedicineByName :exec
+SELECT * FROM medicines
+WHERE name = $1;
 
 -- name: UpdateMedicine :one
 UPDATE medicines
