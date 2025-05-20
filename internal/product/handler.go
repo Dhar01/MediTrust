@@ -8,17 +8,6 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// func MedicineRoutes(router *echo.Echo, cfg *config.Config, baseURL string) {
-// 	repo := NewMedicineRepo(&cfg.DB.Medicine)
-// 	srv := NewMedicineService(repo)
-// 	api := newMedicineAPI(srv)
-// 	// middle := middleware.NewMiddleware(cfg)
-// 	// server := NewStrictHandler(api, []StrictMiddlewareFunc{
-// 	// 	// Adapt(middle.IsAdmin),
-// 	// })
-// 	RegisterHandlersWithBaseURL(router, server, baseURL)
-// }
-
 type medicineHandler struct {
 	service medicineService
 }
@@ -118,10 +107,8 @@ func toResponse(m *medicine) MedicineResponse {
 		Manufacturer: m.Manufacturer,
 		Dosage:       m.Dosage,
 		Description:  m.Description,
-		Price:        m.Price,
+		Price:        float64(m.Price) / 100,
 		Stock:        m.Stock,
-		CreatedAt:    m.CreatedAt,
-		UpdatedAt:    m.UpdatedAt,
 	}
 }
 
@@ -131,7 +118,7 @@ func fromRequest(req MedicineRequest) medicine {
 		Manufacturer: req.Manufacturer,
 		Dosage:       req.Dosage,
 		Description:  req.Description,
-		Price:        req.Price,
+		Price:        int32(req.Price * 100),
 		Stock:        req.Stock,
 	}
 }

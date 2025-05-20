@@ -13,6 +13,14 @@ type medService struct {
 	medicineRepo medicineRepository
 }
 
+type missingMustHaveErr struct {
+	Key string
+}
+
+func (e missingMustHaveErr) Error() string {
+	return fmt.Sprintf("the field %s is required", e.Key)
+}
+
 func newMedicineService(repo medicineRepository) medicineService {
 	if repo == nil {
 		panic("repository can't be nil/empty")
@@ -24,6 +32,31 @@ func newMedicineService(repo medicineRepository) medicineService {
 }
 
 func (srv *medService) CreateMedicine(ctx context.Context, med medicine) (*medicine, error) {
+	if med.Name == "" {
+		return wrapMustHaveErr("name")
+	}
+
+	// if the medicine with the same name available or not
+	if err := srv.medicineRepo.FetchByName(ctx, med.Name); err == nil {
+		return nil, fmt.Errorf("%s found", med.Name)
+	}
+
+	if med.Manufacturer == "" {
+		return wrapMustHaveErr("manufacturer")
+	}
+
+	if med.Dosage == "" {
+		return wrapMustHaveErr("dosage")
+	}
+
+	if med.Price < 0 {
+		return wrapMustHaveErr("price")
+	}
+
+	if med.Stock < 0 {
+		return wrapMustHaveErr("stock")
+	}
+
 	return srv.medicineRepo.Create(ctx, med)
 }
 
@@ -69,12 +102,19 @@ func (srv *medService) FetchMedicineList(ctx context.Context) ([]medicine, error
 	return []medicine{}, nil
 }
 
+// helper functions
 func wrapServiceErr(err error) (*medicine, error) {
 	if errors.Is(err, errs.ErrNotFound) {
 		return nil, errs.ErrMedicineNotExist
 	}
 
 	return nil, err
+}
+
+func wrapMustHaveErr(key string) (*medicine, error) {
+	return nil, missingMustHaveErr{
+		Key: key,
+	}
 }
 
 func updateField(newValue, oldValue string) string {
