@@ -4,17 +4,17 @@ import (
 	"context"
 	"errors"
 
-	db "medicine-app/internal/database"
+	"medicine-app/internal/database"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx"
 )
 
 type pgMedicineRepo struct {
-	DB *db.Queries
+	DB *database.Queries
 }
 
-func newMedicineRepo(db *db.Queries) medicineRepository {
+func newMedicineRepo(db *database.Queries) medicineRepository {
 	if db == nil {
 		panic("database can't be nil")
 	}
@@ -25,7 +25,7 @@ func newMedicineRepo(db *db.Queries) medicineRepository {
 }
 
 func (repo *pgMedicineRepo) Create(ctx context.Context, med medicine) (*medicine, error) {
-	created, err := repo.DB.CreateMedicine(ctx, db.CreateMedicineParams{
+	created, err := repo.DB.CreateMedicine(ctx, database.CreateMedicineParams{
 		Name:         med.Name,
 		Dosage:       med.Dosage,
 		Description:  med.Description,
@@ -41,7 +41,7 @@ func (repo *pgMedicineRepo) Create(ctx context.Context, med medicine) (*medicine
 }
 
 func (repo *pgMedicineRepo) Update(ctx context.Context, med medicine) (*medicine, error) {
-	updated, err := repo.DB.UpdateMedicine(ctx, db.UpdateMedicineParams{
+	updated, err := repo.DB.UpdateMedicine(ctx, database.UpdateMedicineParams{
 		ID:           med.ID,
 		Name:         med.Name,
 		Dosage:       med.Dosage,
@@ -62,12 +62,20 @@ func (repo *pgMedicineRepo) Delete(ctx context.Context, medID uuid.UUID) error {
 }
 
 func (repo *pgMedicineRepo) FetchByID(ctx context.Context, medID uuid.UUID) (*medicine, error) {
-	med, err := repo.DB.GetMedicine(ctx, medID)
+	med, err := repo.DB.GetMedicineByID(ctx, medID)
 	if err != nil {
 		return nil, wrapRepoErr(err)
 	}
 
 	return toMedicineDomain(med), nil
+}
+
+func (repo *pgMedicineRepo) FetchByName(ctx context.Context, name string) error {
+	if err := repo.DB.GetMedicineByName(ctx, name); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (repo *pgMedicineRepo) FetchList(ctx context.Context) ([]*medicine, error) {
@@ -79,7 +87,7 @@ func (repo *pgMedicineRepo) FetchList(ctx context.Context) ([]*medicine, error) 
 	return []*medicine{}, nil
 }
 
-func toMedicineDomain(dbMed db.Medicine) *medicine {
+func toMedicineDomain(dbMed database.Medicine) *medicine {
 	return &medicine{
 		ID:           dbMed.ID,
 		Name:         dbMed.Name,
