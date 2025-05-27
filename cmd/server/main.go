@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"medicine-app/config"
-	"medicine-app/internal/product"
 	"net/http"
 
 	_ "medicine-app/docs"
@@ -32,7 +31,7 @@ func main() {
 	router.Use(middleware.CORS())
 
 	// products
-	product.ProductRoutes(*router.Group(apiBase), *cfg)
+	// product.ProductRoutes(*router.Group(apiBase), *cfg)
 
 	// medicines
 	// product.MedicineRoutes(router, cfg, apiBase)
