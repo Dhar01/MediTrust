@@ -1,9 +1,0 @@
-package: product
-output: ./product/medicine.gen.go
-generate:
-    models: true
-    echo-server: true
-    embedded-spec: true
-
-output-options:
-    skip-prune: true
