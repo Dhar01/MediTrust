@@ -27,7 +27,6 @@ SELECT * FROM products WHERE id = $1;
 -- name: GetProductByName :one
 SELECT * FROM products WHERE name = $1;
 
-
 -- name: UpdateProduct :one
 UPDATE products
 SET
