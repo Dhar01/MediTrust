@@ -48,7 +48,7 @@ func (a *Auth) IsUserAdmin() bool {
 	return a.Role == RoleAdmin
 }
 
-// AuthRequest defines the response structure for auth entity
+// AuthRequest defines the request structure for auth entity
 type AuthRequest struct {
 	Email    string `json:"email" validate:"required,email"`
 	Phone    string `json:"phone" validate:"required,e164"`
