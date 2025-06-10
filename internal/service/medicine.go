@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	"medicine-app/internal/database/model"
+	"medicine-app/internal/model"
 	"medicine-app/internal/store"
 
 	"github.com/google/uuid"

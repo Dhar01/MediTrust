@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 	"medicine-app/internal/database"
-	"medicine-app/internal/database/model"
+	"medicine-app/internal/model"
 
 	"github.com/google/uuid"
 )

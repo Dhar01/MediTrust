@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"medicine-app/internal/database/model"
+	"medicine-app/internal/model"
 	"medicine-app/internal/service"
 	"net/http"
 
