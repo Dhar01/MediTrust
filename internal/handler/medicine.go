@@ -13,11 +13,11 @@ import (
 // medHandler defines the handler structure for medicine route
 type medHandler struct {
 	validator *validator.Validate
-	srv       service.MedService
+	srv       *service.MedService
 }
 
 // NewMedHandler returns a medHandler instance for the medicine route
-func NewMedHandler(valid *validator.Validate, srv service.MedService) *medHandler {
+func NewMedHandler(valid *validator.Validate, srv *service.MedService) *medHandler {
 	return &medHandler{
 		validator: valid,
 		srv:       srv,
@@ -40,7 +40,7 @@ func (h *medHandler) CreateMedicine(e echo.Context) error {
 
 	result, err := h.srv.CreateMedicine(e.Request().Context(), req)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return setErrorResp(err)
 	}
 
 	return e.JSON(http.StatusCreated, result.AdminResponse())
@@ -62,7 +62,7 @@ func (h *medHandler) UpdateMedicine(e echo.Context) error {
 
 	result, err := h.srv.UpdateMedicine(e.Request().Context(), req)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return setErrorResp(err)
 	}
 
 	return e.JSON(http.StatusAccepted, result.AdminResponse())
@@ -81,7 +81,7 @@ func (h *medHandler) DeleteMedicine(e echo.Context) error {
 	}
 
 	if err := h.srv.Delete(e.Request().Context(), productID); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return setErrorResp(err)
 	}
 
 	return e.NoContent(http.StatusOK)
