@@ -3,7 +3,7 @@ package repository
 import (
 	"errors"
 	"medicine-app/internal/database"
-	"medicine-app/internal/database/model"
+	"medicine-app/internal/model"
 	"medicine-app/internal/errs"
 
 	"github.com/jackc/pgx"
