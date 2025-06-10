@@ -3,20 +3,17 @@ package main
 import (
 	"log"
 	"medicine-app/config"
+	r "medicine-app/internal/router"
 	"net/http"
-
-	_ "medicine-app/docs"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
 
-const apiBase string = "/api/v1"
-
 func main() {
 	// load the configuration file
 	if err := config.LoadConfig(); err != nil {
-		log.Fatalf("Failed to load configuration: %v", err)
+		log.Fatalf("failed to load configuration: %v", err)
 	}
 
 	// get the configuration
@@ -30,32 +27,7 @@ func main() {
 	router.Use(middleware.RequestID())
 	router.Use(middleware.CORS())
 
-	// products
-	// product.ProductRoutes(*router.Group(apiBase), *cfg)
-
-	// medicines
-	// product.MedicineRoutes(router, cfg, apiBase)
-
-	// authentication & authorization
-	// srv.AuthRoutes(router, cfg, apiBase)
-
-	// users
-	// api.AuthUserRoutes(router, cfg, apiBase)
-
-	// public
-	// api.PublicRoutes(router, cfg, apiBase)
-
-	// admin
-	// api.AdminRoutes(router.Group(apiBase), cfg)
-
-	// general routes
-	// api.GeneralRoutes(router, cfg, apiBase)
-
-	// documentation routes
-	// handlers.DocumentationRoute(router.Group(apiBase))
-
-	// cart routes
-	// handlers.CartRoute(router.Group(apiBase), cfg)
+	r.SetUpRouter(cfg, router)
 
 	// starting the server
 	if err := router.Start(cfg.Server.ServerHost + ":" + cfg.Server.ServerPort); err != http.ErrServerClosed {
