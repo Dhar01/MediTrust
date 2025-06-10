@@ -5,73 +5,70 @@
 package database
 
 import (
+	"database/sql/driver"
+	"fmt"
+
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type Admin struct {
-	AdminID      uuid.UUID
-	IsSuperAdmin bool
-	CreatedAt    pgtype.Timestamp
-	UpdatedAt    pgtype.Timestamp
+type ProductType string
+
+const (
+	ProductTypeMedicine          ProductType = "medicine"
+	ProductTypeMedicalInstrument ProductType = "medical_instrument"
+)
+
+func (e *ProductType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = ProductType(s)
+	case string:
+		*e = ProductType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for ProductType: %T", src)
+	}
+	return nil
 }
 
-type Cart struct {
-	ID        uuid.UUID
-	UserID    uuid.UUID
-	CreatedAt pgtype.Timestamp
+type NullProductType struct {
+	ProductType ProductType
+	Valid       bool // Valid is true if ProductType is not NULL
 }
 
-type CartItem struct {
-	ID         int32
-	CartID     uuid.UUID
-	MedicineID uuid.UUID
-	Quantity   int32
-	Price      int32
-	CreatedAt  pgtype.Timestamp
+// Scan implements the Scanner interface.
+func (ns *NullProductType) Scan(value interface{}) error {
+	if value == nil {
+		ns.ProductType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.ProductType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullProductType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.ProductType), nil
 }
 
 type Medicine struct {
+	ID         uuid.UUID
+	Dosage     string
+	ExpiryDate pgtype.Timestamp
+}
+
+type Product struct {
 	ID           uuid.UUID
 	Name         string
-	Dosage       string
-	Description  string
 	Manufacturer string
+	Description  string
 	Price        int32
+	Cost         int32
 	Stock        int32
+	Type         ProductType
 	CreatedAt    pgtype.Timestamp
 	UpdatedAt    pgtype.Timestamp
-}
-
-type RefreshToken struct {
-	Refreshtoken string
-	UserID       uuid.UUID
-	ExpiresAt    pgtype.Timestamp
-	RevokedAt    pgtype.Timestamp
-	CreatedAt    pgtype.Timestamp
-	UpdatedAt    pgtype.Timestamp
-}
-
-type User struct {
-	ID           uuid.UUID
-	FirstName    string
-	LastName     string
-	Age          int32
-	Role         string
-	Email        string
-	Verified     bool
-	Phone        string
-	PasswordHash string
-	CreatedAt    pgtype.Timestamp
-	UpdatedAt    pgtype.Timestamp
-}
-
-type UserAddress struct {
-	UserID        uuid.UUID
-	Country       string
-	City          string
-	StreetAddress string
-	PostalCode    pgtype.Text
-	CreatedAt     pgtype.Timestamp
-	UpdatedAt     pgtype.Timestamp
 }

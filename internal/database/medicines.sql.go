@@ -9,179 +9,111 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createMedicine = `-- name: CreateMedicine :one
 INSERT INTO medicines (
-    id, name, dosage, description, manufacturer, price, stock, created_at, updated_at
+    id, dosage, expiry_date
 ) VALUES (
-    gen_random_uuid(),
     $1,
     $2,
-    $3,
-    $4,
-    $5,
-    $6,
-    NOW(),
-    NOW()
+    $3
 )
-RETURNING id, name, dosage, description, manufacturer, price, stock, created_at, updated_at
+RETURNING id, dosage, expiry_date
 `
 
 type CreateMedicineParams struct {
-	Name         string
-	Dosage       string
-	Description  string
-	Manufacturer string
-	Price        int32
-	Stock        int32
+	ID         uuid.UUID
+	Dosage     string
+	ExpiryDate pgtype.Timestamp
 }
 
 func (q *Queries) CreateMedicine(ctx context.Context, arg CreateMedicineParams) (Medicine, error) {
-	row := q.db.QueryRow(ctx, createMedicine,
-		arg.Name,
-		arg.Dosage,
-		arg.Description,
-		arg.Manufacturer,
-		arg.Price,
-		arg.Stock,
-	)
+	row := q.db.QueryRow(ctx, createMedicine, arg.ID, arg.Dosage, arg.ExpiryDate)
 	var i Medicine
+	err := row.Scan(&i.ID, &i.Dosage, &i.ExpiryDate)
+	return i, err
+}
+
+const getFullMedicineByID = `-- name: GetFullMedicineByID :one
+SELECT
+    p.id, p.name, p.manufacturer, p.description, p.price,
+    p.cost, p.stock, p.type, p.created_at, p.updated_at,
+    m.dosage, m.expiry_date, p.created_at, p.updated_at
+FROM medicines m
+JOIN products p on m.id = p.id
+WHERE p.id = $1
+`
+
+type GetFullMedicineByIDRow struct {
+	ID           uuid.UUID
+	Name         string
+	Manufacturer string
+	Description  string
+	Price        int32
+	Cost         int32
+	Stock        int32
+	Type         ProductType
+	CreatedAt    pgtype.Timestamp
+	UpdatedAt    pgtype.Timestamp
+	Dosage       string
+	ExpiryDate   pgtype.Timestamp
+	CreatedAt_2  pgtype.Timestamp
+	UpdatedAt_2  pgtype.Timestamp
+}
+
+func (q *Queries) GetFullMedicineByID(ctx context.Context, id uuid.UUID) (GetFullMedicineByIDRow, error) {
+	row := q.db.QueryRow(ctx, getFullMedicineByID, id)
+	var i GetFullMedicineByIDRow
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
-		&i.Dosage,
-		&i.Description,
 		&i.Manufacturer,
+		&i.Description,
 		&i.Price,
+		&i.Cost,
 		&i.Stock,
+		&i.Type,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Dosage,
+		&i.ExpiryDate,
+		&i.CreatedAt_2,
+		&i.UpdatedAt_2,
 	)
 	return i, err
 }
 
-const deleteMedicine = `-- name: DeleteMedicine :exec
-DELETE FROM medicines
-WHERE id = $1
+const getMedicineInfoByID = `-- name: GetMedicineInfoByID :one
+SELECT id, dosage, expiry_date FROM medicines WHERE id = $1
 `
 
-func (q *Queries) DeleteMedicine(ctx context.Context, id uuid.UUID) error {
-	_, err := q.db.Exec(ctx, deleteMedicine, id)
-	return err
-}
-
-const getMedicineByID = `-- name: GetMedicineByID :one
-SELECT id, name, dosage, description, manufacturer, price, stock, created_at, updated_at FROM medicines
-WHERE id = $1
-`
-
-func (q *Queries) GetMedicineByID(ctx context.Context, id uuid.UUID) (Medicine, error) {
-	row := q.db.QueryRow(ctx, getMedicineByID, id)
+func (q *Queries) GetMedicineInfoByID(ctx context.Context, id uuid.UUID) (Medicine, error) {
+	row := q.db.QueryRow(ctx, getMedicineInfoByID, id)
 	var i Medicine
-	err := row.Scan(
-		&i.ID,
-		&i.Name,
-		&i.Dosage,
-		&i.Description,
-		&i.Manufacturer,
-		&i.Price,
-		&i.Stock,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
+	err := row.Scan(&i.ID, &i.Dosage, &i.ExpiryDate)
 	return i, err
-}
-
-const getMedicineByName = `-- name: GetMedicineByName :exec
-SELECT id, name, dosage, description, manufacturer, price, stock, created_at, updated_at FROM medicines
-WHERE name = $1
-`
-
-func (q *Queries) GetMedicineByName(ctx context.Context, name string) error {
-	_, err := q.db.Exec(ctx, getMedicineByName, name)
-	return err
-}
-
-const getMedicines = `-- name: GetMedicines :many
-SELECT id, name, dosage, description, manufacturer, price, stock, created_at, updated_at FROM medicines
-`
-
-func (q *Queries) GetMedicines(ctx context.Context) ([]Medicine, error) {
-	rows, err := q.db.Query(ctx, getMedicines)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Medicine
-	for rows.Next() {
-		var i Medicine
-		if err := rows.Scan(
-			&i.ID,
-			&i.Name,
-			&i.Dosage,
-			&i.Description,
-			&i.Manufacturer,
-			&i.Price,
-			&i.Stock,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
 }
 
 const updateMedicine = `-- name: UpdateMedicine :one
 UPDATE medicines
 SET
-    name = $1,
-    dosage = $2,
-    description = $3,
-    manufacturer = $4,
-    price = $5,
-    stock = $6,
-    updated_at = NOW() + interval '1 second'
-WHERE id = $7
-RETURNING id, name, dosage, description, manufacturer, price, stock, created_at, updated_at
+    dosage = $1,
+    expiry_date = $2
+WHERE id = $3
+RETURNING id, dosage, expiry_date
 `
 
 type UpdateMedicineParams struct {
-	Name         string
-	Dosage       string
-	Description  string
-	Manufacturer string
-	Price        int32
-	Stock        int32
-	ID           uuid.UUID
+	Dosage     string
+	ExpiryDate pgtype.Timestamp
+	ID         uuid.UUID
 }
 
 func (q *Queries) UpdateMedicine(ctx context.Context, arg UpdateMedicineParams) (Medicine, error) {
-	row := q.db.QueryRow(ctx, updateMedicine,
-		arg.Name,
-		arg.Dosage,
-		arg.Description,
-		arg.Manufacturer,
-		arg.Price,
-		arg.Stock,
-		arg.ID,
-	)
+	row := q.db.QueryRow(ctx, updateMedicine, arg.Dosage, arg.ExpiryDate, arg.ID)
 	var i Medicine
-	err := row.Scan(
-		&i.ID,
-		&i.Name,
-		&i.Dosage,
-		&i.Description,
-		&i.Manufacturer,
-		&i.Price,
-		&i.Stock,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
+	err := row.Scan(&i.ID, &i.Dosage, &i.ExpiryDate)
 	return i, err
 }
