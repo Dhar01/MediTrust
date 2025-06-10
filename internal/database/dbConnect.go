@@ -8,9 +8,9 @@ import (
 )
 
 func GetDB(rDbms config.RDBMS) (*Queries, error) {
-	dsn := getDSN(rDbms)
+	dsn := GetDSN(rDbms)
 
-	conn, err := connectDB(dsn)
+	conn, err := ConnectDB(dsn)
 	if err != nil {
 		return nil, err
 	}
@@ -18,7 +18,7 @@ func GetDB(rDbms config.RDBMS) (*Queries, error) {
 	return New(conn), nil
 }
 
-func connectDB(dsn string) (*pgxpool.Pool, error) {
+func ConnectDB(dsn string) (*pgxpool.Pool, error) {
 	pool, err := pgxpool.New(context.Background(), dsn)
 	if err != nil {
 		return nil, err
@@ -32,7 +32,7 @@ func connectDB(dsn string) (*pgxpool.Pool, error) {
 	return pool, nil
 }
 
-func getDSN(rDbms config.RDBMS) string {
+func GetDSN(rDbms config.RDBMS) string {
 	host := "host=" + rDbms.Env.Host
 	port := " port=" + rDbms.Env.Port
 	username := " user=" + rDbms.Access.User
