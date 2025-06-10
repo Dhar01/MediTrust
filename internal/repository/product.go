@@ -45,7 +45,7 @@ func (r *productPostgresRepo) Create(ctx context.Context, product model.Product)
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, setErrorMsg(err)
 	}
 
 	return toProduct(result), nil
@@ -65,7 +65,7 @@ func (r *productPostgresRepo) Update(ctx context.Context, product model.Product)
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, setErrorMsg(err)
 	}
 
 	return toProduct(updatedProduct), nil
@@ -74,7 +74,7 @@ func (r *productPostgresRepo) Update(ctx context.Context, product model.Product)
 // Delete deletes a product instance by its productID [has FK constraint]
 func (r *productPostgresRepo) Delete(ctx context.Context, productID uuid.UUID) error {
 	if err := r.db.DeleteProduct(ctx, productID); err != nil {
-		return err
+		return setErrorMsg(err)
 	}
 
 	return nil
@@ -84,7 +84,7 @@ func (r *productPostgresRepo) Delete(ctx context.Context, productID uuid.UUID) e
 func (r *productPostgresRepo) FetchByID(ctx context.Context, productID uuid.UUID) (*model.Product, error) {
 	product, err := r.db.GetProductByID(ctx, productID)
 	if err != nil {
-		return nil, err
+		return nil, setErrorMsg(err)
 	}
 
 	return toProduct(product), nil
@@ -94,7 +94,7 @@ func (r *productPostgresRepo) FetchByID(ctx context.Context, productID uuid.UUID
 func (r *productPostgresRepo) FetchByName(ctx context.Context, name string) (*model.Product, error) {
 	product, err := r.db.GetProductByName(ctx, name)
 	if err != nil {
-		return nil, err
+		return nil, setErrorMsg(err)
 	}
 
 	return toProduct(product), nil
@@ -104,7 +104,7 @@ func (r *productPostgresRepo) FetchByName(ctx context.Context, name string) (*mo
 func (r *productPostgresRepo) FetchList(ctx context.Context) ([]model.Product, error) {
 	products, err := r.db.GetProducts(ctx)
 	if err != nil {
-		return nil, err
+		return nil, setErrorMsg(err)
 	}
 
 	results := make([]model.Product, 0, len(products))
@@ -130,14 +130,4 @@ func toProduct(product database.Product) *model.Product {
 		CreatedAt:    product.CreatedAt.Time,
 		UpdatedAt:    product.UpdatedAt.Time,
 	}
-}
-
-// toDBProductType helper mapped the type to the database.ProductType
-func toDBProductType(t model.ProductType) database.ProductType {
-	return database.ProductType(t)
-}
-
-// toModelProductType helper mapped the type to the model.ProductType
-func toModelProductType(t database.ProductType) model.ProductType {
-	return model.ProductType(t)
 }
