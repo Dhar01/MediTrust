@@ -41,7 +41,7 @@ func (r *medPostgresRepo) Create(ctx context.Context, med model.Medicine) (*mode
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, setErrorMsg(err)
 	}
 
 	return toMedicine(newMedicine), nil
@@ -58,7 +58,7 @@ func (r *medPostgresRepo) Update(ctx context.Context, med model.Medicine) (*mode
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, setErrorMsg(err)
 	}
 
 	return toMedicine(updatedMed), nil
