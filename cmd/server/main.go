@@ -30,7 +30,7 @@ func main() {
 	r.SetUpRouter(cfg, router)
 
 	// starting the server
-	if err := router.Start(cfg.Server.ServerHost + ":" + cfg.Server.ServerPort); err != http.ErrServerClosed {
-		log.Fatalf("cant run in port %s: %v", cfg.Server.ServerPort, err)
+	if err := router.Start(cfg.App.Host + ":" + cfg.App.Port); err != http.ErrServerClosed {
+		log.Fatalf("cant run in port %s: %v", cfg.App.Port, err)
 	}
 }

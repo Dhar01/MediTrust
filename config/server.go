@@ -2,16 +2,8 @@ package config
 
 import "strings"
 
-// the struct is copied from [pilinux/gorest](https://github.com/pilinux/gorest)
-// Licensed under the MIT License
-type ServerConfig struct {
-	ServerHost string
-	ServerPort string // public port of server
-	ServerEnv  string
-}
-
 // get configuration for server - host, port and env
-func server() (serverConfig ServerConfig, err error) {
+func server() (appConfig AppConfig, err error) {
 	host, err := getEnvOrErr("SERVER_HOST")
 	if err != nil {
 		return
@@ -27,9 +19,9 @@ func server() (serverConfig ServerConfig, err error) {
 		return
 	}
 
-	serverConfig.ServerHost = host
-	serverConfig.ServerPort = port
-	serverConfig.ServerEnv = strings.ToLower(environment)
+	appConfig.Host = host
+	appConfig.Port = port
+	appConfig.Env = strings.ToLower(environment)
 
 	return
 }

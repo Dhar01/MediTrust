@@ -12,10 +12,10 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func SetUpRouter(conf *config.Configuration, e *echo.Echo) {
-	dsn := database.GetDSN(conf.Database.RDbms)
+func SetUpRouter(conf *config.Config, e *echo.Echo) {
+	dsn := database.GetDSN(conf.Database)
 
-	db, err := database.GetDB(conf.Database.RDbms)
+	db, err := database.GetDB(conf.Database)
 	if err != nil {
 		log.Fatalf("can't get to DB instance: %v", err)
 	}
