@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"strings"
 
-	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/joho/godotenv"
 )
 
@@ -23,47 +22,55 @@ func (e *MissingEnvError) Error() string {
 	return fmt.Sprintf("environment variable %s is required", e.Key)
 }
 
-type Configuration struct {
-	Database DatabaseConfig
-	Server   ServerConfig
+type Config struct {
+	App      AppConfig
+	Database DBConfig
 }
 
-var configAll *Configuration
+type AppConfig struct {
+	Env  string
+	Host string
+	Port string
+}
+
+type DBConfig struct {
+	Host    string
+	Port    string
+	User    string
+	Pass    string
+	DbName  string
+	SslMode string
+}
+
+var cfgAll *Config
 
 // GetConfig - return all config variables
-func GetConfig() *Configuration {
-	return configAll
+func GetConfig() *Config {
+	return cfgAll
 }
 
-// LoadConfig - load all available configurations
+// LoadConfig will load the configuration from .env file
 func LoadConfig() error {
 	if err := godotenv.Load(); err != nil {
 		return err
 	}
 
-	var config Configuration
+	var cfg Config
 
 	server, err := server()
 	if err != nil {
 		return err
 	}
 
-	rDbms, err := databaseRDbms()
+	rdbms, err := databaseRDbms()
 	if err != nil {
 		return err
 	}
 
-	redis, err := databaseRedis()
-	if err != nil {
-		return err
-	}
+	cfg.App = server
+	cfg.Database = rdbms
 
-	config.Server = server
-	config.Database.RDbms = rDbms
-	config.Database.Redis = redis
-
-	configAll = &config
-
+	cfgAll = &cfg
 	return nil
 }
 

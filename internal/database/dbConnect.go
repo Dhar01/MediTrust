@@ -7,7 +7,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func GetDB(rDbms config.RDBMS) (*Queries, error) {
+func GetDB(rDbms config.DBConfig) (*Queries, error) {
 	dsn := GetDSN(rDbms)
 
 	conn, err := ConnectDB(dsn)
@@ -32,22 +32,16 @@ func ConnectDB(dsn string) (*pgxpool.Pool, error) {
 	return pool, nil
 }
 
-func GetDSN(rDbms config.RDBMS) string {
-	host := "host=" + rDbms.Env.Host
-	port := " port=" + rDbms.Env.Port
-	username := " user=" + rDbms.Access.User
-	database := " dbname=" + rDbms.Access.DbName
-	password := " password=" + rDbms.Access.Pass
-	timezone := " TimeZone=" + rDbms.Env.TimeZone
+func GetDSN(rDbms config.DBConfig) string {
+	host := "host=" + rDbms.Host
+	port := " port=" + rDbms.Port
+	username := " user=" + rDbms.User
+	database := " dbname=" + rDbms.DbName
+	password := " password=" + rDbms.Pass
 
-	dsn := host + port + username + database + password + timezone
+	dsn := host + port + username + database + password
 
-	// ! currently working for the development
-	if rDbms.Ssl.SslMode == "" {
-		rDbms.Ssl.SslMode = "disable"
-	}
-
-	sslMode := " sslmode=" + rDbms.Ssl.SslMode
+	sslMode := " sslmode=" + rDbms.SslMode
 
 	dsn += sslMode
 
